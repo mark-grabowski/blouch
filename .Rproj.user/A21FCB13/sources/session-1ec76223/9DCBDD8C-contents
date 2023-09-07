@@ -25,7 +25,7 @@ While the front-end component of Blouch is written in R (R Core Team, 2015), the
 ## Getting Started
 If you are just getting started with Blouch I recommend starting with the tutorial vignettes available on the package website. Blouch is based on an article currently in review:
 
-+ Grabowski, M (in review). Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses (BLOUCH).
++ Grabowski, M (in review). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses
 
 ## Instalation Instructions
 To install the R and Stan functions associated with Blouch from github, first install the package devtools:
@@ -33,7 +33,7 @@ To install the R and Stan functions associated with Blouch from github, first in
 #install.packages("devtools")
 #library(devtools)
 ```
-Then install blouch
+Then install Blouch
 ```{r}
 #devtools::install_github("mark-grabowski/blouch")
 #library(blouch)

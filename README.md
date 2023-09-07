@@ -24,8 +24,8 @@ If you are just getting started with Blouch I recommend starting with
 the tutorial vignettes available on the package website. Blouch is based
 on an article currently in review:
 
-- Grabowski, M (in review). Bayesian Linear Ornstein-Uhlenbeck models
-  for Comparative Hypotheses (BLOUCH).
+- Grabowski, M (in review). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck
+  models for Comparative Hypotheses
 
 ## Instalation Instructions
 
@@ -37,7 +37,7 @@ first install the package devtools:
 #library(devtools)
 ```
 
-Then install blouch
+Then install Blouch
 
 ``` r
 #devtools::install_github("mark-grabowski/blouch")
