@@ -1,0 +1,5 @@
+"0","#tiplabels(pch=19,cex=1,col=reg.colors[factor(trdata$dat$regimes)])"
+"0",""
+"0","reg_tips<-trdata$dat$regimes"
+"0","reg_tips<-as.numeric(as.factor(reg_tips))"
+"0",""
