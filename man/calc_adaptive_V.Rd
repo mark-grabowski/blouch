@@ -4,42 +4,20 @@
 \alias{calc_adaptive_V}
 \title{calc_adaptive_V - Calculate adaptive variance/covariance matrix}
 \usage{
-calc_adaptive_V(
-  phy,
-  a,
-  sigma2_y,
-  ta,
-  tij,
-  tja,
-  T_term,
-  beta,
-  sigma2_x,
-  Z_adaptive,
-  n_reg
-)
+calc_adaptive_V(phy, a, sigma2_y, beta, sigma2_x, Z_adaptive)
 }
 \arguments{
-\item{phy}{phylogney in phytools format}
+\item{phy}{phylogney in NEXUS format}
 
 \item{a}{Rate parameter for OU model}
 
 \item{sigma2_y}{Variance of Y}
-
-\item{ta}{Tree info}
-
-\item{tij}{Tree info}
-
-\item{tja}{Tree info}
-
-\item{T_term}{Tree info}
 
 \item{beta}{slope}
 
 \item{sigma2_x}{Brownian-motion parameterof X}
 
 \item{Z_adaptive}{Number of adaptive predictors}
-
-\item{n_reg}{Number of regimes}
 }
 \value{
 Variance/covariance matrix

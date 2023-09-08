@@ -4,12 +4,12 @@
 \alias{calc_adaptive_dmX}
 \title{calc_adaptive_dmX - calculate adaptive predictor matrix for Blouch}
 \usage{
-calc_adaptive_dmX(a, T_term, X)
+calc_adaptive_dmX(phy, a, X)
 }
 \arguments{
-\item{a}{Rate parameter for OU model}
+\item{phy}{Phylogeny in NEXUS format}
 
-\item{T_term}{T_term parameter for phylogeny}
+\item{a}{Rate parameter for OU model}
 
 \item{X}{Predictor}
 }

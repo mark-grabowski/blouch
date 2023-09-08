@@ -4,12 +4,12 @@
 \alias{calc_mixed_dmX}
 \title{calc_mixed_dmX - calculate mixed direct effect and adaptive predictor matrix for Blouch}
 \usage{
-calc_mixed_dmX(a, T_term, X, Z_direct, Z_adaptive)
+calc_mixed_dmX(phy, a, X, Z_direct, Z_adaptive)
 }
 \arguments{
-\item{a}{Rate parameter for OU model}
+\item{phy}{Phylogeny in NEXUS format}
 
-\item{T_term}{T_term parameter for phylogeny}
+\item{a}{Rate parameter for OU model}
 
 \item{X}{Predictor}
 

@@ -7,7 +7,7 @@
 calc_direct_V(phy, sigma2_y, a)
 }
 \arguments{
-\item{phy}{phylogeny in phytools format}
+\item{phy}{Phylogeny in NEXUS format}
 
 \item{sigma2_y}{Variance of Y}
 

@@ -1,6 +1,6 @@
 #' calc_direct_V Calculate direct effect model V/CV matrix
 #'
-#' @param phy phylogeny in phytools format
+#' @param phy Phylogeny in NEXUS format
 #' @param sigma2_y Variance of Y
 #' @param a Rate parameter for OU model
 #'
