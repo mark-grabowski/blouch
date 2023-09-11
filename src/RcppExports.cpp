@@ -13,15 +13,29 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_adapt_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_adapt_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_adapt_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_direct_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_direct_adapt_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_direct_adapt_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_direct_adapt_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_priorpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_nc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_priorpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mlm_ve_mod();
@@ -31,23 +45,49 @@ RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mlm_vi_nc_m
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_ve_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_priorpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_nc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_proiorpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_priorpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_mlm_vi_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_mlm_vi_nc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_postpc_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_priorpc_mod();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_stan_fit4blouchOU_adapt_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_adapt_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_adapt_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_adapt_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_adapt_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_adapt_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_direct_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_direct_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_direct_adapt_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_direct_adapt_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_direct_adapt_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_direct_adapt_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_direct_adapt_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_direct_adapt_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_nc_priorpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_ve_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_nc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_nc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_mlm_vi_priorpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_adapt_ve_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mlm_ve_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_mlm_ve_mod, 0},
@@ -57,11 +97,23 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_ve_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_adapt_ve_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_nc_priorpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_ve_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_nc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_nc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_proiorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_mlm_vi_proiorpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_direct_ve_priorpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_mlm_vi_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_mlm_vi_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_reg_mlm_vi_nc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_mlm_vi_nc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_postpc_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchOU_reg_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_reg_priorpc_mod, 0},
     {NULL, NULL, 0}
 };
 

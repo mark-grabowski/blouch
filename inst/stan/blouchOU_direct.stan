@@ -43,8 +43,8 @@ model {
   target += exponential_lpdf(vy|5);
   //alpha ~ normal(-1.179507,0.75);
   //beta ~ normal(6.304451,1.5);
-  target += normal_lpdf(alpha|-1.179507,0.75);
-  target += normal_lpdf(beta|6.304451,1.5);
+  target += normal_lpdf(alpha|2.01,0.75);
+  target += normal_lpdf(beta|0.241523,1.5);
   a = log(2)/hl;
   V = calc_V(a, sigma2_y,ta, tij);
   L_v = cholesky_decompose(V);

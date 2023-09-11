@@ -16,7 +16,7 @@ functions {
     int match_positions[num_matches(x, y)];
     int pos = 1;
     //for (i in 1:size(x)) {
-    for (i in 1:(dims(x)[1])) {  
+    for (i in 1:(dims(x)[1])) {
       if (x[i] == y) {
         match_positions[pos] = i;
         pos += 1;
@@ -28,7 +28,7 @@ functions {
     vector[nodes] weights = append_row(exp(-a * t_beginning) - exp(-a * t_end),exp(-a * time));
     return(weights);
   }
-  
+
   row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
     //Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
@@ -71,7 +71,7 @@ functions {
     real var_opt;
     var_opt=sum(square(beta)*sigma2_x);
     term0 = ((var_opt + sigma2_y) / (2 * a)) * (1 - exp( -2 * a * ta)) .* exp(-a * tij);
-    term1 = (1 - exp(-a * ti)) ./ (a * ti); 
+    term1 = (1 - exp(-a * ti)) ./ (a * ti);
     term2 = exp(-a * tja) .* (1 - exp(-a * ti)) ./ (a * ti);
     Vt = term0 + var_opt * (ta .* term1 .* (term1') - ((1 - exp(-a * ta)) ./ a) .* (term2 + (term2'))); //From Hansen et al. (2008)
     return Vt;
@@ -93,7 +93,7 @@ data {
   matrix[N,N] tja;
   vector[N] T_term;
   matrix[N, max_node_num] t_beginning; //Matrix of times for beginning of segments to node
-  matrix[N, max_node_num] t_end; //Matrix of times for end of segments to 
+  matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
@@ -126,7 +126,7 @@ model {
   matrix[N,n_reg] optima_matrix;
   vector[1+Z_adaptive] ab_bar;
     //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.75);
+  target += lognormal_lpdf(hl|log(0.25),0.25);
   //vy ~ exponential(5);
   target += exponential_lpdf(vy|20);
     //optima_bar ~ normal(2.88,1.5);
@@ -178,8 +178,8 @@ generated quantities {
   vector[N] log_lik;
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
-  real rho = (1 - (1 - exp(-a * T_term))./(a * T_term))[1]; 
-  matrix[n_reg,Z_adaptive] beta_e = beta*rho; 
+  real rho = (1 - (1 - exp(-a * T_term))./(a * T_term))[1];
+  matrix[n_reg,Z_adaptive] beta_e = beta*rho;
   //Based on https://cran.r-project.org/web/packages/loo/vignettes/loo2-non-factorized.htmlloo-cv-for-multivariate-normal-models
   //LOO-CV for multivariate normal models
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x,Z_adaptive,n_reg);
@@ -197,7 +197,7 @@ generated quantities {
       sigma_ii = inv_V[i,i];
       u_i = Y_obs[i]-g_i/sigma_ii;
       sigma_i = 1/sigma_ii;
-      
+
       log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y_obs[i]-u_i)/sigma_i);
       }
 }

@@ -1,0 +1,742 @@
+---
+title: "Varying_Effects_Models-Examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Varying_Effects_Models-Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r}
+rm(list=ls())
+```
+
+```{r setup}
+library(blouch)
+```
+
+
+Here I walk you through the varying effects models of Blouch. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model.
+
+
+#Multi-optima Direct Effect Model with Varying Effects - Single Predictor
+First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
+```{r MODEMVE_setup}
+########################################################################################################
+
+set.seed(10)
+
+N<-50 #Number of species
+#set.seed(1) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+#Set regimes - manually - 2 regimes
+#Locate nodes
+plot(phy,no.margin=TRUE,edge.width=2,cex=0.7)
+ape::nodelabels(frame="none",adj=c(1.1,-0.4))
+ape::tiplabels()
+
+#Paint Regimes on Tree
+
+shifts<-c(84) #Location of nodes with regime shifts
+trdata<-data.frame(phy$tip.label)
+trdata<-treeplyr::make.treedata(phy,trdata)
+trdata<-set.converge.regimes(trdata,shifts)
+
+
+#Check if manual setting code worked
+shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
+edge.regimes <- factor(shifts.total[trdata$phy$edge[,2]])
+print(edge.regimes)
+#Get ggplot colors used for plot to make on tree
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length=n+1)
+  hcl(h=hues, l=65, c=100)[1:n]
+}
+
+reg.colors<-gg_color_hue(length(unique(trdata$dat$regimes)))
+
+reg_tips<-trdata$dat$regimes
+reg_tips<-as.numeric(as.factor(reg_tips))
+
+print(reg.colors)
+plot(trdata$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.2)
+
+#Phylogeny info
+n<-length(trdata$phy$tip.label)
+
+regimes_internal <-trdata$phy$node.label
+regimes_tip <- trdata$dat$regimes
+regimes <- concat.factor(regimes_tip, regimes_internal)
+
+
+anc_maps<-"regimes"
+lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes, ace)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+
+
+```
+
+Simulate X and Y data
+```{r}
+#########################
+hl<-0.1 #0.1, 0.25, 0.75 - testing options
+a<-log(2)/hl
+vy<-0.01 #0.25,0.5 - testing options
+sigma2_y<-vy*(2*(log(2)/hl));
+
+vX0<-0
+vY0 <- 0
+Sxx<-10 #Look at effects
+
+X<-phytools::fastBM(phy,a=vX0,sig2=Sxx,internal=FALSE) #Simulate X BM variable on tree, with scaling 10
+Z_direct<-1
+names(X)<-phy$tip.label
+phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+
+dmX<-weight.matrix(trdata$phy, a, lineages) #Slouch approach
+optima<-c(2,1)
+beta<-c(0.25,0.15) #Two Optima/Two Slopes
+mu<-matrix(NA,N,1)
+for(i in 1:N){
+  mu[i]<-dmX[i,]%*%optima+beta[reg_tips[i]]%*%X[i];
+}
+
+V<-calc_direct_V(phy,sigma2_y,a)
+Y<-MASS::mvrnorm(n=1,mu,V)
+
+##################################################################################################################
+#Simulate errors - original Hansen setup
+Z_X_error<-1 #Number of X traits with error
+X_error<-rep(0.01,N)
+Y_error<-rep(0.01,N)
+Y_with_error<-Y+rnorm(N,0,0.01)
+X_with_error<-X+rnorm(N,0,0.01)
+
+############################################################################################################
+#Make trdata file
+trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error)))
+
+```
+
+We will use the helper function blouch.reg.direct.prep() to setup the dat file for Stan. Here "Z_direct" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+#Test Blouch prep code - Regimes + Direct Efffect model
+#source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/R Setup Code/blouch.prep.R")
+dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=1,"regimes")
+
+```
+
+```{r}
+##################################################################################################################
+#Plot of data
+df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.plot.1<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X,color=Regimes))+
+  
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2],alpha=0.5,linetype=2)+
+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect Trait")+
+  ggsci::scale_color_npg()
+
+slope.plot.1
+
+```
+
+Multilevel Multi-optima Direct Effect Model with Varying Effects
+```{r}
+fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
+```
+
+```{r}
+print(fit.reg.direct.mlm.ve,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.mlm.ve,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
+post<-rstan::extract(fit.reg.direct.mlm.ve)
+```
+
+Multilevel Multi-optima Direct Effect Model with Varying Effects - Non centered
+```{r}
+fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 2,cores=2,iter =2000)
+```
+
+```{r}
+print(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.mlm.ve.nc,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
+post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
+```
+
+Multi-optima Direct Effect Model with Varying Effects
+```{r}
+fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
+```
+
+```{r}
+print(fit.reg.direct.ve,pars = c("hl","vy","","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","beta")))
+post<-rstan::extract(fit.reg.direct.ve)
+```
+
+```{r}
+rm(list=ls())
+
+```
+
+#Multlevel Multi-optima Direct Effect Model with Varying Effects - Multiple Predictors
+Two regimes with two direct effect predictors and multiple slopes per optima but single alpha parameter
+```{r Multi_optima_model_setup}
+############################################################################################################
+#Regimes model
+############################################################################################################
+########################################################################################################
+#Create phylogeny
+########################################################################################################
+N<-50 #Number of species
+set.seed(10) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+tip.label<-phy$tip.label
+
+
+#Set regimes - manually - 2 regimes
+#Locate nodes
+plot(phy,no.margin=TRUE,edge.width=2,cex=0.7)
+ape::nodelabels(frame="none",adj=c(1.1,-0.4))
+ape::tiplabels()
+
+#Paint Regimes on Tree
+#source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/Simulation Code/Functions/set.converge.regimes.R") #Macbook Pro
+
+shifts<-c(84) #Location of nodes with regime shifts
+trdata<-data.frame(phy$tip.label)
+trdata<-treeplyr::make.treedata(phy,trdata)
+trdata<-set.converge.regimes(trdata,shifts)
+
+#Check if manual setting code worked
+shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
+edge.regimes <- factor(shifts.total[trdata$phy$edge[,2]])
+print(edge.regimes)
+
+reg_tips<-trdata$dat$regimes
+reg_tips<-as.numeric(as.factor(reg_tips))
+
+reg.colors <- ggsci::pal_aaas("default", alpha = 0.7)(2)
+print(reg.colors)
+plot(trdata$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.2)
+
+```
+
+Format tree 
+```{r Format_tree}
+############################################################################################################
+#Simulate data
+n<-length(trdata$phy$tip.label)
+regimes_internal <-trdata$phy$node.label
+regimes_tip <- trdata$dat$regimes
+regimes <- concat.factor(regimes_tip, regimes_internal)
+anc_maps<-"regimes"
+lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes, ace)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+
+```
+
+Simulate two direct effect traits
+```{r}
+#########################
+hl<-0.1 #0.1, 0.25, 0.75 - testing options
+a<-log(2)/hl
+vy<-0.01 #0.25,0.5 - testing options
+sigma2_y<-vy*(2*(log(2)/hl));
+
+vX0<-0
+vY0 <- 0
+Sxx<-10 #Look at effects
+
+Z_direct<-2
+vcv<-matrix(c(1,0,0,1),2,2) #No correlation between traits
+Xs<-phytools::sim.corrs(phy,vcv) #Simulated correlated BM Xs
+
+phytools::phenogram(phy,Xs[,1],spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+phytools::phenogram(phy,Xs[,2],spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+
+dmX<-weight.matrix(trdata$phy, a, lineages) #Slouch approach
+optima<-c(2,1)
+beta<-data.frame(matrix(c(0.25,0.15,0.35,0.1),ncol=2,nrow=2)) #Two traits on columns, two regimes on vertical
+
+mu<-matrix(NA,N,1)
+for(i in 1:N){
+  mu[i]<-dmX[i,]%*%optima+Xs[i,]%*%t(beta[reg_tips[i],]);
+}
+
+V<-calc_direct_V(phy,sigma2_y,a)
+Y<-MASS::mvrnorm(n=1,mu,V)
+
+
+################################################################################################################
+#Simulate errors - original Hansen setup
+Z_X_error<-2 #Number of X traits with error
+X_error<-matrix(0.01,nrow=N,ncol=Z_X_error)
+X_error<-data.frame(X_error)
+names(X_error)<-c("X1_error","X2_error")
+Y_error<-rep(0.01,N)
+Y_with_error<-Y+rnorm(N,0,0.01)
+X_with_error<-Xs+rnorm(N,0,0.01)
+X_with_error<-data.frame(X_with_error)
+names(X_with_error)<-c("X1","X2")
+############################################################################################################
+#Make trdata file
+trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error)))
+
+```
+
+We will use the helper function blouch.reg.direct.prep() to setup the dat file for Stan. Here "Z_direct" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+#Test Blouch prep code - Regimes + Direct Efffect model
+dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error",c("X1","X2"),c("X1_error","X2_error"),Z_direct=2,"regimes")
+
+```
+
+Multilevel Multi-optima Direct Efect Model with Varying Effects
+```{r results='hide'}
+fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 2,cores=2,iter =2000)
+```
+
+```{r}
+print(fit.reg.direct.mlm.ve,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.mlm.ve,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
+post<-rstan::extract(fit.reg.direct.mlm.ve)
+```
+
+Multilevel Multi-optima Direct Efect Model with Varying Effects - non-centered
+```{r results='hide'}
+fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 2,cores=2,iter =2000)
+```
+
+```{r}
+print(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.mlm.ve.nc,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
+post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
+```
+
+Multi-optima Direct Efect Model with Varying Effects
+```{r results='hide'}
+fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
+```
+
+```{r}
+print(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","beta")))
+post<-rstan::extract(fit.reg.direct.ve)
+```
+
+```{r}
+rm(list=ls())
+
+```
+
+
+#Multlevel Multi-optima Adaptive Model with Varying Effects - Single Predictor
+```{r}
+########################################################################################################
+#Two regimes with adaptive trait and multiple slopes per optima but single alpha parameter
+set.seed(10)
+N<-50 #Number of species
+#set.seed(1) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+#Set regimes - manually - 2 regimes
+#Locate nodes
+plot(phy,no.margin=TRUE,edge.width=2,cex=0.7)
+ape::nodelabels(frame="none",adj=c(1.1,-0.4))
+ape::tiplabels()
+
+#Paint Regimes on Tree
+shifts<-c(84) #Location of nodes with regime shifts
+trdata<-data.frame(phy$tip.label)
+trdata<-treeplyr::make.treedata(phy,trdata)
+trdata<-set.converge.regimes(trdata,shifts)
+
+
+#Check if manual setting code worked
+shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
+edge.regimes <- factor(shifts.total[trdata$phy$edge[,2]])
+#print(edge.regimes)
+
+reg_tips<-trdata$dat$regimes
+reg_tips<-as.numeric(as.factor(reg_tips))
+
+reg.colors <- ggsci::pal_aaas("default", alpha = 0.7)(2)
+
+print(reg.colors)
+plot(trdata$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.2)
+
+#Phylogeny info
+n<-length(trdata$phy$tip.label)
+
+regimes_internal <-trdata$phy$node.label
+regimes_tip <- trdata$dat$regimes
+regimes <- concat.factor(regimes_tip, regimes_internal)
+anc_maps<-"regimes"
+lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes, ace)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+
+```
+
+Simulate X and Y data
+```{r}
+###############################################################################################################################################################################
+hl<-0.1 #0.1, 0.25, 0.75 - testing options
+a<-log(2)/hl
+vy<-0.01 #0.25,0.5 - testing options
+sigma2_y<-vy*(2*(log(2)/hl));
+
+vX0<-0
+vY0 <- 0
+Sxx<-10 #Look at effects
+
+
+X<-phytools::fastBM(phy,a=vX0,sig2=Sxx,internal=FALSE) #Simulate X BM variable on tree, with scaling 10
+sigma2_x<-matrix(1,1,1)
+Z_adaptive<-1
+names(X)<-phy$tip.label
+phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+
+optima_matrix<-weight.matrix(trdata$phy, a, lineages) #Slouch approach
+pred_X<-calc_adaptive_dmX(phy,a,X)
+optima<-c(2,1)
+beta<-c(0.25,0.15) #Two Optima/Two Slopes
+
+mu<-matrix(NA,N,1)
+for(i in 1:N){
+  mu[i] = optima_matrix[i,]%*%optima+beta[reg_tips[i]]%*%pred_X[i]
+}
+
+n_reg<-length(unique(regimes))
+V<-calc_adaptive_V(phy,a, sigma2_y, beta,  sigma2_x, Z_adaptive)
+Y<-MASS::mvrnorm(n=1,mu,V)
+
+
+
+##################################################################################################################
+#Simulate errors 
+Z_X_error<-1 #Number of X traits with error
+X_error<-rep(0.01,N)
+Y_error<-rep(0.01,N)
+Y_with_error<-Y+rnorm(N,0,0.01)
+X_with_error<-X+rnorm(N,0,0.01)
+
+
+############################################################################################################
+#Make trdata file
+trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error)))
+
+```
+
+We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+#Test Blouch prep code - Regimes + Direct Efffect model
+dat<-blouch.reg.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=1,"regimes")
+
+```
+
+```{r}
+########################################################################################################
+
+#Plot of data
+df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.plot.1<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X,color=Regimes))+
+  
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2],alpha=0.5,linetype=2)+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive trait")+
+  ggsci::scale_color_npg()
+
+slope.plot.1
+
+```
+
+Now we run the Multilevel Multi-optima Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
+```{r results='hide'}
+fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+```{r}
+print(fit.reg.adapt.mlm.ve,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.adapt.mlm.ve,depth=2,pars = c("hl","vy","optima","beta")))
+
+post<-rstan::extract(fit.reg.adapt.mlm.ve) #rstan::extract posterior distribution
+```
+
+Now we run the non-centered version of the Multilevel Multi-optima Adaptive Model with Varying Effects
+```{r results='hide'}
+fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+```{r}
+print(fit.reg.adapt.mlm.ve.nc,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.adapt.mlm.ve.nc,depth=2,pars = c("hl","vy","optima","beta")))
+
+post<-rstan::extract(fit.reg.adapt.mlm.ve.nc) #rstan::extract posterior distribution
+```
+
+Finally we run the Multi-optima Adaptive Model with Varying Effects
+```{r results='hide'}
+fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+```{r}
+print(fit.reg.adapt.ve,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.adapt.ve,depth=2,pars = c("hl","vy","optima","beta")))
+
+post<-rstan::extract(fit.reg.adapt.ve) #rstan::extract posterior distribution
+```
+
+
+```{r}
+rm(list=ls())
+
+```
+
+#Multi-optima direct effect and adaptive models
+Two regimes with 1 direct and 1 adaptive trait and Two slopes per regime
+```{r}
+########################################################################################################
+set.seed(10)
+
+N<-50 #Number of species
+#set.seed(1) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+#Set regimes - manually - 2 regimes
+#Locate nodes
+plot(phy,no.margin=TRUE,edge.width=2,cex=0.7)
+ape::nodelabels(frame="none",adj=c(1.1,-0.4))
+ape::tiplabels()
+
+#Paint Regimes on Tree
+shifts<-c(84) #Location of nodes with regime shifts
+trdata<-data.frame(phy$tip.label)
+trdata<-treeplyr::make.treedata(phy,trdata)
+trdata<-set.converge.regimes(trdata,shifts)
+
+#Check if manual setting code worked
+shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
+edge.regimes <- factor(shifts.total[trdata$phy$edge[,2]])
+print(edge.regimes)
+
+reg_tips<-trdata$dat$regimes
+reg_tips<-as.numeric(as.factor(reg_tips))
+
+reg.colors <- ggsci::pal_aaas("default", alpha = 0.7)(2)
+print(reg.colors)
+plot(trdata$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.2)
+
+#Phylogeny info
+n<-length(trdata$phy$tip.label)
+
+regimes_internal <-trdata$phy$node.label
+regimes_tip <- trdata$dat$regimes
+regimes <- concat.factor(regimes_tip, regimes_internal)
+anc_maps<-"regimes"
+lineages <- lapply(1:n, function(e) lineage.constructor(phy, e, anc_maps, regimes, ace)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+
+```
+Simulate X and Y data using generative model
+```{r}
+################################################################################################################
+hl<-0.1 #0.1, 0.25, 0.75 - testing options
+a<-log(2)/hl
+vy<-0.01 #0.25,0.5 - testing options
+sigma2_y<-vy*(2*(log(2)/hl));
+
+vX0<-0
+vY0 <- 0
+Sxx<-10 #Look at effects
+
+Xa<-phytools::fastBM(phy,a=vX0,sig2=Sxx,internal=FALSE) #Simulate X BM variable on tree, with scaling 10
+Xd<-phytools::fastBM(phy,a=vX0,sig2=Sxx,internal=FALSE) #Simulate X BM variable on tree, with scaling 10
+
+names(Xa)<-phy$tip.label
+names(Xd)<-phy$tip.label
+phytools::phenogram(phy,Xd,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+phytools::phenogram(phy,Xa,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+
+Xs<-cbind(Xd,Xa)
+sigma2_x<-matrix(1,1,1)
+
+Z_adaptive<-1
+Z_direct<-1
+
+optima_matrix<-weight.matrix(phy, a, lineages) #Slouch approach
+pred_X<-calc_mixed_dmX(phy,a,Xs,Z_direct,Z_adaptive)
+optima<-c(2,1)
+beta<-data.frame(matrix(c(0.25,0.15,0.35,0.1),ncol=2,nrow=2)) #Two traits on columns, two regimes on vertical
+
+mu<-matrix(NA,N,1)
+for(i in 1:N){
+  mu[i] = optima_matrix[i,]%*%optima+pred_X[i,]%*%t(beta[reg_tips[i],])
+  }
+
+n_reg<-length(unique(regimes))
+V<-calc_adaptive_V(phy,a, sigma2_y, beta[,2],  sigma2_x, Z_adaptive)
+Y<-MASS::mvrnorm(n=1,mu,V)
+
+```
+
+```{r}
+###############################################################################################################
+#Simulate errors - original Hansen setup
+Z_X_error<-2 #Number of X traits with error
+X_error<-matrix(0.01,nrow=N,ncol=Z_X_error)
+X_error<-data.frame(X_error)
+names(X_error)<-c("Xd_error","Xa_error")
+Y_error<-rep(0.01,N)
+Y_with_error<-Y+rnorm(N,0,0.01)
+X_with_error<-Xs+rnorm(N,0,0.01)
+X_with_error<-data.frame(X_with_error)
+names(X_with_error)<-c("Xd","Xa")
+############################################################################################################
+#Make trdata file
+trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error)))
+#names(trdata$dat)[6:7]<-c("Xd_error","Xa_error")
+```
+
+We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+#Test Blouch prep code - Regimes + Direct Efffect model
+dat<-blouch.reg.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,"regimes")
+
+```
+
+```{r}
+########################################################################################################
+#Plot of data
+df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.plot.1<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=Xd,color=Regimes))+
+  
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1,1],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2,1],alpha=0.5,linetype=2)+
+  
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct effect trait")+
+  ggsci::scale_color_npg()
+
+slope.plot.1
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.plot.2<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=Xa,color=Regimes))+
+  
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1,2],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2,2],alpha=0.5,linetype=2)+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive trait")+
+  ggsci::scale_color_npg()
+
+slope.plot.2
+
+
+```
+
+Now we run the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
+```{r results='hide'}
+fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 2,iter =2000,cores=2)
+
+```
+
+```{r}
+print(fit.reg.direct.adapt.mlm.ve,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.adapt.mlm.ve,depth=2,pars = c("hl","vy","optima","beta")))
+
+post<-rstan::extract(fit.reg.direct.adapt.mlm.ve)
+```
+
+Now we run the non-centered version of the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects
+```{r results='hide'}
+fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+```{r}
+print(fit.reg.direct.adapt.mlm.ve.nc,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.adapt.mlm.ve.nc,depth=2,pars = c("hl","vy","optima","beta")))
+
+post<-rstan::extract(fit.reg.direct.adapt.mlm.ve.nc)
+```
+
+Finally we run the Multi-optima Direct EFfect Adaptive Model with Varying Effects
+```{r results='hide'}
+fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+```{r}
+print(fit.reg.direct.adapt.ve,pars = c("hl","vy","optima","beta"))
+plot(rethinking::precis(fit.reg.direct.adapt.ve,depth=2,pars = c("hl","vy","optima","beta")))
+
+post<-rstan::extract(fit.reg.direct.adapt.ve)
+```
+
+See Simulation Example for how to explore posterior distribution and model comparison as well as prior and posterior predictive checks
+

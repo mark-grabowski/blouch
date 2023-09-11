@@ -2656,6 +2656,289 @@
         "hidden": false
     },
     {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.cc",
+        "file_last_write": 1694287745.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+        "file_last_write": 1694287745.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_ve_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@F@validate_positive_index#*1C#S0_#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "validate_positive_index(const char *, const char *, int)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 27,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@F@validate_unit_vector_index#*1C#S0_#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "validate_unit_vector_index(const char *, const char *, int)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 38,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@FT@>2#T#Tnum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 257,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@num_matches_functor__",
+                "kind": 3,
+                "parent_name": "",
+                "name": "num_matches_functor__",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 288,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@num_matches_functor__@FT@>2#T#Toperator()#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 291,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@FT@>2#T#Twhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 298,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@which_equal_functor__",
+                "kind": 3,
+                "parent_name": "",
+                "name": "which_equal_functor__",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 338,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@which_equal_functor__@FT@>2#T#Toperator()#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 341,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc",
+                "kind": 2,
+                "parent_name": "",
+                "name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 786,
+                "column": 7,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@model_name#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "model_name",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 812,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@model_compile_info#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "model_compile_info",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 813,
+                "column": 35,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>6#Nb#Nb#T#T#N*I#NS0_log_prob_impl#&t0.2#&t0.3#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "log_prob_impl(VecR &, VecI &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1300,
+                "column": 36,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>7#T#T#T#T#N*I#NS0_#NS0_write_array_impl#&t0.0#&t0.1#&t0.2#&t0.3#1b#1b#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "write_array_impl(RNG &, VecR &, VecI &, VecVar &, const bool, const bool, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1325,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>4#T#T#N*I#NS0_transform_inits_impl#&1$@N@stan@N@io@S@var_context#&t0.1#&t0.0#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "transform_inits_impl(const stan::io::var_context &, VecI &, VecVar &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1540,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@get_param_names#&I#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "get_param_names(int &)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1559,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@get_dims#&I#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "get_dims(int &)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1578,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@constrained_param_names#&I#b#b#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "constrained_param_names(int &, bool, bool)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1616,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@unconstrained_param_names#&I#b#b#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "unconstrained_param_names(int &, bool, bool)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1694,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@get_constrained_sizedtypes#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "get_constrained_sizedtypes",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1772,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@get_unconstrained_sizedtypes#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "get_unconstrained_sizedtypes",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1778,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>1#Twrite_array#&t0.0#&I#S2_#1b#1b#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "write_array(RNG &, int &, int &, const bool, const bool, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1787,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>1#Twrite_array#&t0.0#&I#S2_#S2_#b#b#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "write_array(RNG &, int &, int &, int &, bool, bool, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1803,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>3#Nb#Nb#Tlog_prob#&I#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#t0.2#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "log_prob(int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1812,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@FT@>3#Nb#Nb#Tlog_prob#&I#S0_#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#t0.2#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "log_prob(int &, int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1818,
+                "column": 16,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@transform_inits#&1$@N@stan@N@io@S@var_context#&I#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "transform_inits(const stan::io::var_context &, int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1824,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@S@model_blouchOU_reg_adapt_ve_priorpc@F@transform_inits#&1$@N@stan@N@io@S@var_context#&I#S2_#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_adapt_ve_priorpc",
+                "name": "transform_inits(const stan::io::var_context &, int &, int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 1835,
+                "column": 17,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
         "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct.cc",
         "file_last_write": 1693766846.0,
         "definitions": [],
@@ -6045,6 +6328,289 @@
                 "name": "transform_inits(const stan::io::var_context &, int &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve.h",
                 "line": 1897,
+                "column": 17,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.cc",
+        "file_last_write": 1694294729.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+        "file_last_write": 1694294729.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_direct_ve_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@F@validate_positive_index#*1C#S0_#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "validate_positive_index(const char *, const char *, int)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 27,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@F@validate_unit_vector_index#*1C#S0_#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "validate_unit_vector_index(const char *, const char *, int)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 38,
+                "column": 13,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@FT@>2#T#Tnum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 219,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@num_matches_functor__",
+                "kind": 3,
+                "parent_name": "",
+                "name": "num_matches_functor__",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 250,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@num_matches_functor__@FT@>2#T#Toperator()#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 253,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@FT@>2#T#Twhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 260,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@which_equal_functor__",
+                "kind": 3,
+                "parent_name": "",
+                "name": "which_equal_functor__",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 300,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@which_equal_functor__@FT@>2#T#Toperator()#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 303,
+                "column": 1,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc",
+                "kind": 2,
+                "parent_name": "",
+                "name": "model_blouchOU_reg_direct_ve_priorpc",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 581,
+                "column": 7,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@model_name#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "model_name",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 606,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@model_compile_info#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "model_compile_info",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 607,
+                "column": 35,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>6#Nb#Nb#T#T#N*I#NS0_log_prob_impl#&t0.2#&t0.3#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "log_prob_impl(VecR &, VecI &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1061,
+                "column": 36,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>7#T#T#T#T#N*I#NS0_#NS0_write_array_impl#&t0.0#&t0.1#&t0.2#&t0.3#1b#1b#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "write_array_impl(RNG &, VecR &, VecI &, VecVar &, const bool, const bool, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1086,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>4#T#T#N*I#NS0_transform_inits_impl#&1$@N@stan@N@io@S@var_context#&t0.1#&t0.0#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "transform_inits_impl(const stan::io::var_context &, VecI &, VecVar &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1288,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@get_param_names#&I#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "get_param_names(int &)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1307,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@get_dims#&I#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "get_dims(int &)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1325,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@constrained_param_names#&I#b#b#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "constrained_param_names(int &, bool, bool)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1360,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@unconstrained_param_names#&I#b#b#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "unconstrained_param_names(int &, bool, bool)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1431,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@get_constrained_sizedtypes#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "get_constrained_sizedtypes",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1502,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@get_unconstrained_sizedtypes#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "get_unconstrained_sizedtypes",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1508,
+                "column": 22,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>1#Twrite_array#&t0.0#&I#S2_#1b#1b#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "write_array(RNG &, int &, int &, const bool, const bool, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1517,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>1#Twrite_array#&t0.0#&I#S2_#S2_#b#b#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#v#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "write_array(RNG &, int &, int &, int &, bool, bool, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1533,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>3#Nb#Nb#Tlog_prob#&I#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#t0.2#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "log_prob(int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1542,
+                "column": 15,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@FT@>3#Nb#Nb#Tlog_prob#&I#S0_#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#t0.2#1",
+                "kind": 6,
+                "parent_name": "",
+                "name": "log_prob(int &, int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1548,
+                "column": 16,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@transform_inits#&1$@N@stan@N@io@S@var_context#&I#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "transform_inits(const stan::io::var_context &, int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1554,
+                "column": 17,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_direct_ve_priorpc_namespace@S@model_blouchOU_reg_direct_ve_priorpc@F@transform_inits#&1$@N@stan@N@io@S@var_context#&I#S2_#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#1",
+                "kind": 7,
+                "parent_name": "model_blouchOU_reg_direct_ve_priorpc",
+                "name": "transform_inits(const stan::io::var_context &, int &, int &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_ve_priorpc.h",
+                "line": 1565,
                 "column": 17,
                 "hidden": false
             }
