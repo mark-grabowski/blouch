@@ -45,14 +45,13 @@ plot(phy,no.margin=TRUE,edge.width=2,cex=0.7)
 ape::nodelabels(frame="none",adj=c(1.1,-0.4))
 ape::tiplabels()
 
-png("Fig. 1", width = 400, height = 400, type = "cairo-png")
-g
-dev.off()
+#png("", width = 400, height = 400, type = "cairo-png")
+#dev.off()
 
 ```
 
 ############################################################################################################
-### Combine data and tree and paint regimes on tree.
+## Combine data and tree and paint regimes on tree.
 Next we will use the treeplyr package (Uyeda and Harmon, 2014) make.treedata function to combine the data and tree based on the "species" column, which has the taxa names. See https://github.com/uyedaj/treeplyr for more on this package. Then we will place the regime shifts on the tree that were identified earlier using Blouch's set.converge.regimes() function. Finally we will plot the tree with the shifts colored to make sure we have done everything correctly.
 
 ```{r Set_regimes}
@@ -81,7 +80,7 @@ reg_tips<-as.numeric(as.factor(reg_tips))
 ```
 
 ############################################################################################################
-#Get info on phylogeny
+## Get info on phylogeny
 ```{r Make_regime_data}
 n<-length(trdata$phy$tip.label)
 
@@ -95,7 +94,7 @@ lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps,
 ```
 
 
-Set true parameters and simulate data - using four different optima (intercepts) with four different slopes
+Set true parameters and simulate data - using four different optima (intercepts) with four different slopes.
 ```{r Simulate_data}
 #########################
 hl<-0.1 #0.1, 0.25, 0.75 - testing options
@@ -127,6 +126,14 @@ for(i in 1:N){
 n_reg<-length(unique(regimes))
 V<-calc_adaptive_V(phy,a, sigma2_y,  beta,  sigma2_x, Z_adaptive)
 Y<-MASS::mvrnorm(n=1,mu,V)
+
+df<-data.frame(Y=Y,X=X)
+
+
+ggplot2::ggplot(data=df,ggplot2::aes(x=X,y=Y))+
+  ggplot2::geom_point()
+summary(lm(Y~X,df))
+
 
 ```
 
@@ -215,7 +222,7 @@ target += normal_lpdf(beta_bar|0.31,0.25);
 #beta_bar ~ normal(0.31,0.25);
 #Rho ~ lkj_corr(4);
 
-fit.reg.adapt.mlm.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,cores=2,iter =4000)
+fit.reg.adapt.mlm.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 ```{r Plot_results_MLM_VE_Model}
@@ -237,8 +244,10 @@ Now let's run the non-multilevel version of the same model. We will compare thes
 #  beta[,i] ~ normal(0.31,0.25);
 #}
 
-fit.reg.adapt.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 2,cores=2,iter =4000)
+fit.reg.adapt.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 1,cores=1,iter =400)
 ```
+
+Stan prints out a lot of info, so lets just look at the parameter estimates here and store the posterior distribution for later.
 
 ```{r Plot_results_VE_Model , results='hide'}
 print(fit.reg.adapt.ve,pars = c("hl","vy","optima","beta","beta_e"))
@@ -453,6 +462,7 @@ slope.plot.1
 #####
 ```
 
+## Model Comparison using PSIS
 Lets do some model comparison using PSIS from the R Package loo
 ```{r Model_comparison_PSIS}
 #library(loo) 
@@ -473,8 +483,9 @@ loo::loo_compare(loo_mlm_ve, loo_ve)
 ```
 These results suggest the two models are indistinguishable - the standard error of the difference between the expected log pointwise predictive density (elpd) for the two models is larger than the difference.
 
-Now lets compare our two models using Bayes Factors. Here we use the bridgesampling R package. Looking below, we can read the results as the data is X times more likely under a model that assumes the first mode rather than second model.
 
+## Model Comparison using Bayes Factors
+Now lets compare our two models using Bayes Factors. Here we use the bridgesampling R package. Looking below, we can read the results as the data is X times more likely under a model that assumes the first mode rather than second model.
 ```{r Model_comparison_BF}
 ########################################################################################################
 #Bayes Factors
@@ -485,7 +496,10 @@ bridgesampling::bf(lml.fit.reg.adapt.mlm.ve,lml.fit.reg.adapt.ve)
 
 ```
 
+
+### Trace and Density Plots for estimated parameters
 Let's look at traceplots of our two models, which give a visualization of degree of convergence.
+
 ```{r Traceplots}
 ########################################################################################################
 #Traceplots #4X10
@@ -494,8 +508,8 @@ rstan::traceplot(fit.reg.adapt.ve,pars = c(c("hl","vy","optima","beta","beta_e")
 
 ```
 
+##Prior predictive checks
 Now lets run prior predictive checks and posterior predictive checks for our two models
-#Prior predictive checks
 ```{r Prior_pc}
 fit.reg.adapt.mlm.ve.priorpc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_priorpc,data = dat,chains = 2,cores=2,iter =2000, algorithm=c("Fixed_param"))
 post<-rstan::extract(fit.reg.adapt.mlm.ve.priorpc)
@@ -522,7 +536,7 @@ priorpc.plot
 
 ```
 
-#Posterior predictive checks
+##Posterior predictive checks
 ```{r Posterior_pc}
 ########################################################################################################
 #stan_model <- stan_model("blouchOU_reg_adapt_mlm_ve_postpc.stan")

@@ -123,30 +123,30 @@ dat<-blouch.reg.prep(trdata,"Y_with_error","Y_error","regimes")
 
 Here we run the basic Multi-optima Model, look at the results, and rstan::extract the posterior
 ```{r Run_RM , results='hide'}
-fit.reg<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r}
 print(fit.reg,pars = c("hl","vy","optima"))
-plot(rethinking::precis(fit.reg,depth=2,pars = c("hl","vy","optima")))
+##plot(rethinking::precis(fit.reg,depth=2,pars = c("hl","vy","optima")))
 
-post<-rstan::extract(fit.adapt) #rstan::extract posterior
+post<-rstan::extract(fit.reg) #rstan::extract posterior
 ```
 
 Next is the code for the Multilevel Multi-optima Model
 ```{r}
 fit.mlm.vi.regimes<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_mlm_vi,data = dat,chains = 2,iter= 2000,cores=2)
 print(fit.mlm.vi.regimes,pars = c("hl","vy","optima","optima_bar","sigma"))
-#plot(rethinking::precis(fit.mlm.vi.regimes,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
+###plot(rethinking::precis(fit.mlm.vi.regimes,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
 
 post<-rstan::extract(fit.mlm.vi.regimes)
 ```
 
 Finally we will run the non-centered version of the same model, which can be used when the posterior is hard to explore and the centered version of the model produces divergences.
 ```{r}
-fit.mlm.vi.regimes.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_mlm_vi_nc,data = dat,chains = 2,iter =2000,cores=2) #,control=list(adapt_delta=0.95))
+fit.mlm.vi.regimes.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_mlm_vi_nc,data = dat,chains = 1,iter =400,cores=1) #,control=list(adapt_delta=0.95))
 print(fit.mlm.vi.regimes.nc,pars = c("hl","vy","optima","optima_bar","sigma"))
-#plot(rethinking::precis(fit.mlm.vi.regimes.nc,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
+###plot(rethinking::precis(fit.mlm.vi.regimes.nc,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
 post<-rstan::extract(fit.mlm.vi.regimes.nc)
 ```
 
@@ -267,37 +267,37 @@ dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_er
 ```
 
 Now we run the basic Multi-optima Direct Effect Model, look at the results, and rstan::extract the posterior
-```{r Run_MODEM , results='hide'}}
-fit.reg.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct,data = dat,chains = 2,iter =2000,cores=2)
+```{r Run_MODEM , results='hide'}
+fit.reg.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct,data = dat,chains = 1,iter =400,cores=1)
 
 ```
 
 ```{r Results_MODEM}
 print(fit.reg.direct,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.reg.direct,depth=2,pars = c("hl","vy","optima","beta")))
-post<-rstan::extract(fit.adapt) #rstan::extract posterior distribution
+##plot(rethinking::precis(fit.reg.direct,depth=2,pars = c("hl","vy","optima","beta")))
+post<-rstan::extract(fit.reg.direct) #rstan::extract posterior distribution
 ```
 
 Here is the Multilevel version of the same model
-```{r Run_MLMODEM , results='hide'}}
-fit.mli.regi.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi,data = dat,chains = 2,iter =2000,cores=2)
+```{r Run_MLMODEM , results='hide'}
+fit.mli.regi.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MLMODEM}
 print(fit.mli.regi.direct,pars = c("hl","vy","optima","optima_bar","beta","sigma"))
-plot(rethinking::precis(fit.mli.regi.direct,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
+##plot(rethinking::precis(fit.mli.regi.direct,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
 post<-rstan::extract(fit.mli.regi.direct) #rstan::extract posterior distribution
 
 ```
 
 And finally the non-centered version of the Multilevel model
-```{r Run_MLMODEMNC , results='hide'}}
-fit.mli.regi.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi_nc,data = dat,chains = 2,iter =2000,cores=2)
+```{r Run_MLMODEMNC , results='hide'}
+fit.mli.regi.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi_nc,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MLMODEMNC}
 print(fit.mli.regi.direct,pars = c("hl","vy","optima","optima_bar","beta","sigma"))
-#plot(rethinking::precis(fit.mli.regi.direct,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
+###plot(rethinking::precis(fit.mli.regi.direct,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
 post<-rstan::extract(fit.mli.regi.direct) #rstan::extract posterior distribution
 
 ```
@@ -414,36 +414,36 @@ dat<-blouch.reg.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_err
 ```
 
 Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
-```{r Run_MOAM , results='hide'}}
-fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt,data = dat,chains = 2,iter =2000,cores=2)
+```{r Run_MOAM , results='hide'}
+fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MOAM}
 print(fit.reg.adapt,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.reg.adapt,depth=2,pars = c("hl","vy","optima","beta")))
-post<-rstan::extract(fit.adapt) #rstan::extract Posterior Distribution
+##plot(rethinking::precis(fit.reg.adapt,depth=2,pars = c("hl","vy","optima","beta")))
+post<-rstan::extract(fit.reg.adapt) #rstan::extract Posterior Distribution
 ```
 
 Here is the Multilevel version of the same model
-```{r Run_MLMOAM , results='hide'}}
-fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_vi,data = dat,chains = 2,iter =2000,cores=2)
+```{r Run_MLMOAM , results='hide'}
+fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_vi,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MLMOAM}
 print(fit.reg.adapt,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.reg.adapt,depth=2,pars = c("hl","vy","optima","beta")))
-post<-rstan::extract(fit.adapt)
+##plot(rethinking::precis(fit.reg.adapt,depth=2,pars = c("hl","vy","optima","beta")))
+post<-rstan::extract(fit.reg.adapt)
 ```
 
 And the non-centered version
 ```{r Run_MLMOAMNC}
-fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_vi_nc,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_vi_nc,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MLMOAMNC}
 print(fit.reg.adapt,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.reg.adapt,depth=2,pars = c("hl","vy","optima","beta")))
-post<-rstan::extract(fit.adapt)
+##plot(rethinking::precis(fit.reg.adapt,depth=2,pars = c("hl","vy","optima","beta")))
+post<-rstan::extract(fit.reg.adapt)
 ```
 
 ```{r}
@@ -569,37 +569,37 @@ dat<-blouch.reg.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c
 
 First we run the basic Multi-optima Direct Effect Adaptive Model.
 ```{r Run_MODAM , results='hide'}
-fit.reg.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MODAM}
 print(fit.reg.direct.adapt,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","optima","optima_bar","beta","sigma")))
-post<-rstan::extract(fit.adapt) #rstan::extract posterior
+##plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","optima","optima_bar","beta","sigma")))
+post<-rstan::extract(fit.reg.direct.adapt) #rstan::extract posterior
 ```
 
 Next we run the Multilevel version of the same model
 ```{r Run_MLMODAM , results='hide'}
-fit.reg.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_vi,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_vi,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MLMODAM}
 print(fit.reg.direct.adapt,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","optima","optima_bar","beta","sigma")))
-post<-rstan::extract(fit.adapt)
+##plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","optima","optima_bar","beta","sigma")))
+post<-rstan::extract(fit.reg.direct.adapt)
 
 ```
 
 Finally we run the non-centered version of that model
 ```{r Run_MLMODAMNC , results='hide'}
-fit.reg.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_vi_nc,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_vi_nc,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_MLMODAMNC}
 print(fit.reg.direct.adapt,pars = c("hl","vy","optima","beta"))
-plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","optima","optima_bar","beta","sigma")))
+##plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","optima","optima_bar","beta","sigma")))
 
-post<-rstan::extract(fit.adapt)
+post<-rstan::extract(fit.reg.direct.adapt)
 
 ```
 

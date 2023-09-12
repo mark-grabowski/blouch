@@ -3,8 +3,10 @@ title: "Varying_Effects_Models-Examples"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Varying_Effects_Models-Examples}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -61,18 +63,11 @@ trdata<-set.converge.regimes(trdata,shifts)
 shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
 edge.regimes <- factor(shifts.total[trdata$phy$edge[,2]])
 print(edge.regimes)
-#Get ggplot colors used for plot to make on tree
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length=n+1)
-  hcl(h=hues, l=65, c=100)[1:n]
-}
-
-reg.colors<-gg_color_hue(length(unique(trdata$dat$regimes)))
 
 reg_tips<-trdata$dat$regimes
 reg_tips<-as.numeric(as.factor(reg_tips))
 
-print(reg.colors)
+reg.colors<-ggsci::pal_npg(palette=c("nrc"),alpha=1)(2)
 plot(trdata$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.2)
 
 #Phylogeny info
@@ -117,8 +112,15 @@ for(i in 1:N){
 V<-calc_direct_V(phy,sigma2_y,a)
 Y<-MASS::mvrnorm(n=1,mu,V)
 
-##################################################################################################################
-#Simulate errors - original Hansen setup
+###############################################################################################################
+df<-data.frame(Y=Y,X=X)
+
+ggplot2::ggplot(data=df,ggplot2::aes(x=X,y=Y))+
+  ggplot2::geom_point()
+summary(lm(Y~X,df))
+
+################################################################################################################
+#Simulate errors 
 Z_X_error<-1 #Number of X traits with error
 X_error<-rep(0.01,N)
 Y_error<-rep(0.01,N)
@@ -166,7 +168,7 @@ slope.plot.1
 
 Multilevel Multi-optima Direct Effect Model with Varying Effects
 ```{r}
-fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
+fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}
@@ -177,7 +179,7 @@ post<-rstan::extract(fit.reg.direct.mlm.ve)
 
 Multilevel Multi-optima Direct Effect Model with Varying Effects - Non centered
 ```{r}
-fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 2,cores=2,iter =2000)
+fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 ```{r}
@@ -188,11 +190,11 @@ post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
 
 Multi-optima Direct Effect Model with Varying Effects
 ```{r}
-fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
+fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 ```{r}
-print(fit.reg.direct.ve,pars = c("hl","vy","","optima","beta"))
+print(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
 plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","beta")))
 post<-rstan::extract(fit.reg.direct.ve)
 ```
@@ -296,8 +298,15 @@ V<-calc_direct_V(phy,sigma2_y,a)
 Y<-MASS::mvrnorm(n=1,mu,V)
 
 
+###############################################################################################################
+
+summary(lm(Y~Xs))
+
 ################################################################################################################
-#Simulate errors - original Hansen setup
+
+
+################################################################################################################
+#Simulate errors 
 Z_X_error<-2 #Number of X traits with error
 X_error<-matrix(0.01,nrow=N,ncol=Z_X_error)
 X_error<-data.frame(X_error)
@@ -323,7 +332,7 @@ dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error",c("X1","X2"),c("X1_e
 
 Multilevel Multi-optima Direct Efect Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 2,cores=2,iter =2000)
+fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 ```{r}
@@ -334,7 +343,7 @@ post<-rstan::extract(fit.reg.direct.mlm.ve)
 
 Multilevel Multi-optima Direct Efect Model with Varying Effects - non-centered
 ```{r results='hide'}
-fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 2,cores=2,iter =2000)
+fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 ```{r}
@@ -345,7 +354,7 @@ post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
 
 Multi-optima Direct Efect Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
+fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 ```{r}
@@ -445,8 +454,16 @@ V<-calc_adaptive_V(phy,a, sigma2_y, beta,  sigma2_x, Z_adaptive)
 Y<-MASS::mvrnorm(n=1,mu,V)
 
 
+###############################################################################################################
+df<-data.frame(Y=Y,X=X)
 
-##################################################################################################################
+ggplot2::ggplot(data=df,ggplot2::aes(x=X,y=Y))+
+  ggplot2::geom_point()
+summary(lm(Y~X,df))
+
+################################################################################################################
+
+################################################################################################################
 #Simulate errors 
 Z_X_error<-1 #Number of X traits with error
 X_error<-rep(0.01,N)
@@ -498,7 +515,7 @@ slope.plot.1
 
 Now we run the Multilevel Multi-optima Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
 ```{r results='hide'}
-fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r}
@@ -510,7 +527,7 @@ post<-rstan::extract(fit.reg.adapt.mlm.ve) #rstan::extract posterior distributio
 
 Now we run the non-centered version of the Multilevel Multi-optima Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r}
@@ -522,7 +539,7 @@ post<-rstan::extract(fit.reg.adapt.mlm.ve.nc) #rstan::extract posterior distribu
 
 Finally we run the Multi-optima Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r}
@@ -627,6 +644,13 @@ n_reg<-length(unique(regimes))
 V<-calc_adaptive_V(phy,a, sigma2_y, beta[,2],  sigma2_x, Z_adaptive)
 Y<-MASS::mvrnorm(n=1,mu,V)
 
+
+###############################################################################################################
+
+summary(lm(Y~Xs))
+
+################################################################################################################
+
 ```
 
 ```{r}
@@ -703,7 +727,7 @@ slope.plot.2
 
 Now we run the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
 ```{r results='hide'}
-fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 1,iter =400,cores=1)
 
 ```
 
@@ -716,7 +740,7 @@ post<-rstan::extract(fit.reg.direct.adapt.mlm.ve)
 
 Now we run the non-centered version of the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r}
@@ -728,7 +752,7 @@ post<-rstan::extract(fit.reg.direct.adapt.mlm.ve.nc)
 
 Finally we run the Multi-optima Direct EFfect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 2,iter =2000,cores=2)
+fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r}

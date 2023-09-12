@@ -24,9 +24,11 @@ library(blouch)
 ```
 
 
-Here I walk you through the basic models of Blouch. By basic I mean either the direct effect, adaptive, or model with a combination of both types of predictors, and models with adaptive regimes and any combination of those predictors.
+Here I walk you through the basic models of Blouch. By basic I mean either the direct effect, adaptive, or model with a combination of both types of predictors.
 
-#Direct effect model
+##Direct effect model
+Blouch implements the model of constrained evolution (Hansen & Bartoszek, 2012) known as the direct effect model, previously implemented in Grabowski et al. (2016), which can be used to test for allometric constraints.
+
 First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
 ```{r Create_phylogeny}
 ########################################################################################################
@@ -46,7 +48,8 @@ tip.label<-phy$tip.label
 
 ```
 
-First we will simulate X and Y data using a generative model for the direct effect model
+First we will simulate X and Y data using a generative model for the direct effect model. We will use the treeplyr package (Uyeda and Harmon, 2014) make.treedata function to combine the data and tree based on the row names, which has the taxa names. See https://github.com/uyedaj/treeplyr for more on this package.
+
 ```{r Direct_effect_model_setup}
 ########################################################################################################
 #Direct Effect Model
@@ -103,12 +106,12 @@ dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error"
 ```
 
 ```{r Run_direct_effect_model , results='hide'}
-fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 2,iter =2000,cores=2)
+fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print_DEM_results}
 print(fit.direct,pars = c("hl","vy","alpha","beta"))
-plot(rethinking::precis(fit.reg.adapt.mlm.ve,depth=3,pars = c("hl","vy","sigma","alpha","beta"))) #For use with rethinking package
+#plot(rethinking::precis(fit.direct,depth=3,pars = c("hl","vy","alpha","beta"))) #For use with rethinking package
 post<-rstan::extract(fit.direct) #Extract posterior distribution
 
 ```
@@ -117,7 +120,28 @@ post<-rstan::extract(fit.direct) #Extract posterior distribution
 rm(list=ls())
 ```
 
-#Adaptive model
+## Adaptive Model
+Blouch also implements the model of adaptive evolution introduced by Hansen et al. (2008). Here the response variable evolves according to an Ornstein-Uhlenbeck process towards an optimal state that is modeled as a function of the predictor variable.
+
+First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
+```{r}
+########################################################################################################
+#Create phylogeny
+########################################################################################################
+N<-50 #Number of species
+set.seed(10) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+tip.label<-phy$tip.label
+
+
+```
+
 We will now simulate X and Y data using a generative model for the adaptive model
 ```{r Adaptive_model_setup}
 ########################################################################################################
@@ -180,12 +204,12 @@ dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error")
 ```
 
 ```{r Run_adaptive_model , results='hide'}
-fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 2,iter =2000,cores=2)
+fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 1,iter =400,cores=1)
 ```
 
 ```{r Print AM_results}
 print(fit.adapt,pars = c("hl","vy","alpha","beta"))
-plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
+#plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
 post<-rstan::extract(fit.adapt)
 
 ```
@@ -194,6 +218,25 @@ rm(list=ls())
 ```
 
 #Direct effect and adaptive models
+First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
+```{r}
+########################################################################################################
+#Create phylogeny
+########################################################################################################
+N<-50 #Number of species
+set.seed(10) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+tip.label<-phy$tip.label
+
+
+```
+
 Finally we will simulate X and Y data using a generative model for the direct effect and adaptive model. Here we will have 1 direct effect trait, Xd, and one adaptive trait, Xa.
 
 ```{r Direct_adapt_model_setup}
@@ -231,9 +274,7 @@ Y<-MASS::mvrnorm(n=1,mu,V)
 
 df<-data.frame(Y=Y,X=Xs)
 
-ggplot2::ggplot(data=df,ggplot2::aes(x=X.Xd,y=X.Xa))+
-  ggplot2::geom_point()
-summary(lm(X.Xa~X.Xd,df))
+summary(lm(Y~Xs,df))
 
 ggplot2::ggplot(data=df,ggplot2::aes(x=X.Xd,y=Y))+
   ggplot2::geom_point()
@@ -273,14 +314,14 @@ dat<-blouch.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd
 ```
 
 ```{r Run_direct_adapt_model , results='hide'}
-fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 2,iter =2000,cores=2)
+fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 1,iter =400,cores=1)
 
 ```
 
 
 ```{r Pring_DAM_results}
 print(fit.direct.adapt,pars = c("hl","vy","alpha","beta"))
-plot(rethinking::precis(fit.direct.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
+#plot(rethinking::precis(fit.direct.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
 post<-rstan::extract(fit.direct.adapt)
 
 
