@@ -24,7 +24,10 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/Simulation_Example.html">Simulation_Example</a>
+    <a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic_Models-Examples</a>
+    <a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-optima_Models-Examples</a>
+    <a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation-Example</a>
+    <a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying_Effects_Models-Examples</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -54,7 +57,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">blouch.direct.prep</span><span class="op">(</span><span class="va">trdata</span>, <span class="va">Y</span>, <span class="va">Y_error</span>, <span class="va">X</span>, <span class="va">X_error</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">blouch.direct.prep</span><span class="op">(</span><span class="va">trdata</span>, <span class="va">Y</span>, <span class="va">Y_error</span>, <span class="va">X</span>, <span class="va">X_error</span>, <span class="va">Z_direct</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -77,6 +80,10 @@
 
 <dt>X_error</dt>
 <dd><p>Vector containing name(s) of column in treedata containing error of predictor variable(s)</p></dd>
+
+
+<dt>Z_direct</dt>
+<dd><p>Number of direct effect traits</p></dd>
 
 </dl></div>
     <div class="section level2">

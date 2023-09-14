@@ -24,7 +24,10 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/Simulation_Example.html">Simulation_Example</a>
+    <a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic_Models-Examples</a>
+    <a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-optima_Models-Examples</a>
+    <a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation-Example</a>
+    <a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying_Effects_Models-Examples</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -54,17 +57,17 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calc_adaptive_dmX</span><span class="op">(</span><span class="va">a</span>, <span class="va">T_term</span>, <span class="va">X</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calc_adaptive_dmX</span><span class="op">(</span><span class="va">phy</span>, <span class="va">a</span>, <span class="va">X</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>a</dt>
+    <dl><dt>phy</dt>
+<dd><p>Phylogeny in NEXUS format</p></dd>
+
+
+<dt>a</dt>
 <dd><p>Rate parameter for OU model</p></dd>
-
-
-<dt>T_term</dt>
-<dd><p>T_term parameter for phylogeny</p></dd>
 
 
 <dt>X</dt>
