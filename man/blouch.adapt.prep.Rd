@@ -4,7 +4,7 @@
 \alias{blouch.adapt.prep}
 \title{blouch.adapt.prep - setup dat file to run in Blouch's adaptive model}
 \usage{
-blouch.adapt.prep(trdata, Y, Y_error, X, X_error)
+blouch.adapt.prep(trdata, Y, Y_error, X, X_error, Z_adaptive)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}
@@ -16,6 +16,8 @@ blouch.adapt.prep(trdata, Y, Y_error, X, X_error)
 \item{X}{Vector containing name(s) of column in treedata containing predictor variable(s)}
 
 \item{X_error}{Vector containing name(s) of column in treedata containing error of predictor variable(s)}
+
+\item{Z_adaptive}{Number of adaptive traits}
 }
 \value{
 dat - list file containing objecs setup for Blouch

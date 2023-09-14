@@ -22,6 +22,7 @@
 #' @importFrom rstan sampling
 #' @importFrom rstantools rstan_config
 #' @importFrom RcppParallel RcppParallelLibs
+#' @importFrom utils head tail
 #' @useDynLib blouch, .registration = TRUE
 #'
 #' @references

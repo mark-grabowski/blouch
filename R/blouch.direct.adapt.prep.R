@@ -51,6 +51,6 @@ blouch.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptiv
   dat<-list(N=N,Z_direct=Z_direct,Z_adaptive=Z_adaptive,Z_X_error=Z_X_error,
             Y_obs=as.vector(t(dat[Y])),X_obs=matrix(datX,nrow=N,ncol=Z),
             Y_error=as.vector(t(dat[Y_error])),X_error=matrix(datXerror,nrow=N,ncol=Z),
-            ta=ta,tij=tij,tja=tja,T_term=T_term,sigma2_x=sigma2_x)
+            ta=ta,tij=tij,tja=tja,T_term=T_term,sigma2_x=sigma_squared_x)
   return(dat)
 }

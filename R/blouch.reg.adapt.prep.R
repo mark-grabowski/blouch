@@ -75,7 +75,7 @@ blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column
             max_node_num=max_node_num,
             Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),
             Y_error=as.vector(t(dat[Y_error])),X_error=data.matrix(dat[X_error]),
-            sigma2_x=sigma2_x,ta=ta,tij=tij,tja=tja,
+            sigma2_x=sigma_squared_x,ta=ta,tij=tij,tja=tja,
             T_term=T_term,t_beginning=t_beginning,
             t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips)
 

@@ -101,7 +101,7 @@ We will use the helper function blouch.direct.prep() to setup the dat file for S
 ```{r blouch.direct.prep}
 ############################################################################################################
 #Test Blouch prep code - direct effect model - blouch.direct.prep()
-dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error")
+dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=1)
 
 ```
 
@@ -199,7 +199,7 @@ trdata<-treeplyr::make.treedata(phy,trait.data)
 We will use the helper function blouch.adapt.prep() to setup the dat file for Stan. Here the names of the  adaptive column is X_with_error, and its associated errors is X_error.
 ```{r blouch.adapt.prep}
 #Test Blouch prep code - adaptive model
-dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error")
+dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=1)
 
 ```
 
@@ -207,8 +207,9 @@ dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error")
 fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 1,iter =400,cores=1)
 ```
 
+Here the results include both the optimal regression, beta, and the evolutionary regression, beta_e, following Hansen et al. (2008)
 ```{r Print AM_results}
-print(fit.adapt,pars = c("hl","vy","alpha","beta"))
+print(fit.adapt,pars = c("hl","vy","alpha","beta","beta_e"))
 #plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
 post<-rstan::extract(fit.adapt)
 

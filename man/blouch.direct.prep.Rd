@@ -4,7 +4,7 @@
 \alias{blouch.direct.prep}
 \title{blouch.direct.prep - prep data to run in Stan's direct effect model}
 \usage{
-blouch.direct.prep(trdata, Y, Y_error, X, X_error)
+blouch.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}
@@ -16,6 +16,8 @@ blouch.direct.prep(trdata, Y, Y_error, X, X_error)
 \item{X}{Vector containing name(s) of column in treedata containing predictor variable(s)}
 
 \item{X_error}{Vector containing name(s) of column in treedata containing error of predictor variable(s)}
+
+\item{Z_direct}{Number of direct effect traits}
 }
 \value{
 dat - list file containing objecs setup for Blouch
