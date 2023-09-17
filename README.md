@@ -23,9 +23,9 @@ sampler.
 
 ## Getting Started
 
-If you are just getting started with Blouch I recommend starting with
-the Simulation Example article available on the package website. Blouch
-is based on an article currently in review:
+If you are just getting started with *Blouch* I recommend starting with
+the Simulation Example article available on the package website.
+*Blouch* is based on an article currently in review:
 
 - Grabowski, M (in revision). *Blouch*: Bayesian Linear
   Ornstein-Uhlenbeck models for Comparative Hypotheses
