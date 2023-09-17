@@ -50,8 +50,9 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="articles/Basic_Models-Examples.html">Basic_Models-Examples</a>
+    <a class="dropdown-item" href="articles/Empirical-Example.html">Empirical Example</a>
     <a class="dropdown-item" href="articles/Multi-optima_Models-Examples.html">Multi-optima_Models-Examples</a>
-    <a class="dropdown-item" href="articles/Simulation-Example.html">Simulation-Example</a>
+    <a class="dropdown-item" href="articles/Simulation-Example.html">Simulation Example</a>
     <a class="dropdown-item" href="articles/Varying_Effects_Models-Examples.html">Varying_Effects_Models-Examples</a>
   </div>
 </li>
@@ -79,14 +80,14 @@
 </h1></div>
 <!-- badges: start -->
 <!-- badges: end -->
-<p>Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses (BLOUCH) fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, and incorporates measurement error following the approach of Hansen et al. (2008).</p>
-<p>While the front-end component of Blouch is written in R (R Core Team, 2015), the nuts and bolts are written in the language Stan (Carpenter et al., 2017), which allows estimation of Bayesian models using Markov chain Monte Carlo (MCMC) methods based on the Hamilton Monte Carlo sampler.</p>
+<p><em>Blouch</em>: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits allometric and adaptive models of continuous trait evolution in a Bayesian framework based on fixed or continuous predictors and incorporates measurement error. In addition to assigning biologically meaningful priors when compared to non-Bayesian approaches, <em>Blouch</em> includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models.</p>
+<p>While the front-end component of <em>Blouch</em> is written in R (R Core Team, 2015), the nuts and bolts are written in the language Stan (Carpenter et al., 2017), which allows estimation of Bayesian models using Markov chain Monte Carlo (MCMC) methods based on the Hamilton Monte Carlo sampler.</p>
 <div class="section level2">
 <h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
-<p>If you are just getting started with Blouch I recommend starting with the tutorial vignettes available on the package website. Blouch is based on an article currently in review:</p>
+<p>If you are just getting started with Blouch I recommend starting with the Simulation Example article available on the package website. Blouch is based on an article currently in review:</p>
 <ul>
-<li>Grabowski, M (in review). <em>Blouch</em>: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses</li>
+<li>Grabowski, M (in revision). <em>Blouch</em>: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses</li>
 </ul>
 </div>
 <div class="section level2">
@@ -94,7 +95,7 @@
 </h2>
 <p>To install the R and Stan functions associated with Blouch from github, first install the package devtools:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#install.packages("devtools")</span></span>
+<code class="sourceCode R"><span><span class="co">#install.packages("devtools", repos = "https://cran.ma.imperial.ac.uk/")</span></span>
 <span><span class="co">#library(devtools)</span></span></code></pre></div>
 <p>Then install Blouch</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -104,14 +105,12 @@
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
-<p>Please visit the package website <a href="https://mark-grabowski.github.io/blouch/" title="here." class="external-link">here</a>.</p>
+<p>Please visit the package website <a href="https://mark-grabowski.github.io/blouch/" title="here.">here</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <p>Carpenter, B., A. Gelman, M. D. Hoffman, D. Lee, B. Goodrich, M. Betancourt, M. Brubaker, J. Guo, P. Li, and A. Riddell. 2017. Stan: A Probabilistic Programming Language. Journal of Statistical Software 76:1–32.</p>
-<p>Hansen, T. F., J. Pienaar, and S. H. Orzack. 2008. A comparative method for studying adaptation to a randomly evolving environment. Evolution 62:1965–1977.</p>
-<p>Kopperud, B. T., J. Pienaar, K. L. Voje, S. H. Orzack, and T. F. Hansen. 2020. Slouch: Stochastic Linear Ornstein-Uhlenbeck Comparative Hypotheses. R package version 2.1.4.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

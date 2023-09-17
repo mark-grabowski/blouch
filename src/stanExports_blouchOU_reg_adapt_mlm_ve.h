@@ -1586,7 +1586,7 @@ public:
         stan::math::fill(ab_bar, DUMMY_VAR__);
         
         current_statement__ = 60;
-        lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.75));
+        lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.25));
         current_statement__ = 61;
         lp_accum__.add(exponential_lpdf<false>(vy, 20));
         current_statement__ = 62;
