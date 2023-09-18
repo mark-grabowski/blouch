@@ -81,7 +81,7 @@ reg_tips<-as.numeric(as.factor(reg_tips))
 
 ############################################################################################################
 ## Get info on phylogeny
-Next we will build a regimes object that will include both internal node and tip regimes, and use *Blouch's* lineage.constructor function to trace lineages from the tips to the root and determine the regime at each node - this function is built into Blouch and it does this internally given an empirical dataset, but here we use the function as part of our data simulation.
+Next we will build a regimes object that will include both internal node and tip regimes, and use *Blouch's* lineage.constructor function to trace lineages from the tips to the root and determine the regime at each node - this function is built into *Blouch* and it does this internally given an empirical dataset, but here we use the function as part of our data simulation.
 
 ```{r Make_regime_data}
 n<-length(trdata$phy$tip.label)
@@ -120,7 +120,7 @@ phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
 ```
 
 ## Simulate Y data
-Next we need to simulate the Y data - we are using four different optima (intercepts) with four different slopes. We use the weight.matrix function, which is included as an internal Blouch function to produce the optima_matrix object, which has the weighting for each lineage based on the amount of time spent in each regime (see Hansen 1997 for derivation). This is followed by using the calc_adaptive_dmX internal Blouch function which calculates the design matrix where the observed predictor X variables for each species are multiplied by the the phylogenetic correction factor, following Hansen et al. (2008), and these values are stored in the object pred_X.
+Next we need to simulate the Y data - we are using four different optima (intercepts) with four different slopes. We use the weight.matrix function, which is included as an internal *Blouch* function to produce the optima_matrix object, which has the weighting for each lineage based on the amount of time spent in each regime (see Hansen 1997 for derivation). This is followed by using the calc_adaptive_dmX internal *Blouch* function which calculates the design matrix where the observed predictor X variables for each species are multiplied by the the phylogenetic correction factor, following Hansen et al. (2008), and these values are stored in the object pred_X.
 
 We set values for our optima/intercepts (optima) and slopes (beta), and then use a linear model to construct a deterministic relationship between our set parameter values and mu, a vector of mean values for each species in our analysis. 
 
@@ -141,7 +141,7 @@ for(i in 1:N){ #Generative fucntion to produce average Y values for each combina
 ```
 
 ## Calculating V
-From there we will construct a variance/covariance matrix (V) based on our previously set parameter values and the  Blouch function calc_adaptive_V, following Hansen et al. (2008). Finally we sill simulate Y values based on our mean vector mu and our covariance matrix V.
+From there we will construct a variance/covariance matrix (V) based on our previously set parameter values and the  *Blouch* function calc_adaptive_V, following Hansen et al. (2008). Finally we sill simulate Y values based on our mean vector mu and our covariance matrix V.
 
 ```{r}
 n_reg<-length(unique(regimes)) #Count number of regimes
@@ -165,7 +165,7 @@ summary(lm(Y~X,df))
 ```
 
 ## Simulating measurement error
-Next we will simulate measurement error - we will use a standard deviation of measurement error of 0.01, which we will provide to Blouch as a vector (X_error and Y_error), and use the rnorm function to add error to our X and Y variables. In other words, we are telling Blouch that the estimated error on X and Y is 0.01, and providing it with X and Y variables that are offset by a random amount of error with this standard deviation.
+Next we will simulate measurement error - we will use a standard deviation of measurement error of 0.01, which we will provide to *Blouch* as a vector (X_error and Y_error), and use the rnorm function to add error to our X and Y variables. In other words, we are telling *Blouch* that the estimated error on X and Y is 0.01, and providing it with X and Y variables that are offset by a random amount of error with this standard deviation.
 
 ```{r Simulate_ME}
 ##################################################################################################################
@@ -179,7 +179,7 @@ X_with_error<-X+rnorm(N,0,0.01) #Add ME to X
 
 ```
 
-## Data setup for Blouch
+## Data setup for *Blouch*
 
 The first line below combines the existing trdata file from make.trdata which has regime info for the tips with the X and Y predictor values and their errors. We will use the helper function blouch.reg.adapt.prep() to setup the dat object for Stan. This function and the other helper functions require trdata files, and then the names of the columns that contain Y and (sometimes depending on the model) X data and error data. "Z_adaptive" is the number of predictors, with "regimes" the name of the column where the tip regime data is located. See help info for each function and other articles on github.com for functionality.
 
@@ -372,7 +372,7 @@ vy.plot
 
 ```
 
-Now lets plot the covariance as a function of distance from the tips - this gives an idea of the decay of covariance in the OU process. We will use Blouch's helper function, calc_multiadaptive_cov_plot.R to make these plots:
+Now lets plot the covariance as a function of distance from the tips - this gives an idea of the decay of covariance in the OU process. We will use *Blouch*'s helper function, calc_multiadaptive_cov_plot.R to make these plots:
 
 ```{r Plot_cov}
 ########################################################################################################
@@ -564,7 +564,7 @@ rstan::traceplot(fit.reg.adapt.ve,pars = c(c("hl","vy","optima","beta","beta_e")
 
 ## Predictive Checks
 
-Now lets run prior predictive checks and posterior predictive checks for our two models. Prior predictive checks generate predictions from the model using only the prior distribution (s) in order to assess whether the priors are appropriate – they are equivalent to running the model without data (Gabry et al. 2019).  Posterior predictive checks generate data according to the posterior predictive distribution and compare it to the observed data to assess the fit of the model (Gabry et al. 2019). Blouch includes Stan functions to run prior and posterior predictive checks for each of the included models and their use is demonstrated below in the simulation and empirical examples.
+Now lets run prior predictive checks and posterior predictive checks for our two models. Prior predictive checks generate predictions from the model using only the prior distribution (s) in order to assess whether the priors are appropriate – they are equivalent to running the model without data (Gabry et al. 2019).  Posterior predictive checks generate data according to the posterior predictive distribution and compare it to the observed data to assess the fit of the model (Gabry et al. 2019). *Blouch* includes Stan functions to run prior and posterior predictive checks for each of the included models and their use is demonstrated below in the simulation and empirical examples.
 
 ### Prior predictive checks
 

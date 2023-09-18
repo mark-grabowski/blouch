@@ -1,8 +1,8 @@
 ---
-title: "Varying_Effects_Models-Examples"
+title: "Varying Effects Models-Examples"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Varying_Effects_Models-Examples}
+  %\VignetteIndexEntry{Varying Effects Models-Examples}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -26,10 +26,10 @@ library(blouch)
 ```
 
 
-Here I walk you through the varying effects models of Blouch. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model.
+Here I walk you through the varying effects models of Blouch. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model. In all cases the number of iterations is small (400) and we are only running one chain - because this is just an example vignette and these models can take some time to run. In a real analysis you would want to run at least 1000 iterations and at least two chains.
 
 
-#Multi-optima Direct Effect Model with Varying Effects - Single Predictor
+## Multi-optima Direct Effect Model with Varying Effects - Single Predictor
 First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
 ```{r MODEMVE_setup}
 ########################################################################################################
@@ -204,7 +204,7 @@ rm(list=ls())
 
 ```
 
-#Multlevel Multi-optima Direct Effect Model with Varying Effects - Multiple Predictors
+## Multlevel Multi-optima Direct Effect Model with Varying Effects - Multiple Predictors
 Two regimes with two direct effect predictors and multiple slopes per optima but single alpha parameter
 ```{r Multi_optima_model_setup}
 ############################################################################################################
@@ -363,13 +363,15 @@ plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","b
 post<-rstan::extract(fit.reg.direct.ve)
 ```
 
+From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+
 ```{r}
 rm(list=ls())
 
 ```
 
 
-#Multlevel Multi-optima Adaptive Model with Varying Effects - Single Predictor
+## Multlevel Multi-optima Adaptive Model with Varying Effects - Single Predictor
 ```{r}
 ########################################################################################################
 #Two regimes with adaptive trait and multiple slopes per optima but single alpha parameter
@@ -549,13 +551,15 @@ plot(rethinking::precis(fit.reg.adapt.ve,depth=2,pars = c("hl","vy","optima","be
 post<-rstan::extract(fit.reg.adapt.ve) #rstan::extract posterior distribution
 ```
 
+From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+
 
 ```{r}
 rm(list=ls())
 
 ```
 
-#Multi-optima direct effect and adaptive models
+## Multi-optima direct effect and adaptive models
 Two regimes with 1 direct and 1 adaptive trait and Two slopes per regime
 ```{r}
 ########################################################################################################
@@ -762,5 +766,5 @@ plot(rethinking::precis(fit.reg.direct.adapt.ve,depth=2,pars = c("hl","vy","opti
 post<-rstan::extract(fit.reg.direct.adapt.ve)
 ```
 
-See Simulation Example for how to explore posterior distribution and model comparison as well as prior and posterior predictive checks
+From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
 

@@ -1,8 +1,8 @@
 ---
-title: "Multi-optima_Models-Examples"
+title: "Multi-optima Models-Examples"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Multi-optima_Models-Examples}
+  %\VignetteIndexEntry{Multi-optima Models-Examples}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -26,8 +26,13 @@ library(blouch)
 
 
 
-#Multi-optima Model
-Next we will run a series of models that include categorical variables - regimes painted on a phylogeny
+## Multi-optima Model
+
+Next we will run a series of models that include categorical variables - regimes painted on a phylogeny. In all cases the number of iterations is small (400) and we are only running one chain - because this is just an example vignette and these models can take some time to run. In a real analysis you would want to run at least 1000 iterations and at least two chains.
+
+
+
+
 First we will set up the regime painting
 ```{r Multi_optima_model_setup}
 ############################################################################################################
@@ -154,7 +159,7 @@ post<-rstan::extract(fit.mlm.vi.regimes.nc)
 rm(list=ls())
 ```
 
-#Multi-optima Direct Effect Model
+## Multi-optima Direct Effect Model
 We will now include both regimes painted on the tree and a direct effect predictor
 ```{r}
 ############################################################################################################
@@ -302,11 +307,14 @@ post<-rstan::extract(fit.mli.regi.direct) #rstan::extract posterior distribution
 
 ```
 
+From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+
+
 ```{r}
 rm(list=ls())
 ```
 
-#Multi-optima Adaptive Model
+## Multi-optima Adaptive Model
 We will now include both regimes painted on the tree and an adaptive predictor
 ```{r Multi_optima_adaptive_model_setup}
 ############################################################################################################
@@ -446,11 +454,14 @@ print(fit.reg.adapt,pars = c("hl","vy","optima","beta"))
 post<-rstan::extract(fit.reg.adapt)
 ```
 
+From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+
+
 ```{r}
 rm(list=ls())
 ```
 
-#Multi-optima Direct Effect and Adaptive Model
+## Multi-optima Direct Effect and Adaptive Model
 We will now include both regimes painted on the tree and a direct effect and adaptive predictor
 ```{r Multi_optima_direct_adaptive_model_setup}
 ############################################################################################################
@@ -603,5 +614,5 @@ post<-rstan::extract(fit.reg.direct.adapt)
 
 ```
 
-See Simulation Example for how to explore posterior distribution and model comparison as well as prior and posterior predictive checks
+From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
 
