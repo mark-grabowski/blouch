@@ -112,9 +112,9 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'blouchOU_direct', line 36, column 2 to column 18)",
                                                       " (in 'blouchOU_direct', line 38, column 2 to column 37)",
                                                       " (in 'blouchOU_direct', line 40, column 2 to column 46)",
-                                                      " (in 'blouchOU_direct', line 42, column 2 to column 35)",
-                                                      " (in 'blouchOU_direct', line 45, column 2 to column 41)",
-                                                      " (in 'blouchOU_direct', line 46, column 2 to column 43)",
+                                                      " (in 'blouchOU_direct', line 42, column 2 to column 36)",
+                                                      " (in 'blouchOU_direct', line 45, column 2 to column 40)",
+                                                      " (in 'blouchOU_direct', line 46, column 2 to column 39)",
                                                       " (in 'blouchOU_direct', line 47, column 2 to column 16)",
                                                       " (in 'blouchOU_direct', line 48, column 2 to column 34)",
                                                       " (in 'blouchOU_direct', line 49, column 2 to column 30)",
@@ -566,11 +566,11 @@ public:
         current_statement__ = 37;
         lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.25));
         current_statement__ = 38;
-        lp_accum__.add(exponential_lpdf<false>(vy, 5));
+        lp_accum__.add(exponential_lpdf<false>(vy, 20));
         current_statement__ = 39;
-        lp_accum__.add(normal_lpdf<false>(alpha, 2.01, 0.75));
+        lp_accum__.add(normal_lpdf<false>(alpha, 2.0, 0.75));
         current_statement__ = 40;
-        lp_accum__.add(normal_lpdf<false>(beta, 0.241523, 1.5));
+        lp_accum__.add(normal_lpdf<false>(beta, 0.25, 1.5));
         current_statement__ = 41;
         a = (stan::math::log(2) / hl);
         current_statement__ = 42;

@@ -126,7 +126,7 @@ generated quantities {
   real optima_bar;
   real beta_bar;
 
-  real<lower=0> hl = lognormal_rng(log(0.25),0.25);
+  real<lower=0> hl = lognormal_rng(log(0.25),0.75);
   real <lower=0> vy = exponential_rng(5);
 
   real sigma2_y = vy*(2*(log(2)/hl));

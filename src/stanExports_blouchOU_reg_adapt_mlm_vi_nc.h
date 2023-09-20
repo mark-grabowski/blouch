@@ -1541,7 +1541,7 @@ public:
         assign(optima_beta, nil_index_list(), append_row(optima, beta),
           "assigning variable optima_beta");
         current_statement__ = 63;
-        lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.25));
+        lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.75));
         current_statement__ = 64;
         lp_accum__.add(exponential_lpdf<false>(vy, 20));
         current_statement__ = 65;

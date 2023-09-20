@@ -22,17 +22,17 @@
         "-I/Library/Frameworks/R.framework/Versions/4.2/Resources/library/rstan/include",
         "-I/Library/Frameworks/R.framework/Versions/4.2/Resources/library/StanHeaders/include",
         "-DEIGEN_DONT_VECTORIZE",
-        "-I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include",
+        "-I/Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include",
         "-I/usr/local/include",
         "-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1",
-        "-I/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include",
+        "-I/Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include",
         "-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
         "-I/Library/Developer/CommandLineTools/usr/include"
     ],
     "pch": "RcppEigen",
     "is_cpp": true,
-    "hash": "169488162716947176161693766849",
-    "compiler": "16789480174649832434",
+    "hash": "169520155716947176161693766849",
+    "compiler": "2441644137927445834",
     "rversion": "4.2.3",
     "dbversion": 4
 }

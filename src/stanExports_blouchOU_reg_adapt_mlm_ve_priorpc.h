@@ -1452,7 +1452,7 @@ public:
       hl = std::numeric_limits<double>::quiet_NaN();
       
       current_statement__ = 10;
-      hl = lognormal_rng(stan::math::log(0.25), 0.25, base_rng__);
+      hl = lognormal_rng(stan::math::log(0.25), 0.75, base_rng__);
       double vy;
       vy = std::numeric_limits<double>::quiet_NaN();
       

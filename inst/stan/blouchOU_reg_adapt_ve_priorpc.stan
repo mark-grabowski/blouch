@@ -122,7 +122,7 @@ generated quantities {
   matrix[n_reg,Z_adaptive] beta;
   vector[n_reg] optima;
 
-  real hl = lognormal_rng(log(0.25),0.25);
+  real hl = lognormal_rng(log(0.25),0.75);
   real vy = exponential_rng(20);
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;

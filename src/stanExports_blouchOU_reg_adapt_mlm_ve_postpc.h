@@ -1588,7 +1588,7 @@ public:
         
         current_statement__ = 55;
         lp_accum__.add(
-          lognormal_lpdf<propto__>(hl, stan::math::log(0.25), 0.25));
+          lognormal_lpdf<propto__>(hl, stan::math::log(0.25), 0.75));
         current_statement__ = 56;
         lp_accum__.add(exponential_lpdf<propto__>(vy, 20));
         current_statement__ = 57;

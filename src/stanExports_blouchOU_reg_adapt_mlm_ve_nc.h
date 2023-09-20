@@ -1621,7 +1621,7 @@ public:
         stan::math::fill(optima_matrix, DUMMY_VAR__);
         
         current_statement__ = 66;
-        lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.25));
+        lp_accum__.add(lognormal_lpdf<false>(hl, stan::math::log(0.25), 0.75));
         current_statement__ = 67;
         lp_accum__.add(exponential_lpdf<false>(vy, 20));
         current_statement__ = 68;

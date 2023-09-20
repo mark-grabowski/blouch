@@ -24,12 +24,13 @@ library(blouch)
 ```
 
 
-Here I walk you through the basic models of *Blouch*. By basic I mean either the direct effect, adaptive, or model with a combination of both types of predictors.
+Here I walk you through the basic models of *Blouch*. By basic I mean either the direct effect model, adaptive model, or model with a combination of both types of predictors.
 
 ## Direct effect model
-*Blouch* implements the model of constrained evolution (Hansen & Bartoszek, 2012) known as the direct effect model, previously implemented in Grabowski et al. (2016), which can be used to test for allometric constraints.
+*Blouch* implements the model of constrained evolution (Hansen & Bartoszek, 2012) known as the direct effect model, previously implemented in Grabowski et al. (2016; see also Grabowski et al. 2023), which can be used to test for allometric constraints.
 
-First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
+## Create Phylogeny
+The *Blouch* package includes the primate phylogeny from the 10KTrees Project (Arnold et al. 2010), which is used for various simulations and comes from https://10ktrees.nunn-lab.org/. This is Version 3 of their primate phylogeny with 301 tips. Here we randomly reduce the tip number to 100 for a more manageable tree using functions from the *ape* R package (Paradis et al. 2004)
 ```{r Create_phylogeny}
 ########################################################################################################
 #Create phylogeny
@@ -48,9 +49,9 @@ tip.label<-phy$tip.label
 
 ```
 
-First we will simulate X and Y data using a generative model for the direct effect model. We will use the treeplyr package (Uyeda and Harmon, 2014) make.treedata function to combine the data and tree based on the row names, which has the taxa names. See https://github.com/uyedaj/treeplyr for more on this package.
 
-We will set the intercept (alpha term) to 2 and the slope to 0.25. The half-life will be set to 0.1 or 10% of tree height, with the stationary variance (Vy) at 0.01. We will use the *Blouch* helper function calc_direct_V to calculate the direct effect variance/covariance matrix, and the fastBM function from phytools (Revell, 2011) to simulate the X variable following a BM process.
+## Set true/known parameter values
+Next we set our true/known parameter values. These are for the half-life (hl), and stationary variance (vy), which in our simulation we translate to $\alpha$ (a) and $\sigma^2_y$ (sigma2_y). We set the ancestral value at the root (vX0) to 0, and the instantaneous variance of the BM process (Sxx) to  to 10.
 
 ```{r Direct_effect_model_setup}
 ########################################################################################################
@@ -63,19 +64,23 @@ a<-log(2)/hl
 vy<-0.01 #0.25,0.5 - testing options
 sigma2_y<-vy*(2*(log(2)/hl));
 
-vX0<-0
-vY0 <- 0
+vX0<-0 #value for ancestral state at the root node. 
+vY0 <- 0 #value for ancestral state at the root node. 
 
 Sxx<-10 #Variance of BM process
+```
 
+## Calculate V and simulate X data
+We will use the *Blouch* helper R function calc_direct_V to calculate the direct effect variance/covariance matrix, and the fastBM function from phytools (Revell, 2011) to simulate the X variable following a BM process.
+
+```{r}
 V<-calc_direct_V(phy,sigma2_y,a) #Calculate V - variance/covariance matrix
 X<-phytools::fastBM(phy,a=vX0,sig2=Sxx,internal=FALSE) #Simulate X BM variable on tree, with scaling 10
 phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
-
 ```
 
-
-Next we set the intercept and slope parameters, and simulate mu before using it and V to simulate Y. Finally we make a quick plot of the results.
+## Simulate Y data
+Next we set the intercept and slope parameters, and simulate mu before using it and V to simulate Y. Finally we make a quick plot of the results. We will set the intercept (alpha term) to 2 and the slope to 0.25. 
 
 ```{r}
 alpha<-2 #Intecept
@@ -94,6 +99,7 @@ summary(lm(Y~X,df))
 
 ```
 
+## Simulating measurement error
 Next we will simulate measurement error - we will use a standard deviation of measurement error of 0.01, which we will provide to *Blouch* as a vector (X_error and Y_error), and use the rnorm function to add error to our X and Y variables. In other words, we are telling *Blouch* that the estimated error on X and Y is 0.01, and providing it with X and Y variables that are offset by a random amount of error with this standard deviation.
 ```{r}
 X_error<-rep(0.01,N)
@@ -103,9 +109,9 @@ X_with_error<-X+rnorm(N,0,0.01)
 
 ```
 
-## Data setup for *Blouch*
-
+## Combine data and tree
 Next we will use the treeplyr package (Uyeda and Harmon, 2014) make.treedata function to combine the data and tree based on the taxa names. See https://github.com/uyedaj/treeplyr for more on this package.
+
 ```{r}
 ############################################################################################################
 #Make trdata file
@@ -114,7 +120,8 @@ trdata<-treeplyr::make.treedata(phy,trait.data)
 
 ```
 
-We will use the helper function blouch.direct.prep() to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the heloper function the number of predictor traits, 1 here.
+## Data setup for *Blouch*
+We will use the helper function blouch.direct.prep to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the heloper function the number of predictor traits, 1 here.
 
 ```{r blouch.direct.prep}
 ############################################################################################################
@@ -124,8 +131,11 @@ dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error"
 ```
 
 
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - see Simulation Example article for one way to go about this.
+
 ## Running models
-Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
+We will run the direct effect model first. Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
 
 For example, here are the four most important priors for the model below - these values are explored in Grabowski (in revision). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
 
@@ -133,9 +143,9 @@ For example, here are the four most important priors for the model below - these
 ########################################################################################################
 #Priors
 #hl ~ lognormal(log(0.25),0.25);
-#vy ~ exponential(20);
-#optima_bar ~ normal(2.0,0,75);
-#beta_bar ~ normal(0.25,1.5);
+#vy ~ exponential(10);
+#alpha ~ normal(2.0,0,75);
+#beta ~ normal(0.25,1.5);
 ```
 
 And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in revision) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020)
@@ -147,7 +157,6 @@ And here are the lines of Stan code for setting these priors. To change the valu
   target += exponential_lpdf(vy|10);
   target += normal_lpdf(alpha|2.0,0.75);
   target += normal_lpdf(beta|0.25,1.5);
-
 ```
 
 
@@ -173,9 +182,9 @@ rm(list=ls())
 ```
 
 ## Adaptive Model
-*Blouch* also implements the model of adaptive evolution introduced by Hansen et al. (2008). Here the response variable evolves according to an Ornstein-Uhlenbeck process towards an optimal state that is modeled as a function of the predictor variable.
+*Blouch* also implements the model of adaptive evolution introduced by Hansen et al. (2008). Here the response variable evolves according to an Ornstein-Uhlenbeck process towards an optimal state that is modeled as a function of the predictor variable. Most of these steps below are similar to those above for the direct effect model so I will not go into them fully.
 
-Again, we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
+Again, we will create a phylogeny by randomly sampling from the 10K Trees phylogeny. 
 ```{r}
 ########################################################################################################
 #Create phylogeny
@@ -194,10 +203,10 @@ tip.label<-phy$tip.label
 
 ```
 
+## Set true/known parameter values
 First we will simulate X and Y data using a generative model for the adaptive model. 
 
-The half-life will be set to 0.1 or 10% of tree height, with the stationary variance (Vy) at 0.01. We will then use the fastBM function from phytools (Revell, 2011) to simulate the X variable following a BM process.
-
+We will set our true/known parameter values. These are for the half-life (hl), and stationary variance (vy), which in our simulation we translate to $\alpha$ (a) and $\sigma^2_y$ (sigma2_y). We set the ancestral value at the root (vX0) to 0, and the instantaneous variance of the BM process (Sxx) to  to 10. 
 ```{r Adaptive_model_setup}
 ########################################################################################################
 #Adaptive Model
@@ -208,16 +217,20 @@ hl<-0.1
 a<-log(2)/hl
 vy<-0.1 #0.25,0.5 - testing options
 sigma2_y<-vy*(2*(log(2)/hl));
-vX0<-0
-vY0 <- 0
-Sxx<-10 #Look at effects
-
-X<-phytools::fastBM(phy,a=vX0,sig2=Sxx,internal=FALSE) #Simulate X BM variable on tree, with scaling 10
-phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
-sigma2_x<-matrix(1,1,1)
+vX0<-0 #value for ancestral state at the root node. 
+vY0<-0#value for ancestral state at the root node.
 ```
 
-We will set the intercept (alpha term) to 2 and the slope to 0.25. We will use the *Blouch* helper functions calc_adaptive_dmX to calculate the design matrix and calc_adaptive_V to calculate the variance/covariance matrix.
+We will use the the fastBM function from phytools (Revell, 2011) to simulate the X variable following a BM process. Because this is a simulation we are setting the instantaneous variance of the BM process (sigma2_x) to 1, which needs to be in matrix format. Normally *Blouch* estimates this as part of the blouch.adapt.prep helper function.
+
+```{r}
+sigma2_x<-matrix(1,1,1)
+X<-phytools::fastBM(phy,a=vX0,sig2=sigma2_x[1,1],internal=FALSE) #Simulate X BM variable on tree, with scaling 10
+phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+```
+
+## Calculate V and simulate Y data
+We will set the intercept (alpha) to 2 and the slope to 0.25. We will use the *Blouch* helper functions calc_adaptive_dmX to calculate the design matrix and calc_adaptive_V to calculate the variance/covariance matrix.
 
 Then we will simulate mu before using it and V to simulate Y. Finally we make a quick plot of the results.
 
@@ -241,6 +254,7 @@ summary(lm(Y~X,df))
 
 ```
 
+## Simulating measurement error
 Next we will simulate measurement error - we will use a standard deviation of measurement error of 0.01, which we will provide to *Blouch* as a vector (X_error and Y_error), and use the rnorm function to add error to our X and Y variables. In other words, we are telling *Blouch* that the estimated error on X and Y is 0.01, and providing it with X and Y variables that are offset by a random amount of error with this standard deviation.
 
 ```{r}
@@ -250,8 +264,6 @@ X_error<-rep(0.01,N)
 Y_error<-rep(0.01,N)
 Y_with_error<-Y+rnorm(N,0,0.01)
 X_with_error<-X+rnorm(N,0,0.01)
-
-
 ```
 
 ## Data setup for *Blouch*
@@ -274,7 +286,8 @@ We will use the helper function blouch.adapt.prep() to setup the dat file for St
 dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=Z_adaptve)
 
 ```
-
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - see Simulation Example article for one way to go about this.
 
 ## Running models
 Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
@@ -287,10 +300,10 @@ For example, here are the four most important priors for the model below - these
 #hl ~ lognormal(log(0.25),0.25);
 #vy ~ exponential(5);
 #alpha ~ normal(2.0,0,2);
-#beta_bar ~ normal(0,);
+#beta ~ normal(0.25,0.1); 
 ```
 
-And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in revision) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020)
+And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in revision) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020).
 
 
 ```{r, eval=FALSE}
@@ -298,12 +311,12 @@ And here are the lines of Stan code for setting these priors. To change the valu
   target += lognormal_lpdf(hl|log(0.25),0.25);
   target += exponential_lpdf(vy|5);
   target += normal_lpdf(alpha|2,0.2);
-  target += normal_lpdf(beta|0.25,0);
+  target += normal_lpdf(beta|0.25,0.1);
 
 ```
 
 
-Now let's run the adaptive model blouchOU_adapt.
+Now let's run the adaptive model blouchOU_adapt
 ```{r Run_adaptive_model , results='hide'}
 fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 1,iter =400,cores=1)
 ```
@@ -323,6 +336,8 @@ rm(list=ls())
 ```
 
 ## Direct effect and adaptive models
+Finally, we can look at models that are a combination of direct effect and adaptive traits. Setup is similar to above except here we have two predictors.
+
 First we will create a phylogeny by randomly sampling from the 10K Trees phylogeny
 ```{r}
 ########################################################################################################
@@ -338,11 +353,11 @@ l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
 phy$edge.length<-phy$edge.length/l.tree 
 
 tip.label<-phy$tip.label
-
-
 ```
 
-Finally we will simulate X and Y data using a generative model for the direct effect and adaptive model. Here we will have 1 direct effect trait, Xd, and one adaptive trait, Xa.
+## Set true/known parameter values
+
+We will simulate X and Y data using a generative model for the direct effect and adaptive model. Here we will have 1 direct effect trait, Xd, and one adaptive trait, Xa. An object Z always refers to the number of traits, in this case Z_direct = number of direct effect traits, and Z_adaptive = number of adaptive traits. Because this is a simulation we are setting the instantaneous variance of the BM process (sigma2_x) to 1, which needs to be in matrix format. Normally *Blouch* estimates this as part of the blouch.direct.adapt.prep helper function.
 
 ```{r Direct_adapt_model_setup}
 ############################################################################################################
@@ -360,7 +375,10 @@ Z_direct<-1
 Z_adaptive<-1
 Z<-Z_direct+Z_adaptive
 sigma2_x<-matrix(1,1,1)
+#sigma2_x<-1
+```
 
+```{r}
 Xd<-rnorm(N,0,1)
 names(Xd)<-phy$tip.label
 phytools::phenogram(phy,Xd,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
@@ -428,7 +446,7 @@ trdata<-treeplyr::make.treedata(phy,trait.data)
 
 ```
 
-We will use the helper function blouch.direct.adapt.prep() to setup the dat file for Stan. Here the names of the direct effect and adaptive columns are Xd, and Xa and their associated errors, with Z_direct and Z_adaptive the number of direct effect and adaptive traits, respectively.
+We will use the helper function blouch.direct.adapt.prep to setup the dat file for Stan. Here the names of the direct effect and adaptive columns are Xd, and Xa and their associated errors, with Z_direct and Z_adaptive the number of direct effect and adaptive traits, respectively.
 ```{r blouch.direct.adapt.prep}
 ############################################################################################################
 #Test Blouch prep code - Direct effect + Adaptive Model
@@ -456,6 +474,14 @@ post<-rstan::extract(fit.direct.adapt)
 From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
 
 ## References
+Grabowski M., Voje K.L., Hansen T.F. 2016. Evolutionary modeling and correcting for observation error support a 3/5 brain-body allometry for primates. J. Hum. Evol. 94:106–116.
+
+Grabowski M., Kopperud B.T., Tsuboi M., Hansen T.F. 2023. Both Diet and Sociality Affect Primate Brain-Size Evolution. Systematic Biology.:syac075.
+
+Hansen T.F., Bartoszek K. 2012. Interpreting the evolutionary regression: the interplay between observational and biological errors in phylogenetic comparative studies. Syst Biol. 61:413–425.
+
+McElreath R. 2020. Statistical rethinking: A Bayesian course with examples in R and Stan. CRC press.
+
 Revell L.J. 2011. phytools: an R package for phylogenetic comparative biology (and other things). Methods Ecol. Evol. 3:217–223.
 
 Uyeda J.C., Harmon L.J. 2014. A Novel Bayesian Method for Inferring and Interpreting the Dynamics of Adaptive Landscapes from Phylogenetic Comparative Data. Systematic Biology. 63:902–918.
