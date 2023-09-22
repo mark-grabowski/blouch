@@ -256,7 +256,7 @@ And here are the lines of Stan code for setting these priors - they are written 
 #Stan Code
 target += lognormal_lpdf(hl|log(0.25),0.75);
 target += exponential_lpdf(vy|20);
-target += normal_lpdf(optima_bar|2.8,11);
+target += normal_lpdf(optima_bar|2.8,1);
 target += normal_lpdf(beta_bar|0.16,0.25);
 
 ```
