@@ -5,7 +5,7 @@
 \title{lineage.constructor function - for internal Blouch use
 Construct a list with variables based on regime timing and placement}
 \usage{
-lineage.constructor(phy, e, anc_maps = "regimes", regimes, ace)
+lineage.constructor(phy, e, anc_maps = "regimes", regimes)
 }
 \arguments{
 \item{phy}{phylogeny in NEXUS format}

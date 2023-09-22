@@ -88,7 +88,7 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 117, column 2 to column 41)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 118, column 2 to column 21)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 119, column 2 to column 37)",
-                                                      " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 120, column 2 to column 41)",
+                                                      " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 120, column 2 to column 39)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 121, column 2 to column 30)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 122, column 2 to column 29)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_priorpc', line 123, column 2 to column 18)",
@@ -1472,7 +1472,7 @@ public:
       optima_bar = std::numeric_limits<double>::quiet_NaN();
       
       current_statement__ = 14;
-      optima_bar = normal_rng(2.88, 1.5, base_rng__);
+      optima_bar = normal_rng(2.88, 1, base_rng__);
       Eigen::Matrix<double, -1, 1> beta_bar;
       beta_bar = Eigen::Matrix<double, -1, 1>(Z_adaptive);
       stan::math::fill(beta_bar, std::numeric_limits<double>::quiet_NaN());
@@ -1501,7 +1501,7 @@ public:
       for (int i = 1; i <= Z_adaptive; ++i) {
         current_statement__ = 21;
         assign(beta_bar, cons_list(index_uni(i), nil_index_list()),
-          normal_rng(0.31, 0.25, base_rng__), "assigning variable beta_bar");
+          normal_rng(0.16, 0.25, base_rng__), "assigning variable beta_bar");
       }
       current_statement__ = 24;
       assign(ab_bar, cons_list(index_uni(1), nil_index_list()), optima_bar,

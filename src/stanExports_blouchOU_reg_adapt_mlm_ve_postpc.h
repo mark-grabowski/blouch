@@ -131,7 +131,7 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 125, column 2 to column 30)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 126, column 2 to column 33)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 127, column 2 to column 23)",
-                                                      " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 128, column 2 to column 32)",
+                                                      " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 128, column 2 to column 29)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 129, column 2 to column 31)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 130, column 2 to column 20)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve_postpc', line 131, column 2 to column 25)",
@@ -1592,9 +1592,9 @@ public:
         current_statement__ = 56;
         lp_accum__.add(exponential_lpdf<propto__>(vy, 20));
         current_statement__ = 57;
-        lp_accum__.add(normal_lpdf<propto__>(optima_bar, 2.88, 1.5));
+        lp_accum__.add(normal_lpdf<propto__>(optima_bar, 2.8, 1));
         current_statement__ = 58;
-        lp_accum__.add(normal_lpdf<propto__>(beta_bar, 0.31, 0.25));
+        lp_accum__.add(normal_lpdf<propto__>(beta_bar, 0.16, 0.25));
         current_statement__ = 59;
         lp_accum__.add(lkj_corr_lpdf<propto__>(Rho, 4));
         current_statement__ = 60;

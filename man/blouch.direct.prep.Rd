@@ -4,7 +4,7 @@
 \alias{blouch.direct.prep}
 \title{blouch.direct.prep - prep data to run in Stan's direct effect model}
 \usage{
-blouch.direct.prep(trdata, Y, Y_error, X, X_error)
+blouch.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}

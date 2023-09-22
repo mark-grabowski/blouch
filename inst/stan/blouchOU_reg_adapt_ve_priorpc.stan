@@ -128,11 +128,11 @@ generated quantities {
   real a = log(2)/hl;
 
   for(i in 1:n_reg){
-    optima[i] = normal_rng(2.88,1.5);
+    optima[i] = normal_rng(2.8,1);
     }
   for(i in 1:(Z_adaptive)){
     for(j in 1:n_reg){
-      beta[j,i] = normal_rng(0.31,0.25);
+      beta[j,i] = normal_rng(0.16,0.25);
     }
   }
   for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement

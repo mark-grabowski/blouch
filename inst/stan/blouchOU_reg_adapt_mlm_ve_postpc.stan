@@ -127,8 +127,8 @@ model {
   vector[1+Z_adaptive] ab_bar;
   hl ~ lognormal(log(0.25),0.75);
   vy ~ exponential(20);
-  optima_bar ~ normal(2.88,1.5);//Original 4 regimes
-  beta_bar ~ normal(0.31,0.25); //Original 4 regimes
+  optima_bar ~ normal(2.8,1);//Original 4 regimes
+  beta_bar ~ normal(0.16,0.25); //Original 4 regimes
   Rho ~ lkj_corr(4);
   ab_bar[1] = optima_bar;
   ab_bar[2:(Z_adaptive+1)] = beta_bar;

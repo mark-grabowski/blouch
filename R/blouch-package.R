@@ -1,28 +1,16 @@
 #' The 'blouch' package.
 #'
-#' @description A DESCRIPTION OF THE PACKAGE
+#' @description Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses (BLOUCH) fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, and incorporates measurement error.
 #'
 #' @docType package
 #' @name blouch-package
 #' @aliases blouch
 #' @import methods
 #' @import Rcpp
-#' @import ape
-#' @import treeplyr
-#' @import ggplot2
-#' @import ggsci
-#' @import MASS
-#' @import loo
-#' @import bridgesampling
-#' @import phytools
 #' @import parallel
 #' @import StanHeaders
-#' @importFrom stats cophenetic
-#' @importFrom rethinking PI precis
 #' @importFrom rstan sampling
-#' @importFrom rstantools rstan_config
 #' @importFrom RcppParallel RcppParallelLibs
-#' @importFrom utils head tail
 #' @useDynLib blouch, .registration = TRUE
 #'
 #' @references

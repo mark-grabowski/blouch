@@ -89,7 +89,7 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'blouchOU_reg_adapt_ve_priorpc', line 119, column 2 to column 32)",
                                                       " (in 'blouchOU_reg_adapt_ve_priorpc', line 120, column 2 to column 37)",
                                                       " (in 'blouchOU_reg_adapt_ve_priorpc', line 121, column 2 to column 21)",
-                                                      " (in 'blouchOU_reg_adapt_ve_priorpc', line 123, column 4 to column 37)",
+                                                      " (in 'blouchOU_reg_adapt_ve_priorpc', line 123, column 4 to column 34)",
                                                       " (in 'blouchOU_reg_adapt_ve_priorpc', line 122, column 19 to line 124, column 5)",
                                                       " (in 'blouchOU_reg_adapt_ve_priorpc', line 122, column 2 to line 124, column 5)",
                                                       " (in 'blouchOU_reg_adapt_ve_priorpc', line 127, column 6 to column 40)",
@@ -1411,7 +1411,7 @@ public:
       for (int i = 1; i <= n_reg; ++i) {
         current_statement__ = 15;
         assign(optima, cons_list(index_uni(i), nil_index_list()),
-          normal_rng(2.88, 1.5, base_rng__), "assigning variable optima");}
+          normal_rng(2.8, 1, base_rng__), "assigning variable optima");}
       current_statement__ = 22;
       for (int i = 1; i <= Z_adaptive; ++i) {
         current_statement__ = 20;
@@ -1420,7 +1420,7 @@ public:
           assign(beta,
             cons_list(index_uni(j),
               cons_list(index_uni(i), nil_index_list())),
-            normal_rng(0.31, 0.25, base_rng__), "assigning variable beta");}}
+            normal_rng(0.16, 0.25, base_rng__), "assigning variable beta");}}
       current_statement__ = 27;
       for (int i = 1; i <= Z_adaptive; ++i) {
         current_statement__ = 25;

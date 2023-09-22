@@ -136,7 +136,7 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'blouchOU_reg_adapt_mlm_ve', line 124, column 2 to column 30)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve', line 126, column 2 to column 46)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve', line 128, column 2 to column 36)",
-                                                      " (in 'blouchOU_reg_adapt_mlm_ve', line 130, column 2 to column 45)",
+                                                      " (in 'blouchOU_reg_adapt_mlm_ve', line 130, column 2 to column 42)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve', line 132, column 2 to column 44)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve', line 134, column 2 to column 33)",
                                                       " (in 'blouchOU_reg_adapt_mlm_ve', line 135, column 2 to column 25)",
@@ -1590,9 +1590,9 @@ public:
         current_statement__ = 61;
         lp_accum__.add(exponential_lpdf<false>(vy, 20));
         current_statement__ = 62;
-        lp_accum__.add(normal_lpdf<false>(optima_bar, 2.88, 1.5));
+        lp_accum__.add(normal_lpdf<false>(optima_bar, 2.8, 1));
         current_statement__ = 63;
-        lp_accum__.add(normal_lpdf<false>(beta_bar, 0.31, 0.25));
+        lp_accum__.add(normal_lpdf<false>(beta_bar, 0.16, 0.25));
         current_statement__ = 64;
         lp_accum__.add(lkj_corr_lpdf<false>(Rho, 4));
         current_statement__ = 65;

@@ -2,16 +2,16 @@
 % Please edit documentation in R/blouch.prep.R
 \name{ts_fxn}
 \alias{ts_fxn}
-\title{Internal Blouch function to return tree data}
+\title{ts_fxn function - internal Blouch function to return tree data}
 \usage{
 ts_fxn(phy)
 }
 \arguments{
-\item{phy}{phylogeny in NEXUS format}
+\item{phy}{Phylogeny in NEXUS format}
 }
 \value{
 A list object with tree data
 }
 \description{
-Internal Blouch function to return tree data
+ts_fxn function - internal Blouch function to return tree data
 }

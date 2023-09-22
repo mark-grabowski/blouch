@@ -12,14 +12,7 @@ set.converge.regimes<-function(trdata,regimes){
   #returns a new column of the dataset - regimes
   #also returns internal node assignment
   #Make sure you send a merged trdata file from treeplyr
-
-
-
-  #library(phytools)
-  #library(ggplot2)
-
   getDescendants<-function(tree,node,curr=NULL){
-    #plot(tree,font=0.25); nodelabels(bg="white")
     if(is.null(curr)) curr<-vector()
     daughters<-tree$edge[which(tree$edge[,1]==node),2]
     curr<-c(curr,daughters)

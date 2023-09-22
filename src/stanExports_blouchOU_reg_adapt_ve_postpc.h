@@ -124,7 +124,7 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'blouchOU_reg_adapt_ve_postpc', line 119, column 2 to column 32)",
                                                       " (in 'blouchOU_reg_adapt_ve_postpc', line 121, column 2 to column 46)",
                                                       " (in 'blouchOU_reg_adapt_ve_postpc', line 123, column 2 to column 36)",
-                                                      " (in 'blouchOU_reg_adapt_ve_postpc', line 125, column 4 to column 43)",
+                                                      " (in 'blouchOU_reg_adapt_ve_postpc', line 125, column 4 to column 40)",
                                                       " (in 'blouchOU_reg_adapt_ve_postpc', line 128, column 4 to column 46)",
                                                       " (in 'blouchOU_reg_adapt_ve_postpc', line 126, column 26 to line 129, column 3)",
                                                       " (in 'blouchOU_reg_adapt_ve_postpc', line 126, column 2 to line 129, column 3)",
@@ -1466,7 +1466,7 @@ public:
         current_statement__ = 49;
         lp_accum__.add(exponential_lpdf<false>(vy, 20));
         current_statement__ = 50;
-        lp_accum__.add(normal_lpdf<false>(optima, 2.88, 1.5));
+        lp_accum__.add(normal_lpdf<false>(optima, 2.8, 1));
         current_statement__ = 53;
         for (int i = 1; i <= Z_adaptive; ++i) {
           current_statement__ = 51;
@@ -1474,7 +1474,7 @@ public:
             normal_lpdf<false>(
               rvalue(beta,
                 cons_list(index_omni(),
-                  cons_list(index_uni(i), nil_index_list())), "beta"), 0.31,
+                  cons_list(index_uni(i), nil_index_list())), "beta"), 0.16,
               0.25));}
         current_statement__ = 57;
         for (int i = 1; i <= Z_adaptive; ++i) {
