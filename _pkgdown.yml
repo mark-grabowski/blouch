@@ -1,13 +1,4 @@
 url: https://mark-grabowski.github.io/blouch/
 template:
   bootstrap: 5
-articles:
-- title: Articles
-  navbar: ~
-  contents:
-  - Simulation-Example
-  - Empirical-Example
-  - Basic_Models-Examples
-  - Multi-optima_Models-Examples
-  - Varying_Effects_Models-Examples
 

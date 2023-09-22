@@ -73,7 +73,7 @@ ape::tiplabels()
 ## Combine data and tree and paint regimes on tree.
 Next we will use the *treeplyr* package (Uyeda and Harmon, 2014) make.treedata function to combine the data and tree based on the taxa names. See https://github.com/uyedaj/treeplyr for more on this package. This step is basically to make a dummy trdata object containing the tree and a blank "dat" dataset object.
 
-Then we will place the regime shifts on the tree that were identified earlier using *Blouch's* set.converge.regimes R function. This function produces a plot of the tree with the colored regimes. In addition,  we will manually plot the tree with the shifts colored to make sure we have done everything correctly.
+Then we will place the regime shifts on the tree that were identified earlier using *Blouch's* set.converge.regimes R function. This function also produces a plot of the tree with the colored regimes. In addition,  we will manually plot the tree with the shifts colored to make sure we have done everything correctly.
 
 ```{r Set_regimes}
 
