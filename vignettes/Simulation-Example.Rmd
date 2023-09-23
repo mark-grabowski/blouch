@@ -194,7 +194,7 @@ X_with_error<-X+rnorm(N,0,0.01) #Add ME to X
 
 ## Data setup for *Blouch*
 
-The first line below combines the existing trdata file from make.trdata which has regime info for the tips with the X and Y predictor values and their errors. We will use the helper function blouch.reg.adapt.prep() to setup the dat object for Stan. This function and the other helper functions included with *Blouch* require trdata files, and then the names of the columns that contain Y and (sometimes depending on the model) X data and error data. "Z_adaptive" is the number of predictors, with "regimes" the name of the column where the tip regime data is located. See help info for each function and other articles on github.com for functionality.
+The first line below combines the existing trdata file from make.trdata which has regime info for the tips with the X and Y values and their errors. We will use the helper function blouch.reg.adapt.prep() to setup the dat object for Stan. This function and the other helper functions included with *Blouch* require trdata files, and then the names of the columns that contain Y and (sometimes depending on the model) X data and error data. "Z_adaptive" is the number of predictors, with "regimes" the name of the column where the tip regime data is located. See help info for each function and other articles on github.com for functionality.
 
 ```{r Data_setup}
 ############################################################################################################

@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{calc_mixed_dmX}
 \alias{calc_mixed_dmX}
-\title{calc_mixed_dmX - calculate mixed direct effect and adaptive predictor matrix for Blouch}
+\title{calc_mixed_dmX - Calculate mixed direct effect and adaptive predictor matrix for Blouch}
 \usage{
 calc_mixed_dmX(phy, a, X, Z_direct, Z_adaptive)
 }
@@ -21,5 +21,5 @@ calc_mixed_dmX(phy, a, X, Z_direct, Z_adaptive)
 Predictor matrix
 }
 \description{
-calc_mixed_dmX - calculate mixed direct effect and adaptive predictor matrix for Blouch
+calc_mixed_dmX - Calculate mixed direct effect and adaptive predictor matrix for Blouch
 }

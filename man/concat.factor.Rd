@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{concat.factor}
 \alias{concat.factor}
-\title{concat.factor - for internal Blouch use
+\title{concat.factor - For internal Blouch use
 Thanks to user "snaut" at stackoverflow, http://stackoverflow.com/users/1999873/snaut}
 \usage{
 concat.factor(...)
@@ -14,6 +14,6 @@ concat.factor(...)
 factor
 }
 \description{
-concat.factor - for internal Blouch use
+concat.factor - For internal Blouch use
 Thanks to user "snaut" at stackoverflow, http://stackoverflow.com/users/1999873/snaut
 }

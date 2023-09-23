@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{blouch.adapt.prep}
 \alias{blouch.adapt.prep}
-\title{blouch.adapt.prep - setup dat file to run in Blouch's adaptive model}
+\title{blouch.adapt.prep - Setup dat file to run adaptive model}
 \usage{
 blouch.adapt.prep(trdata, Y, Y_error, X, X_error, Z_adaptive)
 }
@@ -23,5 +23,5 @@ blouch.adapt.prep(trdata, Y, Y_error, X, X_error, Z_adaptive)
 dat - list file containing objecs setup for Blouch
 }
 \description{
-blouch.adapt.prep - setup dat file to run in Blouch's adaptive model
+blouch.adapt.prep - Setup dat file to run adaptive model
 }

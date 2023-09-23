@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{weights_regimes}
 \alias{weights_regimes}
-\title{weights_regimes - for internal Blouch use
+\title{weights_regimes - For internal Blouch use
 For individual lineage, sum up the segments in each regimes}
 \usage{
 weights_regimes(a, lineage)
@@ -16,6 +16,6 @@ weights_regimes(a, lineage)
 Return named vector with regimes weights for individual lineage
 }
 \description{
-weights_regimes - for internal Blouch use
+weights_regimes - For internal Blouch use
 For individual lineage, sum up the segments in each regimes
 }

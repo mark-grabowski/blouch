@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{weights_segments}
 \alias{weights_segments}
-\title{weights_segments - for internal Blouch use
+\title{weights_segments - For internal Blouch use
 For individual lineage, determine the weighting of each segment}
 \usage{
 weights_segments(a, lineage)
@@ -16,6 +16,6 @@ weights_segments(a, lineage)
 For individual lineage, determine the weighting of each segment
 }
 \description{
-weights_segments - for internal Blouch use
+weights_segments - For internal Blouch use
 For individual lineage, determine the weighting of each segment
 }

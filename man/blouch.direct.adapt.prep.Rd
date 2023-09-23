@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{blouch.direct.adapt.prep}
 \alias{blouch.direct.adapt.prep}
-\title{blouch.direct.adapt.prep - setup dat file to run in Blouch's direct effect and adpative model}
+\title{blouch.direct.adapt.prep - Setup dat file to run direct effect and adpative model}
 \usage{
 blouch.direct.adapt.prep(trdata, Y, Y_error, X, X_error, Z_direct, Z_adaptive)
 }
@@ -25,5 +25,5 @@ blouch.direct.adapt.prep(trdata, Y, Y_error, X, X_error, Z_direct, Z_adaptive)
 dat - list file containing objecs setup for Blouch
 }
 \description{
-blouch.direct.adapt.prep - setup dat file to run in Blouch's direct effect and adpative model
+blouch.direct.adapt.prep - Setup dat file to run direct effect and adpative model
 }

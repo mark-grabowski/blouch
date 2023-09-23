@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{calc_direct_V}
 \alias{calc_direct_V}
-\title{calc_direct_V Calculate direct effect model V/CV matrix}
+\title{calc_direct_V - Calculate direct effect model V/CV matrix}
 \usage{
 calc_direct_V(phy, sigma2_y, a)
 }
@@ -17,5 +17,5 @@ calc_direct_V(phy, sigma2_y, a)
 Variance/Covariance marix
 }
 \description{
-calc_direct_V Calculate direct effect model V/CV matrix
+calc_direct_V - Calculate direct effect model V/CV matrix
 }

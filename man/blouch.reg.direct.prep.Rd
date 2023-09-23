@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{blouch.reg.direct.prep}
 \alias{blouch.reg.direct.prep}
-\title{blouch.reg.direct.prep - function to setup dat file for Blouch's multi-optima direct effect model}
+\title{blouch.reg.direct.prep - Setup dat file to run multi-optima direct effect model}
 \usage{
 blouch.reg.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct, reg.column)
 }
@@ -25,5 +25,5 @@ blouch.reg.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct, reg.column)
 dat - list file containing objecs setup for Blouch
 }
 \description{
-blouch.reg.direct.prep - function to setup dat file for Blouch's multi-optima direct effect model
+blouch.reg.direct.prep - Setup dat file to run multi-optima direct effect model
 }

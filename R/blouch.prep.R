@@ -1,4 +1,4 @@
-#' calc_direct_V Calculate direct effect model V/CV matrix
+#' calc_direct_V - Calculate direct effect model V/CV matrix
 #'
 #' @param phy Phylogeny in NEXUS format
 #' @param sigma2_y Variance of Y
@@ -43,7 +43,7 @@ calc_adaptive_V<-function(phy, a, sigma2_y, beta,  sigma2_x, Z_adaptive){
   return(Vt)
 }
 
-#' calc_adaptive_dmX - calculate adaptive predictor matrix for Blouch
+#' calc_adaptive_dmX - Calculate adaptive predictor matrix for Blouch
 #'
 #' @param phy Phylogeny in NEXUS format
 #' @param a Rate parameter for OU model
@@ -62,7 +62,7 @@ calc_adaptive_dmX<-function(phy,a,X){
   return(dmX)
 }
 
-#' calc_mixed_dmX - calculate mixed direct effect and adaptive predictor matrix for Blouch
+#' calc_mixed_dmX - Calculate mixed direct effect and adaptive predictor matrix for Blouch
 #'
 #' @param phy Phylogeny in NEXUS format
 #' @param a Rate parameter for OU model
@@ -83,7 +83,7 @@ calc_mixed_dmX<-function(phy,a,X,Z_direct,Z_adaptive){
   return(dmX)
 }
 
-#' ts_fxn function - internal Blouch function to return tree data
+#' ts_fxn function - Internal Blouch function to return tree data
 #' @param phy Phylogeny in NEXUS format
 #'
 #' @return A list object with tree data
@@ -115,7 +115,7 @@ parent <- function(phy, x){ #Returns parent node of offspring node given node nu
   return(phy$edge[m, 1])
 }
 
-#' lineage.nodes function for internal Blouch use
+#' lineage.nodes - Function for internal Blouch use
 #' Given a certain node, return the list of all parent nodes back to the root of the tree
 #' @param phy phylogeny in NEXUS format
 #' @param x node of interest
@@ -134,8 +134,7 @@ lineage.nodes <- function(phy, x){ #Given a certain node, return the list of all
   return(k)
 }
 
-#' lineage.constructor function - for internal Blouch use
-#' Construct a list with variables based on regime timing and placement
+#' lineage.constructor function - Construct a list with variables based on regime timing and placement
 #' @param phy phylogeny in NEXUS format
 #' @param e Lineage number
 #' @param anc_maps Vector with name of regime placement type
@@ -236,7 +235,7 @@ lineage.constructor <- function(phy, e, anc_maps="regimes", regimes){ #Revised 2
               lineage_regimes = lineage_regimes))
 }
 
-#' weights_segments - for internal Blouch use
+#' weights_segments - For internal Blouch use
 #' For individual lineage, determine the weighting of each segment
 #' @param a Rate parameter for OU model
 #' @param lineage Individual lineage regime values
@@ -252,7 +251,7 @@ weights_segments <- function(a, lineage){#For individual lineage, determine the 
   return(res)
 }
 
-#' weights_regimes - for internal Blouch use
+#' weights_regimes - For internal Blouch use
 #' For individual lineage, sum up the segments in each regimes
 #' @param a Rate parameter from OU model
 #' @param lineage Individual regime values for lineage
@@ -267,8 +266,7 @@ weights_regimes <- function(a, lineage) {#For individual lineage, sum up the seg
   return(w) #Return named vector with regimes weights for individual lineage
 }
 
-#' weight.matrix - for internal Blouch use
-#' Wrapper to apply weights_regimes to each lineage
+#' weight.matrix - For internal Blouch use - wrapper to apply weights_regimes to each lineage
 #' @param phy phylogeny in NEXUS format
 #' @param a OU rate parameter
 #' @param lineages Vector of regime values
@@ -285,7 +283,7 @@ weight.matrix <- function(phy, a, lineages){ #Wrapper to apply weights_regimes t
   return(res)
 }
 
-#' concat.factor - for internal Blouch use
+#' concat.factor - For internal Blouch use
 #' Thanks to user "snaut" at stackoverflow, http://stackoverflow.com/users/1999873/snaut
 #' @param ... vector of factors
 #'
@@ -296,7 +294,7 @@ concat.factor <- function(...){
   as.factor(do.call(c, lapply(list(...), as.character)))
 }
 
-#' blouch.direct.prep - prep data to run in Stan's direct effect model
+#' blouch.direct.prep - Setup dat file to run direct effect model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
@@ -323,7 +321,7 @@ blouch.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct){
   return(dat)
 }
 
-#' blouch.adapt.prep - setup dat file to run in Blouch's adaptive model
+#' blouch.adapt.prep - Setup dat file to run adaptive model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
@@ -366,7 +364,7 @@ blouch.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive){
   return(dat)
 }
 
-#' blouch.direct.adapt.prep - setup dat file to run in Blouch's direct effect and adpative model
+#' blouch.direct.adapt.prep - Setup dat file to run direct effect and adpative model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
@@ -425,7 +423,7 @@ blouch.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptiv
   return(dat)
 }
 
-#' blouch.reg.prep - setup dat file for Blouch's multi-optima model
+#' blouch.reg.prep - Setup dat file to run multi-optima model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
@@ -499,7 +497,7 @@ blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,anc_maps="regimes"){
   return(dat)
 }
 
-#' blouch.reg.direct.prep - function to setup dat file for Blouch's multi-optima direct effect model
+#' blouch.reg.direct.prep - Setup dat file to run multi-optima direct effect model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
@@ -569,7 +567,7 @@ blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column)
   return(dat)
 }
 
-#' blouch.reg.adapt.prep - function to setup dat file for Blouch's multi-optima adaptive model
+#' blouch.reg.adapt.prep - Setup dat file to run multi-optima adaptive model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
@@ -649,7 +647,7 @@ blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column
   return(dat)
 }
 
-#' blouch.reg.direct.adapt.prep - function to setup dat file for Blouch's multi-optima direct effect adaptive model
+#' blouch.reg.direct.adapt.prep - Setup dat file to run multi-optima direct effect adaptive model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable

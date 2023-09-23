@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{blouch.direct.prep}
 \alias{blouch.direct.prep}
-\title{blouch.direct.prep - prep data to run in Stan's direct effect model}
+\title{blouch.direct.prep - Setup dat file to run direct effect model}
 \usage{
 blouch.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct)
 }
@@ -23,5 +23,5 @@ blouch.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct)
 dat - list file containing objecs setup for Blouch
 }
 \description{
-blouch.direct.prep - prep data to run in Stan's direct effect model
+blouch.direct.prep - Setup dat file to run direct effect model
 }

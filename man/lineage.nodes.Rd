@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{lineage.nodes}
 \alias{lineage.nodes}
-\title{lineage.nodes function for internal Blouch use
+\title{lineage.nodes - Function for internal Blouch use
 Given a certain node, return the list of all parent nodes back to the root of the tree}
 \usage{
 lineage.nodes(phy, x)
@@ -16,6 +16,6 @@ lineage.nodes(phy, x)
 list Given a certain node, return the list of all parent nodes back to the root of the tree
 }
 \description{
-lineage.nodes function for internal Blouch use
+lineage.nodes - Function for internal Blouch use
 Given a certain node, return the list of all parent nodes back to the root of the tree
 }

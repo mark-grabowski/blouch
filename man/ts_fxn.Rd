@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{ts_fxn}
 \alias{ts_fxn}
-\title{ts_fxn function - internal Blouch function to return tree data}
+\title{ts_fxn function - Internal Blouch function to return tree data}
 \usage{
 ts_fxn(phy)
 }
@@ -13,5 +13,5 @@ ts_fxn(phy)
 A list object with tree data
 }
 \description{
-ts_fxn function - internal Blouch function to return tree data
+ts_fxn function - Internal Blouch function to return tree data
 }

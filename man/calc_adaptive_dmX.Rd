@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{calc_adaptive_dmX}
 \alias{calc_adaptive_dmX}
-\title{calc_adaptive_dmX - calculate adaptive predictor matrix for Blouch}
+\title{calc_adaptive_dmX - Calculate adaptive predictor matrix for Blouch}
 \usage{
 calc_adaptive_dmX(phy, a, X)
 }
@@ -17,5 +17,5 @@ calc_adaptive_dmX(phy, a, X)
 Adaptive predictor matrix
 }
 \description{
-calc_adaptive_dmX - calculate adaptive predictor matrix for Blouch
+calc_adaptive_dmX - Calculate adaptive predictor matrix for Blouch
 }

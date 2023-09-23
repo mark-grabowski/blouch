@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{blouch.reg.prep}
 \alias{blouch.reg.prep}
-\title{blouch.reg.prep - setup dat file for Blouch's multi-optima model}
+\title{blouch.reg.prep - Setup dat file to run multi-optima model}
 \usage{
 blouch.reg.prep(trdata, Y, Y_error, reg.column, anc_maps = "regimes")
 }
@@ -21,5 +21,5 @@ blouch.reg.prep(trdata, Y, Y_error, reg.column, anc_maps = "regimes")
 dat - list file containing objecs setup for Blouch
 }
 \description{
-blouch.reg.prep - setup dat file for Blouch's multi-optima model
+blouch.reg.prep - Setup dat file to run multi-optima model
 }

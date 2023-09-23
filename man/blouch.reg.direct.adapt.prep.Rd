@@ -2,7 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{blouch.reg.direct.adapt.prep}
 \alias{blouch.reg.direct.adapt.prep}
-\title{blouch.reg.direct.adapt.prep - function to setup dat file for Blouch's multi-optima direct effect adaptive model}
+\title{blouch.reg.direct.adapt.prep - Setup dat file to run multi-optima direct effect adaptive model}
 \usage{
 blouch.reg.direct.adapt.prep(
   trdata,
@@ -36,5 +36,5 @@ blouch.reg.direct.adapt.prep(
 dat - list file containing objecs setup for Blouch
 }
 \description{
-blouch.reg.direct.adapt.prep - function to setup dat file for Blouch's multi-optima direct effect adaptive model
+blouch.reg.direct.adapt.prep - Setup dat file to run multi-optima direct effect adaptive model
 }

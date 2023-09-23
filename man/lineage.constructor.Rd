@@ -2,8 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{lineage.constructor}
 \alias{lineage.constructor}
-\title{lineage.constructor function - for internal Blouch use
-Construct a list with variables based on regime timing and placement}
+\title{lineage.constructor function - Construct a list with variables based on regime timing and placement}
 \usage{
 lineage.constructor(phy, e, anc_maps = "regimes", regimes)
 }
@@ -20,6 +19,5 @@ lineage.constructor(phy, e, anc_maps = "regimes", regimes)
 list with information about individual regime lineages
 }
 \description{
-lineage.constructor function - for internal Blouch use
-Construct a list with variables based on regime timing and placement
+lineage.constructor function - Construct a list with variables based on regime timing and placement
 }

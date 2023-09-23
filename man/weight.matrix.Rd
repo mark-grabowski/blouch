@@ -2,8 +2,7 @@
 % Please edit documentation in R/blouch.prep.R
 \name{weight.matrix}
 \alias{weight.matrix}
-\title{weight.matrix - for internal Blouch use
-Wrapper to apply weights_regimes to each lineage}
+\title{weight.matrix - For internal Blouch use - wrapper to apply weights_regimes to each lineage}
 \usage{
 weight.matrix(phy, a, lineages)
 }
@@ -18,6 +17,5 @@ weight.matrix(phy, a, lineages)
 weights for each lineage
 }
 \description{
-weight.matrix - for internal Blouch use
-Wrapper to apply weights_regimes to each lineage
+weight.matrix - For internal Blouch use - wrapper to apply weights_regimes to each lineage
 }
