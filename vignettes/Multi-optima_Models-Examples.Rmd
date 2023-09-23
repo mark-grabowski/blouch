@@ -28,10 +28,7 @@ library(blouch)
 
 ## Multi-optima Model
 
-Next we will run a series of models that include categorical variables - regimes painted on a phylogeny. In all cases the number of iterations is small (400) and we are only running one chain - because this is just an example vignette and these models can take some time to run. In a real analysis you would want to run at least 1000 iterations and at least two chains.
-
-
-
+Next we will run a series of models that include categorical variables - regimes painted on a phylogeny following Hansen (1997) and Hansen et al. (2008). This article is an abbreviated versions of the Simulation Example article - most of the steps of analysis will be the same and are not repeated here. Note that the Stan runs are also too few iterations and use only 1 chain and 1 core.
 
 First we will set up the regime painting
 ```{r Multi_optima_model_setup}
@@ -615,4 +612,9 @@ post<-rstan::extract(fit.reg.direct.adapt)
 ```
 
 From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+
+## References
+Hansen T.F. 1997. Stabilizing Selection and the Comparative Analysis of Adaptation. Evolution. 51:1341–1351.
+
+Hansen T.F., Pienaar J., Orzack S.H. 2008. A comparative method for studying adaptation to a randomly evolving environment. Evolution. 62:1965–1977.
 

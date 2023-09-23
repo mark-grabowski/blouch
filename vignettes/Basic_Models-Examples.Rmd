@@ -24,7 +24,7 @@ library(blouch)
 ```
 
 
-Here I walk you through the basic models of *Blouch*. By basic I mean either the direct effect model, adaptive model, or model with a combination of both types of predictors.
+Here I walk you through the basic models of *Blouch*. By basic I mean either the direct effect model, adaptive model, or model with a combination of both types of predictors. This article is an abbreviated versions of the Simulation Example article - most of the steps of analysis will be the same and are not repeated here. Note that the Stan runs are also too few iterations and use only 1 chain and 1 core.
 
 ## Direct effect model
 *Blouch* implements the model of constrained evolution (Hansen & Bartoszek, 2012) known as the direct effect model, previously implemented in Grabowski et al. (2016; see also Grabowski et al. 2023), which can be used to test for allometric constraints.
@@ -163,7 +163,7 @@ And here are the lines of Stan code for setting these priors. To change the valu
 Now let's run the direct effect model blouchOU_direct.
 
 ```{r Run_direct_effect_model , results='hide'}
-fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 2,iter =2000,cores=2)
+fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 
@@ -318,7 +318,7 @@ And here are the lines of Stan code for setting these priors. To change the valu
 
 Now let's run the adaptive model blouchOU_adapt
 ```{r Run_adaptive_model , results='hide'}
-fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 1,iter =400,cores=1)
+fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 1,cores=1,iter =400)
 ```
 
 Here the results include both the optimal regression, beta, and the evolutionary regression, beta_e, following Hansen et al. (2008)
@@ -456,7 +456,7 @@ dat<-blouch.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd
 Priors are set as above, and the blouchOU_direct_adapt model is run here.
 
 ```{r Run_direct_adapt_model , results='hide'}
-fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 2,iter =2000,cores=2)
+fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 1, cores=1,iter =400)
 
 ```
 

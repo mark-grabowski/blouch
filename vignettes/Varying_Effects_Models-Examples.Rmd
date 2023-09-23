@@ -26,7 +26,7 @@ library(blouch)
 ```
 
 
-Here I walk you through the varying effects models of Blouch. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model. In all cases the number of iterations is small (400) and we are only running one chain - because this is just an example vignette and these models can take some time to run. In a real analysis you would want to run at least 1000 iterations and at least two chains.
+Here I walk you through the varying effects models of *Blouch*. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model. This article is an abbreviated versions of the Simulation Example article - most of the steps of analysis will be the same and are not repeated here. Note that the Stan runs are also too few iterations and use only 1 chain and 1 core.
 
 
 ## Multi-optima Direct Effect Model with Varying Effects - Single Predictor
@@ -516,7 +516,7 @@ slope.plot.1
 
 Now we run the Multilevel Multi-optima Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
 ```{r results='hide'}
-fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 1,iter =400,cores=1)
+fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}
@@ -528,7 +528,7 @@ post<-rstan::extract(fit.reg.adapt.mlm.ve) #rstan::extract posterior distributio
 
 Now we run the non-centered version of the Multilevel Multi-optima Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 1,iter =400,cores=1)
+fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}
@@ -540,7 +540,7 @@ post<-rstan::extract(fit.reg.adapt.mlm.ve.nc) #rstan::extract posterior distribu
 
 Finally we run the Multi-optima Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 1,iter =400,cores=1)
+fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}
@@ -730,7 +730,7 @@ slope.plot.2
 
 Now we run the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
 ```{r results='hide'}
-fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 1,iter =400,cores=1)
+fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 1,cores=1,iter=400)
 
 ```
 
@@ -743,7 +743,7 @@ post<-rstan::extract(fit.reg.direct.adapt.mlm.ve)
 
 Now we run the non-centered version of the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 1,iter =400,cores=1)
+fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}
@@ -755,7 +755,7 @@ post<-rstan::extract(fit.reg.direct.adapt.mlm.ve.nc)
 
 Finally we run the Multi-optima Direct EFfect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 1,iter =400,cores=1)
+fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 1,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}
