@@ -520,7 +520,7 @@ slope.plot.1
 ```
 
 ## Model Comparison using PSIS
-Lets do some model comparison using Pareto-Smoothed Importance Sampling (PSIS) from the R Package *loo* (Vehtari et al. 2023). loo estimates leave-one-out cross validation for Bayesian analyses. Here we are looking for Pareto k values below ~0.7, which suggest the results are accurate. The one species that has high k values for both models is *Tarsius bancanus*, the only tarsier in the analysis and a lineage that has evolved independently for a long period of time (i.e. has a long single branch on the phylogeny). This leads to it being hard to predict based on other species in the tree. PSIS also provides a way to look at outliers in our analysis.
+Lets do some model comparison using Pareto-Smoothed Importance Sampling (PSIS) from the R Package *loo* (Vehtari et al. 2023). loo estimates leave-one-out cross validation for Bayesian analyses. Here we are looking for Pareto k values below ~0.7, which suggest the results are accurate. The two species with consistently high Pareto shape values across the models are *Daubentonia madagascariensis*, the sole member of the distinct lemur family, and *Tarsius bancanus*, the only tarsier included in the phylogeny – both are distinct due to their long period of independent evolution (i.e. have long single branch on the phylogeny). This leads to it being hard to predict based on other species in the tree. PSIS also provides a way to look at outliers in our analysis.
 
 We then compare the two models using the loo_compare function from the same package.
 
