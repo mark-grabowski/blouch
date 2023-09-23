@@ -6,6 +6,5 @@ src/*.o
 src/*.so
 src/*.dll
 inst/doc
-docs
 /doc/
 /Meta/
