@@ -1,14 +1,11 @@
 Package: blouch
-Title: BLOUCH: Bayesian Linear Ornstein-Uhlenbeck models for Comparative
+Title: Bayesian Linear Ornstein-Uhlenbeck models for Comparative
     Hypotheses
 Version: 1.0.0
 Authors@R: 
     person("Mark", "Grabowski", , "mark.walter.grabowski@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7045-9472"))
-Description: Bayesian Linear Ornstein-Uhlenbeck models for Comparative
-    Hypotheses (BLOUCH) fits adaptive models of continuous trait evolution
-    in a Bayesian framework based on categorical or continuous predictors,
-    and incorporates measurement error.
+Description: Blouch: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, incorporates measurement error. Blouch includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models.
 License: GPL (>= 3)
 URL: https://github.com/mark-grabowski/blouch,
     https://mark-grabowski.github.io/blouch/
