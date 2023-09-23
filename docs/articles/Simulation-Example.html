@@ -485,7 +485,7 @@ estimates here and store the posterior distribution for later use.</p>
 <span><span class="co">#&gt; beta_e[3,1]  0.16    0.00 0.16 -0.18  0.06  0.17  0.28  0.45  2441    1</span></span>
 <span><span class="co">#&gt; beta_e[4,1]  0.23    0.00 0.05  0.13  0.19  0.23  0.26  0.32  4730    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 23 10:39:12 2023.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 23 11:17:55 2023.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -511,7 +511,7 @@ with the values we set earlier.</p>
 <span><span class="co">#&gt; beta[3,1] 0.18    0.00 0.18 -0.20 0.07 0.20 0.31  0.51  2636    1</span></span>
 <span><span class="co">#&gt; beta[4,1] 0.26    0.00 0.06  0.15 0.22 0.26 0.30  0.38  3894    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 23 10:39:12 2023.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 23 11:17:55 2023.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
@@ -890,8 +890,8 @@ demonstrated below in the simulation and empirical examples.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1:  Elapsed Time: 0 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.789 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.789 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:                4.72 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                4.72 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve.priorpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -927,8 +927,8 @@ suggest using larger scale on some priors may be warranted</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'blouchOU_reg_adapt_mlm_ve_postpc' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.004624 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 46.24 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.004424 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 44.24 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -945,9 +945,9 @@ suggest using larger scale on some priors may be warranted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 3600 / 4000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 162.455 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                146.962 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                309.417 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 163.706 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                147.85 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                311.556 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve.postpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -995,8 +995,8 @@ residuals.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1:  Elapsed Time: 0 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.815 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.815 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:                5.054 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                5.054 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve.priorpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -1033,8 +1033,8 @@ warranted</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'blouchOU_reg_adapt_ve_postpc' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.004441 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 44.41 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.004656 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 46.56 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -1051,9 +1051,9 @@ warranted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 85.957 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                73.263 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                159.22 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 86.061 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                72.643 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                158.704 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve.postpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
