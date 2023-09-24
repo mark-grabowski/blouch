@@ -9,6 +9,8 @@
 #' @import Rcpp
 #' @import parallel
 #' @import StanHeaders
+#' @importFrom geiger ratematrix
+#' @importFrom utils head tail
 #' @importFrom rstan sampling
 #' @importFrom RcppParallel RcppParallelLibs
 #' @useDynLib blouch, .registration = TRUE

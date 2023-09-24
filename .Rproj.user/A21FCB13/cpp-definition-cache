@@ -2423,7 +2423,7 @@
     },
     {
         "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-        "file_last_write": 1695207472.0,
+        "file_last_write": 1695547230.0,
         "definitions": [
             {
                 "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve_nc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
@@ -2461,7 +2461,7 @@
                 "parent_name": "",
                 "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 320,
+                "line": 314,
                 "column": 1,
                 "hidden": false
             },
@@ -2471,7 +2471,7 @@
                 "parent_name": "",
                 "name": "num_matches_functor__",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 351,
+                "line": 345,
                 "column": 8,
                 "hidden": false
             },
@@ -2481,7 +2481,7 @@
                 "parent_name": "",
                 "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 354,
+                "line": 348,
                 "column": 1,
                 "hidden": false
             },
@@ -2491,7 +2491,7 @@
                 "parent_name": "",
                 "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 361,
+                "line": 355,
                 "column": 1,
                 "hidden": false
             },
@@ -2501,7 +2501,7 @@
                 "parent_name": "",
                 "name": "which_equal_functor__",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 401,
+                "line": 395,
                 "column": 8,
                 "hidden": false
             },
@@ -2511,7 +2511,7 @@
                 "parent_name": "",
                 "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 404,
+                "line": 398,
                 "column": 1,
                 "hidden": false
             },
@@ -2521,7 +2521,7 @@
                 "parent_name": "",
                 "name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 849,
+                "line": 843,
                 "column": 7,
                 "hidden": false
             },
@@ -2531,7 +2531,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "model_name",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 880,
+                "line": 874,
                 "column": 22,
                 "hidden": false
             },
@@ -2541,7 +2541,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "model_compile_info",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 881,
+                "line": 875,
                 "column": 35,
                 "hidden": false
             },
@@ -2551,7 +2551,7 @@
                 "parent_name": "",
                 "name": "log_prob_impl(VecR &, VecI &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 1423,
+                "line": 1413,
                 "column": 36,
                 "hidden": false
             },
@@ -2561,7 +2561,7 @@
                 "parent_name": "",
                 "name": "write_array_impl(RNG &, VecR &, VecI &, VecVar &, const bool, const bool, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 1710,
+                "line": 1691,
                 "column": 15,
                 "hidden": false
             },
@@ -2571,7 +2571,7 @@
                 "parent_name": "",
                 "name": "transform_inits_impl(const stan::io::var_context &, VecI &, VecVar &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2062,
+                "line": 2033,
                 "column": 15,
                 "hidden": false
             },
@@ -2581,7 +2581,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "get_param_names(int &)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2260,
+                "line": 2231,
                 "column": 15,
                 "hidden": false
             },
@@ -2591,7 +2591,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "get_dims(int &)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2293,
+                "line": 2263,
                 "column": 15,
                 "hidden": false
             },
@@ -2601,7 +2601,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "constrained_param_names(int &, bool, bool)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2368,
+                "line": 2335,
                 "column": 15,
                 "hidden": false
             },
@@ -2611,7 +2611,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "unconstrained_param_names(int &, bool, bool)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2497,
+                "line": 2457,
                 "column": 15,
                 "hidden": false
             },
@@ -2621,7 +2621,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "get_constrained_sizedtypes",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2624,
+                "line": 2577,
                 "column": 22,
                 "hidden": false
             },
@@ -2631,7 +2631,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "get_unconstrained_sizedtypes",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2630,
+                "line": 2583,
                 "column": 22,
                 "hidden": false
             },
@@ -2641,7 +2641,7 @@
                 "parent_name": "",
                 "name": "write_array(RNG &, int &, int &, const bool, const bool, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2639,
+                "line": 2592,
                 "column": 17,
                 "hidden": false
             },
@@ -2651,7 +2651,7 @@
                 "parent_name": "",
                 "name": "write_array(RNG &, int &, int &, int &, bool, bool, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2655,
+                "line": 2608,
                 "column": 17,
                 "hidden": false
             },
@@ -2661,7 +2661,7 @@
                 "parent_name": "",
                 "name": "log_prob(int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2664,
+                "line": 2617,
                 "column": 15,
                 "hidden": false
             },
@@ -2671,7 +2671,7 @@
                 "parent_name": "",
                 "name": "log_prob(int &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2670,
+                "line": 2623,
                 "column": 16,
                 "hidden": false
             },
@@ -2681,7 +2681,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "transform_inits(const stan::io::var_context &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2676,
+                "line": 2629,
                 "column": 17,
                 "hidden": false
             },
@@ -2691,7 +2691,7 @@
                 "parent_name": "model_blouchOU_reg_adapt_mlm_ve_nc",
                 "name": "transform_inits(const stan::io::var_context &, int &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
-                "line": 2687,
+                "line": 2640,
                 "column": 17,
                 "hidden": false
             }
@@ -8083,7 +8083,7 @@
     },
     {
         "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-        "file_last_write": 1693766847.0,
+        "file_last_write": 1695547342.0,
         "definitions": [
             {
                 "usr": "c:stanExports_blouchOU_reg_direct_adapt_ve.h@737@macro@STAN__SERVICES__COMMAND_HPP",
@@ -8121,7 +8121,7 @@
                 "parent_name": "",
                 "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 303,
+                "line": 304,
                 "column": 1,
                 "hidden": false
             },
@@ -8131,7 +8131,7 @@
                 "parent_name": "",
                 "name": "num_matches_functor__",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 334,
+                "line": 335,
                 "column": 8,
                 "hidden": false
             },
@@ -8141,7 +8141,7 @@
                 "parent_name": "",
                 "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 337,
+                "line": 338,
                 "column": 1,
                 "hidden": false
             },
@@ -8151,7 +8151,7 @@
                 "parent_name": "",
                 "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 344,
+                "line": 345,
                 "column": 1,
                 "hidden": false
             },
@@ -8161,7 +8161,7 @@
                 "parent_name": "",
                 "name": "which_equal_functor__",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 384,
+                "line": 385,
                 "column": 8,
                 "hidden": false
             },
@@ -8171,7 +8171,7 @@
                 "parent_name": "",
                 "name": "operator(const T0__ &, const T1__ &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 387,
+                "line": 388,
                 "column": 1,
                 "hidden": false
             },
@@ -8181,7 +8181,7 @@
                 "parent_name": "",
                 "name": "model_blouchOU_reg_direct_adapt_ve",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 843,
+                "line": 844,
                 "column": 7,
                 "hidden": false
             },
@@ -8191,7 +8191,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "model_name",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 876,
+                "line": 877,
                 "column": 22,
                 "hidden": false
             },
@@ -8201,7 +8201,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "model_compile_info",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 877,
+                "line": 878,
                 "column": 35,
                 "hidden": false
             },
@@ -8211,7 +8211,7 @@
                 "parent_name": "",
                 "name": "log_prob_impl(VecR &, VecI &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 1428,
+                "line": 1429,
                 "column": 36,
                 "hidden": false
             },
@@ -8221,7 +8221,7 @@
                 "parent_name": "",
                 "name": "write_array_impl(RNG &, VecR &, VecI &, VecVar &, const bool, const bool, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 1687,
+                "line": 1688,
                 "column": 15,
                 "hidden": false
             },
@@ -8231,7 +8231,7 @@
                 "parent_name": "",
                 "name": "transform_inits_impl(const stan::io::var_context &, VecI &, VecVar &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 1985,
+                "line": 1988,
                 "column": 15,
                 "hidden": false
             },
@@ -8241,7 +8241,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "get_param_names(int &)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2197,
+                "line": 2200,
                 "column": 15,
                 "hidden": false
             },
@@ -8251,7 +8251,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "get_dims(int &)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2227,
+                "line": 2230,
                 "column": 15,
                 "hidden": false
             },
@@ -8261,7 +8261,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "constrained_param_names(int &, bool, bool)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2294,
+                "line": 2297,
                 "column": 15,
                 "hidden": false
             },
@@ -8271,7 +8271,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "unconstrained_param_names(int &, bool, bool)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2400,
+                "line": 2403,
                 "column": 15,
                 "hidden": false
             },
@@ -8281,7 +8281,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "get_constrained_sizedtypes",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2506,
+                "line": 2509,
                 "column": 22,
                 "hidden": false
             },
@@ -8291,7 +8291,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "get_unconstrained_sizedtypes",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2512,
+                "line": 2515,
                 "column": 22,
                 "hidden": false
             },
@@ -8301,7 +8301,7 @@
                 "parent_name": "",
                 "name": "write_array(RNG &, int &, int &, const bool, const bool, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2521,
+                "line": 2524,
                 "column": 17,
                 "hidden": false
             },
@@ -8311,7 +8311,7 @@
                 "parent_name": "",
                 "name": "write_array(RNG &, int &, int &, int &, bool, bool, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2537,
+                "line": 2540,
                 "column": 17,
                 "hidden": false
             },
@@ -8321,7 +8321,7 @@
                 "parent_name": "",
                 "name": "log_prob(int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2546,
+                "line": 2549,
                 "column": 15,
                 "hidden": false
             },
@@ -8331,7 +8331,7 @@
                 "parent_name": "",
                 "name": "log_prob(int &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2552,
+                "line": 2555,
                 "column": 16,
                 "hidden": false
             },
@@ -8341,7 +8341,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "transform_inits(const stan::io::var_context &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2558,
+                "line": 2561,
                 "column": 17,
                 "hidden": false
             },
@@ -8351,7 +8351,7 @@
                 "parent_name": "model_blouchOU_reg_direct_adapt_ve",
                 "name": "transform_inits(const stan::io::var_context &, int &, int &, std::ostream *)",
                 "file": "/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/src/stanExports_blouchOU_reg_direct_adapt_ve.h",
-                "line": 2569,
+                "line": 2572,
                 "column": 17,
                 "hidden": false
             }

@@ -28,8 +28,9 @@ library(blouch)
 *Blouch* uses RStan to implement Stan. The following code enables some compiler optimizations to improve the estimation speed of the model, and is taken from: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
 ```{r optimizations}
 #For execution on a local, multicore CPU with excess RAM we recommend calling
-options(mc.cores = parallel::detectCores())
-#options(mc.cores = 8)
+#options(mc.cores = parallel::detectCores())
+#options(mc.cores = 2)
+
 rstan::rstan_options(auto_write = TRUE)
 
 dotR <- file.path(Sys.getenv("HOME"), ".R")

@@ -122,7 +122,6 @@ model {
   vector[N] mu;
   matrix[N,N] L_v;
   matrix[N,Z_adaptive] pred_X;
-  matrix[N,n_reg+Z_adaptive] dmX;
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix;
@@ -168,7 +167,6 @@ generated quantities {
   matrix[N,N] inv_V;
   matrix[N,Z_adaptive] pred_X;
   matrix[N,n_reg] optima_matrix;
-  matrix[N,Z_adaptive] dmX;
   vector[N] mu;
   real g_i;
   real sigma_ii;

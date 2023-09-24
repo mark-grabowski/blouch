@@ -558,8 +558,8 @@ rm(list=ls())
 
 ```
 
-## Multi-optima direct effect and adaptive models
-Two regimes with 1 direct and 1 adaptive trait and Two slopes per regime
+## Multi-optima Direct Effect and Adaptive models with Varying Effects - Multiple predictors
+Two regimes with 1 direct and 1 adaptive trait and two slopes per regime
 ```{r}
 ########################################################################################################
 set.seed(10)
@@ -753,9 +753,9 @@ print(fit.reg.direct.adapt.mlm.ve.nc,pars = c("hl","vy","optima","beta"))
 post<-rstan::extract(fit.reg.direct.adapt.mlm.ve.nc)
 ```
 
-Finally we run the Multi-optima Direct EFfect Adaptive Model with Varying Effects
+Finally we run the Multi-optima Direct Effect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 1,chains = 1,cores=1,iter=400)
+fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 1,cores=1,iter=400)
 ```
 
 ```{r}

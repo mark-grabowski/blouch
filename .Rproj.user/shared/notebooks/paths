@@ -76,6 +76,8 @@
 /Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_adapt_ve.stan="1E10E41A"
 /Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_adapt_ve_postpc.stan="624AF456"
 /Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_adapt_ve_priorpc.stan="00ABB798"
+/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_direct_adapt_mlm_ve_nc.stan="AAD29FE2"
+/Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_direct_adapt_ve.stan="00A06081"
 /Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_direct_mlm_ve.stan="1E064758"
 /Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_direct_mlm_ve_nc.stan="DF5CEA78"
 /Users/markgrabowski/Documents/Academic/Research/R Packages/blouch/inst/stan/blouchOU_reg_direct_ve.stan="40A04E38"

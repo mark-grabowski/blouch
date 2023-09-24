@@ -180,6 +180,7 @@ generated quantities {
   matrix[n_reg,Z_adaptive] beta_e = beta[,(Z_direct+1):(Z_direct+Z_adaptive)]*rho;
   //LOO-CV for multivariate normal models
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta[,(Z_direct+1):(Z_direct+Z_adaptive)],sigma2_x,Z_adaptive,n_reg);
+  inv_V = inverse(V);
   optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
   pred_X = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive);//Given measurement error in X variable, uncomment this statement
   for(i in 1:N){
