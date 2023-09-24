@@ -274,7 +274,7 @@ Now let's run the multi-level adaptive model with varying effects (blouchOU_reg_
 #beta_bar ~ normal(0.16,0.25);
 #Rho ~ lkj_corr(4);
 
-fit.reg.adapt.mlm.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,cores=2,iter =4000)#, control = list(adapt_delta = 0.95))
+fit.reg.adapt.mlm.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,cores=2,iter =4000, control = list(adapt_delta = 0.95))
 ```
 
 Stan prints out a lot of info, so lets just look at the parameter estimates here and store the posterior distribution for later use.
