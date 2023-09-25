@@ -463,7 +463,7 @@ fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_
 Here the results include, in order, the direct effect regression, the optimal regression, and finally beta_e,  the evolutionary regression, following Hansen et al. (2008)
 
 ```{r Pring_DAM_results}
-print(fit.direct.adapt,pars = c("hl","vy","alpha","beta"))
+print(fit.direct.adapt,pars = c("hl","vy","alpha","beta","beta_e"))
 #plot(rethinking::precis(fit.direct.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
 post<-rstan::extract(fit.direct.adapt)
 
