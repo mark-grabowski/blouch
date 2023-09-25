@@ -43,7 +43,7 @@ cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256
 ```
 
 
-The *Blouch* package includes the primate phylogeny from the 10KTrees Project (Arnold et al. 2010), which is used for various simulations and comes from https://10ktrees.nunn-lab.org/. This is Version 3 of their primate phylogeny with 301 tips. Here we randomly reduce the tip number to 100 for a more manageable tree using functions from the *ape* R package (Paradis et al. 2004)
+The *Blouch* package includes the primate phylogeny from the 10KTrees Project (Arnold et al. 2010), which is used for various simulations and comes from https://10ktrees.nunn-lab.org/. This is Version 3 of their primate phylogeny with 301 tips. Here we randomly reduce the tip number to 100 for a more manageable tree using functions from the *ape* R package (Paradis et al. 2004). Note that the set.seed R function below is used to make the generated X an Y data repeatable (i.e. the data generated in R), but this step does not lead to repeatability for the MCMC sampling. Hence there will be some small differences between the parameter estimates and published results.
 
 ```{r Make_tree}
 ########################################################################################################
@@ -519,6 +519,7 @@ slope.plot.1<-ggplot2::ggplot()+
 slope.plot.1
 
 ```
+Posterior predicted means (black line) and 89% compatibility intervals (light grey region) are shown above for the optimal intercepts and slopes. Species values for each regime are shown in colored circles matching legend colors, with priors for intercept and slope shown in light grey lines. Dotted lines are true values of parameters.
 
 ## Model Comparison using PSIS
 Lets do some model comparison using Pareto-Smoothed Importance Sampling (PSIS) from the R Package *loo* (Vehtari et al. 2023). loo estimates leave-one-out cross validation for Bayesian analyses. Here we are looking for Pareto k values below ~0.7, which suggest the results are accurate. The two species with consistently high Pareto shape values across the models are *Daubentonia madagascariensis*, the sole member of the distinct lemur family, and *Tarsius bancanus*, the only tarsier included in the phylogeny – both are distinct due to their long period of independent evolution (i.e. have long single branch on the phylogeny). This leads to it being hard to predict based on other species in the tree. PSIS also provides a way to look at outliers in our analysis.
