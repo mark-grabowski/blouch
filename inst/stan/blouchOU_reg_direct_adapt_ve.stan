@@ -166,7 +166,6 @@ generated quantities {
   matrix[N,N] V;
   matrix[N,N] inv_V;
   matrix[N,Z_direct+Z_adaptive] pred_X;
-  matrix[N,n_reg+Z_direct+Z_adaptive] dmX;
   matrix[N,n_reg] optima_matrix;
   vector[N] mu;
   real g_i;
