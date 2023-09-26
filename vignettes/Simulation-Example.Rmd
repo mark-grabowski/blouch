@@ -295,7 +295,7 @@ print(fit.reg.adapt.mlm.ve,pars = c("hl","vy","optima","beta"))
 
 Now let's run the non-multilevel version of the same model. We will compare these two models in terms of their predictive performance below.
 
-```{r VE_Model, results='hide'}
+```{r VE_Model}
 ########################################################################################################
 #Priors
 #hl ~ lognormal(log(0.25),0.75);
@@ -308,7 +308,7 @@ fit.reg.adapt.ve<- rstan::sampling(blouch:::stanmodels$blouchOU_reg_adapt_ve,dat
 
 Again we can also compare a few of the parameter estimates with the values we set earlier.
 
-```{r Plot_results_VE_Model, results='hide'}
+```{r Plot_results_VE_Model}
 print(fit.reg.adapt.ve,pars = c("hl","vy","optima","beta"))
 #plot(rethinking::precis(fit.reg.adapt.ve,depth=3,pars = c("hl","vy","optima","beta","beta_e")))#For use with rethinking package
 post.ve<-rstan::extract(fit.reg.adapt.ve)#Extract posterior distribution 

@@ -506,7 +506,7 @@ estimates here and store the posterior distribution for later use.</p>
 <span><span class="co">#&gt; beta_e[3,1]  0.16    0.00 0.17 -0.20  0.05  0.17  0.28  0.46  4007    1</span></span>
 <span><span class="co">#&gt; beta_e[4,1]  0.23    0.00 0.05  0.13  0.20  0.23  0.26  0.32  7030    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Sep 25 17:05:28 2023.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Tue Sep 26 13:49:51 2023.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -532,7 +532,7 @@ with the values we set earlier.</p>
 <span><span class="co">#&gt; beta[3,1] 0.18       0 0.19 -0.23 0.06 0.20 0.31  0.52  4032    1</span></span>
 <span><span class="co">#&gt; beta[4,1] 0.26       0 0.06  0.15 0.22 0.26 0.30  0.38  6296    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Sep 25 17:05:28 2023.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Tue Sep 26 13:49:51 2023.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
@@ -552,6 +552,26 @@ below.</p>
 values we set earlier.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_adapt_ve.</span></span>
+<span><span class="co">#&gt; 2 chains, each with iter=4000; warmup=2000; thin=1; </span></span>
+<span><span class="co">#&gt; post-warmup draws per chain=2000, total post-warmup draws=4000.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           mean se_mean   sd  2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
+<span><span class="co">#&gt; hl        0.08       0 0.03  0.04 0.06 0.08 0.10  0.16  2069    1</span></span>
+<span><span class="co">#&gt; vy        0.01       0 0.01  0.00 0.00 0.01 0.01  0.02  4513    1</span></span>
+<span><span class="co">#&gt; optima[1] 1.04       0 0.11  0.83 0.97 1.03 1.11  1.26  4326    1</span></span>
+<span><span class="co">#&gt; optima[2] 1.89       0 0.11  1.67 1.82 1.89 1.96  2.11  5819    1</span></span>
+<span><span class="co">#&gt; optima[3] 2.65       0 0.24  2.17 2.49 2.65 2.82  3.13  4547    1</span></span>
+<span><span class="co">#&gt; optima[4] 3.98       0 0.12  3.77 3.90 3.97 4.04  4.25  2582    1</span></span>
+<span><span class="co">#&gt; beta[1,1] 0.74       0 0.06  0.61 0.70 0.74 0.78  0.86  5131    1</span></span>
+<span><span class="co">#&gt; beta[2,1] 0.43       0 0.08  0.27 0.38 0.43 0.48  0.58  6411    1</span></span>
+<span><span class="co">#&gt; beta[3,1] 0.13       0 0.17 -0.20 0.02 0.13 0.25  0.45  4519    1</span></span>
+<span><span class="co">#&gt; beta[4,1] 0.25       0 0.05  0.15 0.22 0.25 0.29  0.36  7493    1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Tue Sep 26 13:59:22 2023.</span></span>
+<span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
+<span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
 <span><span class="co">#plot(rethinking::precis(fit.reg.adapt.ve,depth=3,pars = c("hl","vy","optima","beta","beta_e")))#For use with rethinking package</span></span>
 <span><span class="va">post.ve</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span><span class="op">)</span><span class="co">#Extract posterior distribution </span></span></code></pre></div>
 </div>
@@ -784,7 +804,7 @@ analysis.</p>
 the same package.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Mlm varying effects model</span></span>
-<span><span class="va">loo_mlm_ve</span> <span class="op">&lt;-</span> <span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/loo/man/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span>, save_psis <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">loo_mlm_ve</span> <span class="op">&lt;-</span> <span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span>, save_psis <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">loo_mlm_ve</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -813,7 +833,7 @@ the same package.</p>
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co">#Varying effects model</span></span>
-<span><span class="va">loo_ve</span> <span class="op">&lt;-</span> <span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/loo/man/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span>, save_psis <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">loo_ve</span> <span class="op">&lt;-</span> <span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span>, save_psis <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Some Pareto k diagnostic values are slightly high. See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">loo_ve</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -842,7 +862,7 @@ the same package.</p>
 <p><img src="Simulation-Example_files/figure-html/Model_comparison_PSIS-4.png" width="700"></p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/loo/man/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">loo_mlm_ve</span>, <span class="va">loo_ve</span><span class="op">)</span></span>
+<span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">loo_mlm_ve</span>, <span class="va">loo_ve</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        elpd_diff se_diff</span></span>
 <span><span class="co">#&gt; model2  0.0       0.0   </span></span>
 <span><span class="co">#&gt; model1 -0.3       0.4</span></span></code></pre></div>
@@ -916,8 +936,8 @@ demonstrated below in the simulation and empirical examples.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1:  Elapsed Time: 0 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.752 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.752 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:                4.889 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                4.889 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve.priorpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -953,8 +973,8 @@ suggest using larger scale on some priors may be warranted</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'blouchOU_reg_adapt_mlm_ve_postpc' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.005124 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 51.24 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.005338 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 53.38 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -971,9 +991,9 @@ suggest using larger scale on some priors may be warranted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 3600 / 4000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 4000 / 4000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 161.374 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                145.862 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                307.236 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 164.197 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                148.698 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                312.895 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve.postpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -1021,8 +1041,8 @@ residuals.</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1:  Elapsed Time: 0 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.892 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                4.892 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:                4.909 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                4.909 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve.priorpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
@@ -1059,8 +1079,8 @@ warranted</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'blouchOU_reg_adapt_ve_postpc' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.004938 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 49.38 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.004408 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 44.08 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -1077,9 +1097,9 @@ warranted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 86.536 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                73.096 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                159.632 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 88.094 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                74.344 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                162.438 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve.postpc</span><span class="op">)</span></span>
 <span><span class="va">mypal</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
