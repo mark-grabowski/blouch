@@ -1,5 +1,1041 @@
 [
     {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/inst/include/stan_meta_header.hpp",
+        "file_last_write": 1710519174.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_adapt.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt_postpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_adapt_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt_priorpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_adapt_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_adapt_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_direct.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_direct_adapt.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt_postpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_direct_adapt_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt_priorpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_direct_adapt_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_adapt_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_postpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_direct_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_priorpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_direct_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_direct_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg.h",
+                "line": 239,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg.h",
+                "line": 274,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt.h",
+        "file_last_write": 1711588167.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt.h",
+                "line": 340,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt.h",
+                "line": 375,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve.h",
+        "file_last_write": 1712830165.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve.h",
+                "line": 361,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve.h",
+                "line": 396,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve_nc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_nc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
+                "line": 366,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_nc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc.h",
+                "line": 401,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_postpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve_nc_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_nc_postpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_postpc.h",
+                "line": 363,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_nc_postpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_postpc.h",
+                "line": 398,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_priorpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve_nc_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_nc_priorpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_priorpc.h",
+                "line": 329,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_nc_priorpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_nc_priorpc.h",
+                "line": 364,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_postpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_postpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_postpc.h",
+                "line": 356,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_postpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_postpc.h",
+                "line": 391,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_priorpc.h",
+        "file_last_write": 1710520130.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_ve_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_priorpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_priorpc.h",
+                "line": 327,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_ve_priorpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_ve_priorpc.h",
+                "line": 362,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi.h",
+        "file_last_write": 1711588167.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_vi.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi.h",
+                "line": 345,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi.h",
+                "line": 380,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc.h",
+        "file_last_write": 1711588167.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_vi_nc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_nc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc.h",
+                "line": 347,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_nc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc.h",
+                "line": 382,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_postpc.h",
+        "file_last_write": 1711588167.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_vi_nc_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_nc_postpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_postpc.h",
+                "line": 337,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_nc_postpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_postpc.h",
+                "line": 372,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_priorpc.h",
+        "file_last_write": 1711588167.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_vi_nc_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_nc_priorpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_priorpc.h",
+                "line": 311,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_nc_priorpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_nc_priorpc.h",
+                "line": 346,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_postpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_postpc.h",
+        "file_last_write": 1711588167.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_vi_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_postpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_postpc.h",
+                "line": 333,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_postpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_postpc.h",
+                "line": 368,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_priorpc.cc",
+        "file_last_write": 1710520130.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_priorpc.h",
+        "file_last_write": 1711588168.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_mlm_vi_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_priorpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_priorpc.h",
+                "line": 311,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_mlm_vi_priorpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_mlm_vi_priorpc.h",
+                "line": 346,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_postpc.cc",
+        "file_last_write": 1710520131.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_postpc.h",
+        "file_last_write": 1711588168.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_postpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_postpc.h",
+                "line": 328,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_postpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_postpc.h",
+                "line": 363,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_priorpc.cc",
+        "file_last_write": 1710520131.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_priorpc.h",
+        "file_last_write": 1711588168.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_priorpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_priorpc.h",
+                "line": 309,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_priorpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_priorpc.h",
+                "line": 344,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve.cc",
+        "file_last_write": 1710520131.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve.h",
+        "file_last_write": 1710520131.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_ve.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve.h",
+                "line": 344,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve.h",
+                "line": 379,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_postpc.cc",
+        "file_last_write": 1710520131.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_postpc.h",
+        "file_last_write": 1710520131.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_ve_postpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_postpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_postpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_postpc.h",
+                "line": 339,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_postpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_postpc.h",
+                "line": 374,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_priorpc.cc",
+        "file_last_write": 1710520131.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+        "file_last_write": 1710520131.0,
+        "definitions": [
+            {
+                "usr": "c:stanExports_blouchOU_reg_adapt_ve_priorpc.h@737@macro@STAN__SERVICES__COMMAND_HPP",
+                "kind": 9,
+                "parent_name": "",
+                "name": "STAN__SERVICES__COMMAND_HPP",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 19,
+                "column": 9,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@FT@>3#T#T#N*Inum_matches#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "num_matches(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 308,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@N@model_blouchOU_reg_adapt_ve_priorpc_namespace@FT@>3#T#T#N*Iwhich_equal#&1t0.0#&1t0.1#*$@N@std@N@__1@S@basic_ostream>#C#$@N@std@N@__1@S@char_traits>#C#I#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "which_equal(const T0__ &, const T1__ &, std::ostream *)",
+                "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_adapt_ve_priorpc.h",
+                "line": 343,
+                "column": 1,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing/src/stanExports_blouchOU_reg_direct.cc",
+        "file_last_write": 1710520131.0,
+        "definitions": [],
+        "hidden": false
+    },
+    {
         "file": "/Users/markgrabowski/Library/CloudStorage/GoogleDrive-mark.walter.grabowski@gmail.com/My Drive/Current/Blouch/R Packages - SBR2 - cloned/testing/inst/include/stan_meta_header.hpp",
         "file_last_write": 1709048066.0,
         "definitions": [],
