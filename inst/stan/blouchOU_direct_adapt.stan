@@ -31,14 +31,14 @@ functions {
     if(Z==1){var_opt = beta[1] * beta[1] * sigma2_x[1,1];
     }else{var_opt = beta[1:Z]' * sigma2_x * ones;}
     term0 = ((var_opt + sigma2_y) / (2 * a)) * (1 - exp( -2 * a * ta)) .* exp(-a * tij);
-    term1 = (1 - exp(-a * ti)) ./ (a * ti);
+    term1 = (1 - exp(-a * ti)) ./ (a * ti); 
     term2 = exp(-a * tja) .* (1 - exp(-a * ti)) ./ (a * ti);
     Vt = term0 + var_opt * (ta .* term1 .* (term1') - ((1 - exp(-a * ta)) ./ a) .* (term2 + (term2'))); //From Hansen et al. (2008)
     return Vt;
   }
 }
 data {
-  int N;
+  int N; 
   int Z_direct;
   int Z_adaptive;
   int Z_X_error;
@@ -51,11 +51,16 @@ data {
   matrix[N,N] tja;
   vector[N] T_term;
   matrix[Z_adaptive,Z_adaptive] sigma2_x;
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+
 }
 parameters {
   real <lower = 0> hl;
   vector[Z_direct+Z_adaptive] beta; //Assuming a positive relationship among traits
-  real alpha;
+  real optima;
   //real <lower=0> sigma2_y;
   real <lower=0> vy;
   vector[N] Y;
@@ -71,14 +76,14 @@ model {
   matrix[N,Z_direct+Z_adaptive] dmX;
   real sigma2_y = vy*(2*(log(2)/hl));
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.25);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(20);
-  target += exponential_lpdf(vy|20);
-  //alpha ~ normal(2,0.2); //intercept from OLS
-  //beta ~ normal(0,0.25);
-  target += normal_lpdf(alpha|2,0.2);
-  target += normal_lpdf(beta|0,0.25);
-
+  target += exponential_lpdf(vy|vy_prior);
+  //optima ~ normal(2,0.2); //intercept from OLS
+  //beta ~ normal(0,0.25); 
+  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
+  target += normal_lpdf(beta|beta_prior[1],beta_prior[2]);
+  
   a = log(2)/hl;
   for(i in 1:(Z_direct+Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     //X[,i] ~ normal(0,1);
@@ -90,7 +95,7 @@ model {
   dmX = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive); //Given measurement error in X variable, uncomment this statement
   V = calc_adaptive_V(a,sigma2_y,ta,tij,tja,T_term,beta[(Z_direct+1):(Z_adaptive+Z_direct)],sigma2_x);
   L_v = cholesky_decompose(V);
-  mu = alpha+dmX*beta;
+  mu = optima+dmX*beta;  
   //Y ~ multi_normal_cholesky(mu , L_v);//Given measurement error in Y variable, uncomment this statement
   //Y_obs ~ normal(Y,Y_error);//Given measurement error in Y variable, uncomment this statement
   //Y_obs ~ multi_normal_cholesky(mu , L_v); //Given no measurement error in Y variable, uncomment this statement
@@ -111,23 +116,23 @@ generated quantities {
 
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
-  vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term));
+  vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term)); 
   vector[Z_adaptive] beta_e;
   for(i in 1:Z_adaptive){
-    beta_e[i] = beta[Z_direct+i]* rho[i];
+    beta_e[i] = beta[Z_direct+i]* rho[i]; 
     }
   //LOO-CV for multivariate normal models
   V = calc_adaptive_V(a,sigma2_y,ta,tij,tja,T_term,beta[(Z_direct+1):(Z_adaptive+Z_direct)],sigma2_x);
   dmX = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive); //Given measurement error in X variable, uncomment this statement
   inv_V = inverse(V);
-  mu = alpha+dmX*beta;
+  mu = optima+dmX*beta;  
 
   for(i in 1:N){
       g_i = (inv_V*(Y_obs-mu))[i];
       sigma_ii = inv_V[i,i];
       u_i = Y_obs[i]-g_i/sigma_ii;
       sigma_i = 1/sigma_ii;
-
+      
       log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y_obs[i]-u_i)/sigma_i);
       }
 }

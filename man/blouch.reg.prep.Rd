@@ -4,7 +4,15 @@
 \alias{blouch.reg.prep}
 \title{blouch.reg.prep - Setup dat file to run multi-optima model}
 \usage{
-blouch.reg.prep(trdata, Y, Y_error, reg.column, anc_maps = "regimes")
+blouch.reg.prep(
+  trdata,
+  Y,
+  Y_error,
+  reg.column,
+  hl.prior,
+  vy.prior,
+  optima.prior
+)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}

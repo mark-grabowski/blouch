@@ -32,28 +32,22 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/Basic_Models-Examples.html">Basic Models-Examples</a>
+      <a href="../articles/Basic_Models-Examples.html">Basic_Models-Examples</a>
     </li>
     <li>
       <a href="../articles/Empirical-Example.html">Empirical Example</a>
     </li>
     <li>
-      <a href="../articles/Multi-optima_Models-Examples.html">Multi-optima Models-Examples</a>
+      <a href="../articles/Multi-optima_Models-Examples.html">Multi-optima_Models-Examples</a>
     </li>
     <li>
       <a href="../articles/Simulation-Example.html">Simulation Example</a>
     </li>
     <li>
-      <a href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models-Examples</a>
+      <a href="../articles/Varying_Effects_Models-Examples.html">Varying_Effects_Models-Examples</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"><li>
-  <a href="https://github.com/mark-grabowski/blouch/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
-      </ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -63,7 +57,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>blouch.reg.adapt.prep - Setup dat file to run multi-optima adaptive model</h1>
-    <small class="dont-index">Source: <a href="https://github.com/mark-grabowski/blouch/blob/HEAD/R/blouch.prep.R" class="external-link"><code>R/blouch.prep.R</code></a></small>
+    
     <div class="hidden name"><code>blouch.reg.adapt.prep.Rd</code></div>
     </div>
 
@@ -72,7 +66,19 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">blouch.reg.adapt.prep</span><span class="op">(</span><span class="va">trdata</span>, <span class="va">Y</span>, <span class="va">Y_error</span>, <span class="va">X</span>, <span class="va">X_error</span>, <span class="va">Z_adaptive</span>, <span class="va">reg.column</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">blouch.reg.adapt.prep</span><span class="op">(</span></span>
+<span>  <span class="va">trdata</span>,</span>
+<span>  <span class="va">Y</span>,</span>
+<span>  <span class="va">Y_error</span>,</span>
+<span>  <span class="va">X</span>,</span>
+<span>  <span class="va">X_error</span>,</span>
+<span>  <span class="va">Z_adaptive</span>,</span>
+<span>  <span class="va">reg.column</span>,</span>
+<span>  <span class="va">hl.prior</span>,</span>
+<span>  <span class="va">vy.prior</span>,</span>
+<span>  <span class="va">optima.prior</span>,</span>
+<span>  <span class="va">beta.prior</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -104,6 +110,22 @@
 <dt>reg.column</dt>
 <dd><p>Vector containing name of regime column in treedata$dat</p></dd>
 
+
+<dt>hl.prior</dt>
+<dd><p>Vector containing log mu and standard error for half-life prior</p></dd>
+
+
+<dt>vy.prior</dt>
+<dd><p>Numeric with prior for scale of Vy</p></dd>
+
+
+<dt>optima.prior</dt>
+<dd><p>Vector containing mu and standard error for optima prior</p></dd>
+
+
+<dt>beta.prior</dt>
+<dd><p>Vector containing mu and standard error for beta prior</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
@@ -124,7 +146,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.9000.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

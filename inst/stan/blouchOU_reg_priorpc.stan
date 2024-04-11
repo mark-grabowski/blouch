@@ -9,12 +9,12 @@ functions {
       n += 1;
   return(n);
   }
-  
+
   int[] which_equal(vector x, real y) {
     int match_positions[num_matches(x, y)];
     int pos = 1;
     //for (i in 1:size(x)) {
-    for (i in 1:(dims(x)[1])) {  
+    for (i in 1:(dims(x)[1])) {
       if (x[i] == y) {
         match_positions[pos] = i;
         pos += 1;
@@ -22,7 +22,7 @@ functions {
       }
     return(match_positions);
   }
-  
+
   matrix calc_V(real a,real sigma2_y,matrix ta, matrix tij) {
         int N = dims(ta)[1];
         matrix[N, N] Vt;
@@ -34,7 +34,7 @@ functions {
     vector[nodes] weights = append_row(exp(-a * t_beginning) - exp(-a * t_end),exp(-a * time));
     return(weights);
   }
-  
+
   row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
     //Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
@@ -49,7 +49,7 @@ functions {
       }
     return(reg_weights');
   }
-  
+
   matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
@@ -70,10 +70,14 @@ data {
   matrix[N,N] ta; //Time from tip to ancestor
   matrix[N,N] tij;
   matrix[N, max_node_num] t_beginning; //Matrix of times for beginning of segments to node
-  matrix[N, max_node_num] t_end; //Matrix of times for end of segments to 
+  matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+
 }
 
 parameters {
@@ -87,8 +91,8 @@ generated quantities {
   matrix[N,N] V;
   matrix[N,N] L_v;
   vector[N] mu;
-  real<lower=0> hl = lognormal_rng(log(0.25),0.75);
-  real<lower=0> vy = exponential_rng(20);
+  real<lower=0> hl = lognormal_rng(hl_prior[1],hl_prior[2]);
+  real<lower=0> vy = exponential_rng(vy_prior);
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
   vector[n_reg] optima;
@@ -97,12 +101,11 @@ generated quantities {
   vector[N] Y_sim;
   V = calc_V(a, sigma2_y,ta, tij);
   for (i in 1:n_reg){
-    optima[i] = normal_rng(0,1);
-  } 
+    optima[i] = normal_rng(optima_prior[1],optima_prior[2]);
+  }
   V = calc_V(a, sigma2_y,ta, tij);
   L_v = cholesky_decompose(V);
   dmX = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  //print(dmX);
   mu = dmX*optima;
   Y_sim = multi_normal_cholesky_rng(mu , L_v);//Given measurement error in Y variable, uncomment this statement
   for(i in 1:N){

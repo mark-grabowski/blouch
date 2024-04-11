@@ -4,7 +4,19 @@
 \alias{blouch.reg.adapt.prep}
 \title{blouch.reg.adapt.prep - Setup dat file to run multi-optima adaptive model}
 \usage{
-blouch.reg.adapt.prep(trdata, Y, Y_error, X, X_error, Z_adaptive, reg.column)
+blouch.reg.adapt.prep(
+  trdata,
+  Y,
+  Y_error,
+  X,
+  X_error,
+  Z_adaptive,
+  reg.column,
+  hl.prior,
+  vy.prior,
+  optima.prior,
+  beta.prior
+)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}
@@ -20,6 +32,14 @@ blouch.reg.adapt.prep(trdata, Y, Y_error, X, X_error, Z_adaptive, reg.column)
 \item{Z_adaptive}{Vector containing number of adaptive predictor traits}
 
 \item{reg.column}{Vector containing name of regime column in treedata$dat}
+
+\item{hl.prior}{Vector containing log mu and standard error for half-life prior}
+
+\item{vy.prior}{Numeric with prior for scale of Vy}
+
+\item{optima.prior}{Vector containing mu and standard error for optima prior}
+
+\item{beta.prior}{Vector containing mu and standard error for beta prior}
 }
 \value{
 dat - list file containing objecs setup for Blouch

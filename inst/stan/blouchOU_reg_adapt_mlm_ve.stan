@@ -98,6 +98,11 @@ data {
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N]; //Regimes at the tips
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+  vector[2] sigma_prior;
 }
 parameters {
   real<lower=0> hl;
@@ -126,19 +131,19 @@ model {
   matrix[N,n_reg] optima_matrix;
   vector[1+Z_adaptive] ab_bar;
     //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.75);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(5);
-  target += exponential_lpdf(vy|20);
+  target += exponential_lpdf(vy|vy_prior);
     //optima_bar ~ normal(2.88,1.5);
-  target += normal_lpdf(optima_bar|2.8,1);
+  target += normal_lpdf(optima_bar|optima_prior[1],optima_prior[2]);
   //beta_bar ~ normal(0.31,0.25;
-  target += normal_lpdf(beta_bar|0.16,0.25);
+  target += normal_lpdf(beta_bar|beta_prior[1],beta_prior[2]);
   //Rho ~ lkj_corr(4);
-  target += lkj_corr_lpdf(Rho|4);
+  target += lkj_corr_lpdf(Rho|2);
   ab_bar[1] = optima_bar;
   ab_bar[2:(Z_adaptive+1)] = beta_bar;
   //sigma ~ exponential(5);
-  sigma ~ normal(0,1);
+  target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
   for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     //X[,i] ~ normal(0,1);
     target += normal_lpdf(X[,i]|0,1);
@@ -180,7 +185,6 @@ generated quantities {
   real a = log(2)/hl;
   real rho = (1 - (1 - exp(-a * T_term))./(a * T_term))[1];
   matrix[n_reg,Z_adaptive] beta_e = beta*rho;
-  //Based on https://cran.r-project.org/web/packages/loo/vignettes/loo2-non-factorized.htmlloo-cv-for-multivariate-normal-models
   //LOO-CV for multivariate normal models
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x,Z_adaptive,n_reg);
   inv_V = inverse(V);

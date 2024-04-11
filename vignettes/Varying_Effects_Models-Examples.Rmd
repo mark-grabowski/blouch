@@ -1,8 +1,8 @@
 ---
-title: "Varying Effects Models-Examples"
+title: "Varying_Effects_Models-Examples"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Varying Effects Models-Examples}
+  %\VignetteIndexEntry{Varying_Effects_Models-Examples}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -16,15 +16,30 @@ knitr::opts_chunk$set(
 )
 ```
 
-
 ```{r}
 rm(list=ls())
 ```
+
 
 ```{r setup}
 library(blouch)
 ```
 
+```{r}
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+```
 
 Here I walk you through the varying effects models of *Blouch*. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model. This article is an abbreviated versions of the Simulation Example article - most of the steps of analysis will be the same and are not repeated here. Note that the Stan runs are also too few iterations and use only 1 chain and 1 core.
 
@@ -133,76 +148,301 @@ trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,
 
 ```
 
-We will use the helper function blouch.reg.direct.prep() to setup the dat file for Stan. Here "Z_direct" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
 ```{r}
 ############################################################################################################
-#Test Blouch prep code - Regimes + Direct Efffect model
-#source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/R Setup Code/blouch.prep.R")
-dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=1,"regimes")
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(1.5,0.5) #Informed by linear model
+beta.prior<-c(0,0.25)
 
 ```
 
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+
+Half-life Prior plot
 ```{r}
-##################################################################################################################
-#Plot of data
-df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+names(hl.sims)<-"prior.hl.sims"
 
-#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
-slope.plot.1<-ggplot2::ggplot()+  
-  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X,color=Regimes))+
-  
-  ggplot2::geom_abline(intercept=optima[1],slope=beta[1],alpha=0.5,linetype=2)+
-  ggplot2::geom_abline(intercept=optima[2],slope=beta[2],alpha=0.5,linetype=2)+
-
+hl.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
   ggplot2::theme_bw()+
   ggplot2::theme(
     panel.grid.major = ggplot2::element_blank(),
     panel.grid.minor = ggplot2::element_blank())+
   
-  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect Trait")+
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+hl.prior.plot
+```
+
+
+Vy Prior Plot
+```{r}
+vy.sims<-rexp(n=1000,rate=vy.prior)
+vy.sims<-data.frame(vy.sims)
+names(vy.sims)<-"prior.vy.sims"
+
+vy.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+
+vy.prior.plot
+
+```
+
+Prior on how shared branch lengths correspond to covariance
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(sigma2_y.sims[i,] /(2 * a.sims[i,]) * ((1 - exp(-2 * a.sims[i,] * (1-(x/2)))) * exp(-a.sims[i,] * x)) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+
+par(mar=c(3,3,0.25,0.25))
+covariance.prior.plot <- recordPlot()
+dev.off()
+covariance.prior.plot
+
+```
+
+
+Slope and intercept Prior Plot
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+prior.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=X))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Trait 1") + ggplot2::xlab("Trait 2")+
+  ggsci::scale_color_npg()
+
+prior.slope.plot
+```
+
+We will use the helper function blouch.reg.direct.prep() to setup the dat file for Stan. Here "Z_direct" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+#Blouch prep code - Regimes + Direct Efffect model
+#source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/R Setup Code/blouch.prep.R")
+dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior)
+
+```
+
+Multi-optima Direct Effect Model with Varying Effects
+```{r}
+fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
+```
+
+```{r}
+print(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
+post<-rstan::extract(fit.reg.direct.ve)
+```
+
+Now lets look at the prior vs. posterior plots for the parameters
+Half-life plot
+```{r}
+hl.post<-data.frame(post$hl)
+names(hl.post)<-"post.hl.sims"
+
+hl.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.hl.sims,fill="post.hl.sims"),alpha=0.2,data=hl.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+hl.plot
+```
+
+Vy Prior vs. posterior plot
+```{r}
+vy.post<-data.frame(post$vy)
+names(vy.post)<-"post.vy.sims"
+
+
+vy.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.vy.sims,fill="post.vy.sims"),alpha=0.2,data=vy.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+vy.plot
+```
+
+
+Prior versus posterior on how shared branch lengths correspond to covariance
+```{r}
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(sigma2_y.sims[i,] /(2 * a.sims[i,]) * ((1 - exp(-2 * a.sims[i,] * (1-(x/2)))) * exp(-a.sims[i,] * x)) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+for (i in 1:30){
+  curve(post$sigma2_y[i] /(2 * post$a[i]) * ((1 - exp(-2 * post$a[i] * (1-(x/2)))) * exp(-post$a[i] * x)) , add=TRUE , lwd=4 , col=rethinking::col.alpha(2,0.5))
+}
+
+par(mar=c(3,3,0.25,0.25))
+covariance.plot <- recordPlot()
+dev.off()
+covariance.plot
+```
+
+Prior vs. Posterior Plot for Regression
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+optima.post<-post$optima
+beta.post<-data.frame(post$beta)
+names(beta.post)<-c("post.beta.1","post.beta.2")
+
+mu.link.11<-function(x.seq){optima.post[,1]+x.seq*beta.post[,1]}
+mu.link.12<-function(x.seq){optima.post[,2]+x.seq*beta.post[,2]}
+
+x.seq <- seq(from=min(X), to=max(X) , length.out=100)
+mu.11 <- sapply(x.seq , mu.link.11 )
+mu.12 <- sapply(x.seq , mu.link.12 )
+
+
+mu.mean.11<-colMeans(mu.11)
+mu.mean.12<-colMeans(mu.12)
+
+mu.mean.11<-data.frame(as.numeric(mu.mean.11))
+mu.mean.12<-data.frame(as.numeric(mu.mean.12))
+names(mu.mean.11)<-"mu.mean.11"
+names(mu.mean.12)<-"mu.mean.12"
+
+mu.CI.11 <- apply( mu.11 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+mu.CI.12 <- apply( mu.12 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+
+mu.CI.11<-data.frame(t(data.frame(mu.CI.11)),x.seq)
+mu.CI.12<-data.frame(t(data.frame(mu.CI.12)),x.seq)
+
+names(mu.CI.11)<-c("min.5.5","max.94.5","x.seq")
+names(mu.CI.12)<-c("min.5.5","max.94.5","x.seq")
+
+df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+df11<-data.frame(x.seq,mu.mean.11)
+df12<-data.frame(x.seq,mu.mean.12)
+
+
+slope.plot.1<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X,color=Regimes))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.1)+
+  
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2],alpha=0.5,linetype=2)+
+  
+  ggplot2::geom_line(data=df11,ggplot2::aes(x=x.seq,y=mu.mean.11),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.11,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::geom_line(data=df12,ggplot2::aes(x=x.seq,y=mu.mean.12),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.12,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+  panel.grid.major = ggplot2::element_blank(),
+  panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct effect trait")+
   ggsci::scale_color_npg()
 
 slope.plot.1
 
 ```
 
-Multilevel Multi-optima Direct Effect Model with Varying Effects
+
+
+`Multilevel Multi-optima Direct Effect Model with Varying Effects
+
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
 ```{r}
-fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 1,cores=1,iter=400)
+############################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(1.5,0.5) #Informed by linear model
+beta.prior<-c(0,0.25)
+sigma.prior<-c(0,1)
+
+```
+
+We will use the helper function blouch.reg.direct.prep() to setup the dat file for Stan. Here "Z_direct" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+dat<-blouch.reg.direct.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior)
+
+```
+
+```{r}
+fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
 ```
 
 ```{r}
 print(fit.reg.direct.mlm.ve,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.mlm.ve,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
 post<-rstan::extract(fit.reg.direct.mlm.ve)
 ```
 
 Multilevel Multi-optima Direct Effect Model with Varying Effects - Non centered
 ```{r}
-fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 1,cores=1,iter =400)
+fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 2,cores=2,iter=2000)
 ```
 
 ```{r}
 print(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.mlm.ve.nc,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
 post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
-```
-
-Multi-optima Direct Effect Model with Varying Effects
-```{r}
-fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 1,cores=1,iter =400)
-```
-
-```{r}
-print(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","beta")))
-post<-rstan::extract(fit.reg.direct.ve)
 ```
 
 ```{r}
 rm(list=ls())
-
 ```
+
+
 
 ## Multlevel Multi-optima Direct Effect Model with Varying Effects - Multiple Predictors
 Two regimes with two direct effect predictors and multiple slopes per optima but single alpha parameter
@@ -322,39 +562,31 @@ trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,
 
 ```
 
+
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
+```{r}
+############################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(1.5,0.5) #Informed by linear model
+beta.prior<-c(0,0.25)
+
+```
+
+
 We will use the helper function blouch.reg.direct.prep() to setup the dat file for Stan. Here "Z_direct" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
 ```{r}
 ############################################################################################################
 #Test Blouch prep code - Regimes + Direct Efffect model
-dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error",c("X1","X2"),c("X1_error","X2_error"),Z_direct=2,"regimes")
+dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error",c("X1","X2"),c("X1_error","X2_error"),Z_direct=2,"regimes",hl.prior,vy.prior,optima.prior,beta.prior)
 
 ```
 
-Multilevel Multi-optima Direct Efect Model with Varying Effects
-```{r results='hide'}
-fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 1,cores=1,iter =400)
-```
-
-```{r}
-print(fit.reg.direct.mlm.ve,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.mlm.ve,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
-post<-rstan::extract(fit.reg.direct.mlm.ve)
-```
-
-Multilevel Multi-optima Direct Efect Model with Varying Effects - non-centered
-```{r results='hide'}
-fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 1,cores=1,iter =400)
-```
-
-```{r}
-print(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.mlm.ve.nc,depth=3,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta")))
-post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
-```
 
 Multi-optima Direct Efect Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 1,cores=1,iter =400)
+fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
 ```
 
 ```{r}
@@ -363,7 +595,7 @@ print(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
 post<-rstan::extract(fit.reg.direct.ve)
 ```
 
-From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+From there the posteriors should be explored, compared to the priors, etc. One can also use the varying effects and multilevel models on multiple predictors in the same fashion as above.
 
 ```{r}
 rm(list=ls())
@@ -479,27 +711,256 @@ trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,
 
 ```
 
+
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
+```{r}
+############################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(1.5,0.5) #Informed by linear model
+beta.prior<-c(0.2,0.25) #Informed by linear model
+```
+
+
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+
+Half-life Prior plot
+```{r}
+hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+names(hl.sims)<-"prior.hl.sims"
+
+hl.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+hl.prior.plot
+```
+
+
+Vy Prior Plot
+```{r}
+vy.sims<-rexp(n=1000,rate=vy.prior)
+vy.sims<-data.frame(vy.sims)
+names(vy.sims)<-"prior.vy.sims"
+
+vy.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+
+vy.prior.plot
+
+```
+
+Prior on how shared branch lengths correspond to covariance
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,0.4) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_multiadaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta.sims[i],x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+par(mar=c(3,3,0.25,0.25))
+
+```
+
+
+Slope and intercept Prior Plot
+```{r}
+
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+prior.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=X))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive X")+
+  ggsci::scale_color_npg()
+
+prior.slope.plot
+```
+
+
 We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
 ```{r}
 ############################################################################################################
 #Test Blouch prep code - Regimes + Direct Efffect model
-dat<-blouch.reg.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=1,"regimes")
+dat<-blouch.reg.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior)
 
 ```
 
-```{r}
-########################################################################################################
+First we will run the Multi-optima Adaptive Model with Varying Effects
+```{r results='hide'}
+fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 2,cores=2,iter=2000)
+```
 
-#Plot of data
+```{r}
+print(fit.reg.adapt.ve,pars = c("hl","vy","optima","beta"))
+post<-rstan::extract(fit.reg.adapt.ve) #rstan::extract posterior distribution
+```
+
+
+Prior vs. posterior
+```{r}
+hl.post<-data.frame(post$hl)
+names(hl.post)<-"post.hl.sims"
+
+hl.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.hl.sims,fill="post.hl.sims"),alpha=0.2,data=hl.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+hl.plot
+```
+
+
+Prior vs. posterior plot
+```{r}
+vy.post<-data.frame(post$vy)
+names(vy.post)<-"post.vy.sims"
+
+vy.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.vy.sims,fill="post.vy.sims"),alpha=0.2,data=vy.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+vy.plot
+```
+
+Adaptation model
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,0.3) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_multiadaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta.sims[i],x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+for (i in 1:30){
+  curve(calc_multiadaptive_cov_plot(post$a[i],post$sigma2_y[i],as.numeric(data.frame(post$beta)[i,]),x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(2,0.5))
+  #curve(calc_multiadaptive_cov(post$a[i],post$sigma2_y[i],beta,x,Z_adaptive,n_reg) , add=TRUE , lwd=4 , col=col.alpha(2,0.5))
+}
+
+#multiple traits
+
+
+par(mar=c(3,3,0.25,0.25))
+covariance.plot <- recordPlot()
+dev.off()
+
+#Vt = sigma2_y /( 2 * a) * ((1 - exp(-2 * a * ta)) .* exp(-a * tij)); //From Hansen (1997)
+
+covariance.plot
+```
+
+
+
+Priors + Posteriors
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+
+optima.post<-post$optima
+beta.post<-data.frame(post$beta)
+names(beta.post)<-c("post.beta.1","post.beta.2")
+
+mu.link.11<-function(x.seq){optima.post[,1]+x.seq*beta.post[,1]}
+mu.link.12<-function(x.seq){optima.post[,2]+x.seq*beta.post[,2]}
+
+x.seq <- seq(from=min(X), to=max(X) , length.out=100)
+mu.11 <- sapply(x.seq , mu.link.11 )
+mu.12 <- sapply(x.seq , mu.link.12 )
+
+#mu.mean.11 <-lapply( mu.11 , mean )
+#mu.mean.12 <-lapply( mu.12 , mean )
+
+mu.mean.11<-colMeans(mu.11)
+mu.mean.12<-colMeans(mu.12)
+
+mu.mean.11<-data.frame(as.numeric(mu.mean.11))
+mu.mean.12<-data.frame(as.numeric(mu.mean.12))
+names(mu.mean.11)<-"mu.mean.11"
+names(mu.mean.12)<-"mu.mean.12"
+
+mu.CI.11 <- apply( mu.11 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+mu.CI.12 <- apply( mu.12 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+
+#mu.CI.11 <- lapply( mu.11 , PI , prob=0.89 )
+#mu.CI.12 <- lapply( mu.12 , PI , prob=0.89 )
+mu.CI.11<-data.frame(t(data.frame(mu.CI.11)),x.seq)
+mu.CI.12<-data.frame(t(data.frame(mu.CI.12)),x.seq)
+
+names(mu.CI.11)<-c("min.5.5","max.94.5","x.seq")
+names(mu.CI.12)<-c("min.5.5","max.94.5","x.seq")
+
+#df<-data.frame(Y=stan_sim_data$Y,X=stan_sim_data$direct_cov)
 df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+df11<-data.frame(x.seq,mu.mean.11)
+df12<-data.frame(x.seq,mu.mean.12)
 
 
 #slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
 slope.plot.1<-ggplot2::ggplot()+  
   ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X,color=Regimes))+
-  
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.1)+ #Prior
   ggplot2::geom_abline(intercept=optima[1],slope=beta[1],alpha=0.5,linetype=2)+
   ggplot2::geom_abline(intercept=optima[2],slope=beta[2],alpha=0.5,linetype=2)+
+  ggplot2::geom_line(data=df11,ggplot2::aes(x=x.seq,y=mu.mean.11),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.11,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::geom_line(data=df12,ggplot2::aes(x=x.seq,y=mu.mean.12),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.12,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
   
   ggplot2::theme_bw()+
   ggplot2::theme(
@@ -511,47 +972,50 @@ slope.plot.1<-ggplot2::ggplot()+
   ggsci::scale_color_npg()
 
 slope.plot.1
+```
+
+
+Multilevel Multi-optima Adaptive Model with Varying Effects
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
+```{r}
+############################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(1.5,0.5) #Informed by linear model
+beta.prior<-c(0.2,0.25) #Informed by linear model
+sigma.prior<-c(0,1)
+```
+
+We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+#Test Blouch prep code - Regimes + Direct Efffect model
+dat<-blouch.reg.adapt.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior)
 
 ```
 
 Now we run the Multilevel Multi-optima Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
 ```{r results='hide'}
-fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 1,cores=1,iter=400)
+fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
 ```
 
 ```{r}
-print(fit.reg.adapt.mlm.ve,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.adapt.mlm.ve,depth=2,pars = c("hl","vy","optima","beta")))
-
+print(fit.reg.adapt.mlm.ve,pars = c("hl","vy","optima","beta","sigma","optima_bar","beta_bar","Rho"))
 post<-rstan::extract(fit.reg.adapt.mlm.ve) #rstan::extract posterior distribution
 ```
 
 Now we run the non-centered version of the Multilevel Multi-optima Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 1,cores=1,iter=400)
+fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 2,cores=2,iter=2000)
 ```
 
 ```{r}
-print(fit.reg.adapt.mlm.ve.nc,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.adapt.mlm.ve.nc,depth=2,pars = c("hl","vy","optima","beta")))
-
-post<-rstan::extract(fit.reg.adapt.mlm.ve.nc) #rstan::extract posterior distribution
+print(fit.reg.adapt.mlm.ve,pars = c("hl","vy","optima","beta","sigma","optima_bar","beta_bar","Rho"))
+post<-rstan::extract(fit.reg.adapt.mlm.ve) #rstan::extract posterior distribution
 ```
 
-Finally we run the Multi-optima Adaptive Model with Varying Effects
-```{r results='hide'}
-fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 1,cores=1,iter=400)
-```
-
-```{r}
-print(fit.reg.adapt.ve,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.adapt.ve,depth=2,pars = c("hl","vy","optima","beta")))
-
-post<-rstan::extract(fit.reg.adapt.ve) #rstan::extract posterior distribution
-```
-
-From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
-
+From there the posteriors should be explored, compared to the priors, etc. following the format above
 
 ```{r}
 rm(list=ls())
@@ -559,7 +1023,7 @@ rm(list=ls())
 ```
 
 ## Multi-optima Direct Effect and Adaptive models with Varying Effects - Multiple predictors
-Two regimes with 1 direct and 1 adaptive trait and two slopes per regime
+Two regimes with 1 direct and 1 adaptive trait and two slopes per regime per trait
 ```{r}
 ########################################################################################################
 set.seed(10)
@@ -617,7 +1081,7 @@ sigma2_y<-vy*(2*(log(2)/hl));
 
 vX0<-0
 vY0 <- 0
-sigma2_x<-matrix(1,1,1) #Variance of BM Process
+sigma2_x<-matrix(10,1,1) #Variance of BM Process
 
 Xa<-phytools::fastBM(phy,a=vX0,sig2=sigma2_x[1,1],internal=FALSE) #Simulate X BM variable on tree, with scaling 10
 Xd<-phytools::fastBM(phy,a=vX0,sig2=sigma2_x[1,1],internal=FALSE) #Simulate X BM variable on tree, with scaling 10
@@ -628,15 +1092,14 @@ phytools::phenogram(phy,Xd,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
 phytools::phenogram(phy,Xa,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
 
 Xs<-cbind(Xd,Xa)
-sigma2_x<-matrix(1,1,1) #Variance of BM Process
 
 Z_adaptive<-1
 Z_direct<-1
 
 optima_matrix<-weight.matrix(phy, a, lineages) #Slouch approach
 pred_X<-calc_mixed_dmX(phy,a,Xs,Z_direct,Z_adaptive)
-optima<-c(2,1)
-beta<-data.frame(matrix(c(0.25,0.15,0.35,0.1),ncol=2,nrow=2)) #Two traits on columns, two regimes on vertical
+optima<-c(2,1.5)
+beta<-data.frame(matrix(c(0.25,0.15,0.35,0.1),ncol=2,nrow=2)) #Direct efect - column 1, Adaptive, column 2, slopes for regimes on rows
 
 mu<-matrix(NA,N,1)
 for(i in 1:N){
@@ -673,19 +1136,10 @@ names(X_with_error)<-c("Xd","Xa")
 trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error)))
 #names(trdata$dat)[6:7]<-c("Xd_error","Xa_error")
 ```
-
-We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+Plot Data
 ```{r}
-############################################################################################################
-#Test Blouch prep code - Regimes + Direct Effect model
-dat<-blouch.reg.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,"regimes")
-
-```
-
-```{r}
-########################################################################################################
 #Plot of data
-df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+df<-data.frame(Y=trdata$dat$Y_with_error,Xd=trdata$dat$Xd,Xa=trdata$dat$Xa,Regimes=trdata$dat$regimes)
 
 
 #slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
@@ -724,46 +1178,376 @@ slope.plot.2<-ggplot2::ggplot()+
   ggsci::scale_color_npg()
 
 slope.plot.2
+```
 
+
+
+
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
+```{r}
+############################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-20
+optima.prior<-c(1.5,0.25) #Informed by linear model
+beta.prior<-c(0,0.25) #Informed by linear model
 
 ```
 
-Now we run the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+
+Half-life Prior plot
+```{r}
+hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+names(hl.sims)<-"prior.hl.sims"
+
+hl.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+hl.prior.plot
+```
+
+
+Vy Prior Plot
+```{r}
+vy.sims<-rexp(n=1000,rate=vy.prior)
+vy.sims<-data.frame(vy.sims)
+names(vy.sims)<-"prior.vy.sims"
+
+vy.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+
+vy.prior.plot
+
+```
+
+Prior on how shared branch lengths correspond to covariance
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,0.4) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_multiadaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta.sims[i],x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+par(mar=c(3,3,0.25,0.25))
+
+```
+
+
+Slope and intercept Prior Plot
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+prior.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=Xd))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect X")+
+  ggsci::scale_color_npg()
+
+prior.slope.plot
+
+prior.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=Xa))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive X")+
+  ggsci::scale_color_npg()
+
+prior.slope.plot
+
+```
+
+We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+
+```{r}
+############################################################################################################
+dat<-blouch.reg.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior)
+
+```
+
+First we run the Multi-optima Direct Effect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 1,cores=1,iter=400)
+fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 2,cores=2,iter=2000)
+```
+
+Let's look at the results
+```{r}
+print(fit.reg.direct.adapt.ve,pars = c("hl","vy","optima","beta"))
+post<-rstan::extract(fit.reg.direct.adapt.ve)
+```
+Rember, the true values are
+optima<-c(2,1)
+beta<-data.frame(matrix(c(0.25,0.15,0.35,0.1),ncol=2,nrow=2)) 
+Direct effect - column 1, Adaptive, column 2, rows - slopes for regimes 
+
+Prior vs. posterior
+```{r}
+hl.post<-data.frame(post$hl)
+names(hl.post)<-"post.hl.sims"
+
+hl.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.hl.sims,fill="post.hl.sims"),alpha=0.2,data=hl.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+hl.plot
+```
+
+
+Prior vs. posterior plot
+```{r}
+vy.post<-data.frame(post$vy)
+names(vy.post)<-"post.vy.sims"
+
+vy.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.vy.sims,fill="post.vy.sims"),alpha=0.2,data=vy.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+vy.plot
+```
+
+Adaptation model
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,0.3) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_multiadaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta.sims[i],x) , add=TRUE , lwd=4 ,
+  #curve(calc_multiadaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta.sims[i,],x) , add=TRUE , lwd=4 ,
+        col=rethinking::col.alpha(1,0.15))
+}
+
+for (i in 1:30){
+  curve(calc_multiadaptive_cov_plot(post$a[i],post$sigma2_y[i],as.numeric(data.frame(post$beta)[i,,2]),x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(2,0.5))
+  #curve(calc_multiadaptive_cov(post$a[i],post$sigma2_y[i],beta,x,Z_adaptive,n_reg) , add=TRUE , lwd=4 , col=col.alpha(2,0.5))
+}
+
+#multiple traits
+
+
+par(mar=c(3,3,0.25,0.25))
+covariance.plot <- recordPlot()
+dev.off()
+
+#Vt = sigma2_y /( 2 * a) * ((1 - exp(-2 * a * ta)) .* exp(-a * tij)); //From Hansen (1997)
+
+covariance.plot
+```
+
+
+
+
+Now lets plot the prior vs. posterior plots
+```{r}
+optima.post<-post$optima
+beta.post.Xd<-data.frame(post$beta[,,1])
+beta.post.Xa<-data.frame(post$beta[,,2])
+names(beta.post.Xd)<-c("post.beta.1","post.beta.2")
+names(beta.post.Xa)<-c("post.beta.1","post.beta.2")
+
+mu.link.Xd1<-function(x.seq){optima.post[,1]+x.seq*beta.post.Xd[,1]}
+mu.link.Xd2<-function(x.seq){optima.post[,2]+x.seq*beta.post.Xd[,2]}
+
+x.seq <- seq(from=min(dat$X_obs[,1]), to=max(dat$X_obs[,1]) , length.out=100)
+mu.11 <- sapply(x.seq , mu.link.Xd1 )
+mu.12 <- sapply(x.seq , mu.link.Xd2 )
+
+mu.mean.11<-colMeans(mu.11)
+mu.mean.12<-colMeans(mu.12)
+
+mu.mean.11<-data.frame(as.numeric(mu.mean.11))
+mu.mean.12<-data.frame(as.numeric(mu.mean.12))
+names(mu.mean.11)<-"mu.mean.11"
+names(mu.mean.12)<-"mu.mean.12"
+
+mu.CI.11 <- apply( mu.11 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+mu.CI.12 <- apply( mu.12 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+
+mu.CI.11<-data.frame(t(data.frame(mu.CI.11)),x.seq)
+mu.CI.12<-data.frame(t(data.frame(mu.CI.12)),x.seq)
+
+names(mu.CI.11)<-c("min.5.5","max.94.5","x.seq")
+names(mu.CI.12)<-c("min.5.5","max.94.5","x.seq")
+
+df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+df11<-data.frame(x.seq,mu.mean.11)
+df12<-data.frame(x.seq,mu.mean.12)
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.7)(length(beta))
+
+slope.plot.1<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X.Xd,color=Regimes))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+ #Prior
+  ggplot2::geom_line(data=df11,ggplot2::aes(x=x.seq,y=mu.mean.11),linetype=1)+
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1,1],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2,1],alpha=0.5,linetype=2)+
+  
+  ggplot2::geom_ribbon(data=mu.CI.11,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::geom_line(data=df12,ggplot2::aes(x=x.seq,y=mu.mean.12),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.12,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct effect trait")+
+  ggsci::scale_color_npg()
+
+slope.plot.1
+
+
+mu.link.Xa1<-function(x.seq){optima.post[,1]+x.seq*beta.post.Xa[,1]}
+mu.link.Xa2<-function(x.seq){optima.post[,2]+x.seq*beta.post.Xa[,2]}
+
+x.seq <- seq(from=min(dat$X_obs[,2]), to=max(dat$X_obs[,2]) , length.out=100)
+mu.11 <- sapply(x.seq , mu.link.Xa1 )
+mu.12 <- sapply(x.seq , mu.link.Xa2 )
+
+mu.mean.11<-colMeans(mu.11)
+mu.mean.12<-colMeans(mu.12)
+
+mu.mean.11<-data.frame(as.numeric(mu.mean.11))
+mu.mean.12<-data.frame(as.numeric(mu.mean.12))
+names(mu.mean.11)<-"mu.mean.11"
+names(mu.mean.12)<-"mu.mean.12"
+
+mu.CI.11 <- apply( mu.11 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+mu.CI.12 <- apply( mu.12 , MARGIN=2, FUN=rethinking::PI , prob=0.89 )
+
+mu.CI.11<-data.frame(t(data.frame(mu.CI.11)),x.seq)
+mu.CI.12<-data.frame(t(data.frame(mu.CI.12)),x.seq)
+
+names(mu.CI.11)<-c("min.5.5","max.94.5","x.seq")
+names(mu.CI.12)<-c("min.5.5","max.94.5","x.seq")
+
+df<-data.frame(Y=dat$Y_obs,X=dat$X_obs,Regimes=regimes_tip)
+df11<-data.frame(x.seq,mu.mean.11)
+df12<-data.frame(x.seq,mu.mean.12)
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.7)(length(beta))
+slope.plot.2<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X.Xa,color=Regimes))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+ #Prior
+  ggplot2::geom_abline(intercept=optima[1],slope=beta[1,2],alpha=0.5,linetype=2)+
+  ggplot2::geom_abline(intercept=optima[2],slope=beta[2,2],alpha=0.5,linetype=2)+
+  
+  ggplot2::geom_line(data=df11,ggplot2::aes(x=x.seq,y=mu.mean.11),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.11,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::geom_line(data=df12,ggplot2::aes(x=x.seq,y=mu.mean.12),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI.12,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive trait")+
+  ggsci::scale_color_npg()
+
+slope.plot.2
+
+```
+
+
+Now we run the Multilevel Multi-optima Direct Effect Adaptation Model with Varying Effects, look at the results, and rstan::extract the posterior
+
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
+```{r}
+############################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-20
+optima.prior<-c(1.5,0.25) #Informed by linear model
+beta.prior<-c(0,0.25) #Informed by linear model
+sigma.prior<-c(0,1) #Informed by linear model
+```
+
+We will use the helper function blouch.reg.adapt.prep() to setup the dat file for Stan. Here "Z_adaptive" is the number of predictors, and "regimes" is the name of the regime column in trdata$dat.
+```{r}
+############################################################################################################
+dat<-blouch.reg.direct.adapt.mlm.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior)
+
+```
+
+```{r results='hide'}
+fit.reg.direct.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
 
 ```
 
 ```{r}
-print(fit.reg.direct.adapt.mlm.ve,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.adapt.mlm.ve,depth=2,pars = c("hl","vy","optima","beta")))
-
+print(fit.reg.direct.adapt.mlm.ve,pars = c("hl","vy","optima","beta","sigma","Rho"))
 post<-rstan::extract(fit.reg.direct.adapt.mlm.ve)
 ```
 
 Now we run the non-centered version of the Multilevel Multi-optima Direct Effect Adaptive Model with Varying Effects
 ```{r results='hide'}
-fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 1,cores=1,iter=400)
+fit.reg.direct.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_ve_nc,data = dat,chains = 2,cores=2,iter=2000)
 ```
 
 ```{r}
-print(fit.reg.direct.adapt.mlm.ve.nc,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.adapt.mlm.ve.nc,depth=2,pars = c("hl","vy","optima","beta")))
-
+print(fit.reg.direct.adapt.mlm.ve.nc,pars = c("hl","vy","optima","beta","sigma","L_Rho"))
 post<-rstan::extract(fit.reg.direct.adapt.mlm.ve.nc)
 ```
 
-Finally we run the Multi-optima Direct Effect Adaptive Model with Varying Effects
-```{r results='hide'}
-fit.reg.direct.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_ve,data = dat,chains = 1,cores=1,iter=400)
-```
-
-```{r}
-print(fit.reg.direct.adapt.ve,pars = c("hl","vy","optima","beta"))
-#plot(rethinking::precis(fit.reg.direct.adapt.ve,depth=2,pars = c("hl","vy","optima","beta")))
-
-post<-rstan::extract(fit.reg.direct.adapt.ve)
-```
-
-From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+From there the posteriors should be explored, compared to the priors, etc. following the methods above.
 

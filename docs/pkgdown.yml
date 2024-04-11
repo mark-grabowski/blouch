@@ -1,11 +1,11 @@
 pandoc: 3.1.1
-pkgdown: 2.0.7.9000
-pkgdown_sha: c9206802f2888992de92aa41f517ba7812f05331
+pkgdown: 2.0.7
+pkgdown_sha: ~
 articles:
-  Basic_Models-Examples: Basic_Models-Examples.html
-  Empirical-Example: Empirical-Example.html
-  Multi-optima_Models-Examples: Multi-optima_Models-Examples.html
   Simulation-Example: Simulation-Example.html
+  Empirical-Example: Empirical-Example.html
+  Basic_Models-Examples: Basic_Models-Examples.html
+  Multi-optima_Models-Examples: Multi-optima_Models-Examples.html
   Varying_Effects_Models-Examples: Varying_Effects_Models-Examples.html
-last_built: 2023-09-26T12:34Z
+last_built: 2024-04-11T16:13Z
 

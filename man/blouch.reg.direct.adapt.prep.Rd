@@ -12,7 +12,11 @@ blouch.reg.direct.adapt.prep(
   X_error,
   Z_direct,
   Z_adaptive,
-  reg.column
+  reg.column,
+  hl.prior,
+  vy.prior,
+  optima.prior,
+  beta.prior
 )
 }
 \arguments{
@@ -31,6 +35,14 @@ blouch.reg.direct.adapt.prep(
 \item{Z_adaptive}{Vector containing number of adaptive predictor traits}
 
 \item{reg.column}{Vector containing name of regime column in treedata$dat}
+
+\item{hl.prior}{Vector containing log mu and standard error for half-life prior}
+
+\item{vy.prior}{Numeric with prior for scale of Vy}
+
+\item{optima.prior}{Vector containing mu and standard error for optima prior}
+
+\item{beta.prior}{Vector containing mu and standard error for beta prior}
 }
 \value{
 dat - list file containing objecs setup for Blouch

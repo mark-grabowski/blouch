@@ -1,10 +1,12 @@
 ---
-title: "Basic Models-Examples"
+title: "Basic_Models-Examples"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Basic Models-Examples}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Basic_Models-Examples}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -14,13 +16,30 @@ knitr::opts_chunk$set(
 )
 ```
 
-
 ```{r}
 rm(list=ls())
 ```
 
+
 ```{r setup}
 library(blouch)
+```
+
+
+```{r}
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
 ```
 
 
@@ -45,7 +64,6 @@ l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
 phy$edge.length<-phy$edge.length/l.tree 
 
 tip.label<-phy$tip.label
-
 
 ```
 
@@ -83,10 +101,10 @@ phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
 Next we set the intercept and slope parameters, and simulate mu before using it and V to simulate Y. Finally we make a quick plot of the results. We will set the intercept (alpha term) to 2 and the slope to 0.25. 
 
 ```{r}
-alpha<-2 #Intecept
+optima<-2 #Intecept
 beta<-0.25 #Slope
 
-mu<-alpha+X*beta #Simulate mu for Y
+mu<-optima+X*beta #Simulate mu for Y
 
 Y<-MASS::mvrnorm(n=1,mu,V) #Simulate direct effect Y trait
 
@@ -120,62 +138,261 @@ trdata<-treeplyr::make.treedata(phy,trait.data)
 
 ```
 
-## Data setup for *Blouch*
-We will use the helper function blouch.direct.prep to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the heloper function the number of predictor traits, 1 here.
-
-```{r blouch.direct.prep}
+Next we will set the priors for the estimated parameters - for this model this includes the half-life, Vy, optima, and beta. For the latter two parameters we will use the results of the linear model to inform our priors.
+```{r}
 ############################################################################################################
-#Test Blouch prep code - direct effect model - blouch.direct.prep()
-dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=Z_direct)
-
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(2,0.25) #Informed by linear model
+beta.prior<-c(0.25,0.25) #Informed by linear model
 ```
-
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - see Simulation Example article for one way to go about this.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
 
-## Running models
-We will run the direct effect model first. Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
+Half-life Prior plot
+```{r}
+hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+names(hl.sims)<-"prior.hl.sims"
 
-For example, here are the four most important priors for the model below - these values are explored in Grabowski (in revision). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
+hl.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
 
-```{r, eval=FALSE}
-########################################################################################################
-#Priors
-#hl ~ lognormal(log(0.25),0.25);
-#vy ~ exponential(10);
-#alpha ~ normal(2.0,0,75);
-#beta ~ normal(0.25,1.5);
+hl.prior.plot
 ```
 
+
+Vy Prior Plot
+```{r}
+vy.sims<-rexp(n=1000,rate=vy.prior)
+vy.sims<-data.frame(vy.sims)
+names(vy.sims)<-"prior.vy.sims"
+
+vy.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+
+vy.prior.plot
+
+```
+
+Prior on how shared branch lengths correspond to covariance
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+#x<-seq(from=0,to=1,by=0.001)
+#V.sim<-calc_direct_V(phy,a.sims,sigma2_y.sims)
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(sigma2_y.sims[i,] /(2 * a.sims[i,]) * ((1 - exp(-2 * a.sims[i,] * (1-(x/2)))) * exp(-a.sims[i,] * x)) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+
+par(mar=c(3,3,0.25,0.25))
+covariance.prior.plot <- recordPlot()
+dev.off()
+covariance.prior.plot
+
+```
+
+
+Slope and intercept Prior Plot
+```{r}
+
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+prior.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=X))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect X")+
+  ggsci::scale_color_npg()
+
+prior.slope.plot
+```
+
+
+## Not for the faint of heart
 And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in revision) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020)
 
 
 ```{r, eval=FALSE}
 #Stan Code
-  target += lognormal_lpdf(hl|log(0.25),0.25);
-  target += exponential_lpdf(vy|10);
-  target += normal_lpdf(alpha|2.0,0.75);
-  target += normal_lpdf(beta|0.25,1.5);
+  
 ```
 
 
+
+## Data setup for *Blouch*
+We will use the helper function blouch.direct.prep to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the helper function the number of predictor traits, 1 here. The last few variables are all the priors for the parameters above.
+
+```{r blouch.direct.prep}
+############################################################################################################
+#Test Blouch prep code - direct effect model - blouch.direct.prep()
+dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error", hl.prior,vy.prior,optima.prior,beta.prior)
+
+```
+
+## Running models
+We will run the direct effect model first. Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
+
+For example, here are the four most important priors for the model below - these values are explored in Grabowski (in revision). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
 Now let's run the direct effect model blouchOU_direct.
 
 ```{r Run_direct_effect_model , results='hide'}
-fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 1,cores=1,iter =400)
+fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 2,cores=2,iter =2000)
 ```
 
 
 Now let's look at the results
 ```{r Print_DEM_results}
-print(fit.direct,pars = c("hl","vy","alpha","beta"))
-#plot(rethinking::precis(fit.direct,depth=3,pars = c("hl","vy","alpha","beta"))) #For use with rethinking package
+print(fit.direct,pars = c("hl","vy","optima","beta"))
 post<-rstan::extract(fit.direct) #Extract posterior distribution
 
 ```
 
-From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+Now lets look at the prior vs. posterior plots for the parameters
+Half-life plot
+```{r}
+hl.post<-data.frame(post$hl)
+names(hl.post)<-"post.hl.sims"
+
+hl.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.hl.sims,fill="post.hl.sims"),alpha=0.2,data=hl.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+hl.plot
+```
+
+Vy Prior vs. posterior plot
+```{r}
+vy.post<-data.frame(post$vy)
+names(vy.post)<-"post.vy.sims"
+
+
+vy.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.vy.sims,fill="post.vy.sims"),alpha=0.2,data=vy.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+vy.plot
+```
+
+
+Prior versus posterior on how shared branch lengths correspond to covariance
+```{r}
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(sigma2_y.sims[i,] /(2 * a.sims[i,]) * ((1 - exp(-2 * a.sims[i,] * (1-(x/2)))) * exp(-a.sims[i,] * x)) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+for (i in 1:30){
+  curve(post$sigma2_y[i] /(2 * post$a[i]) * ((1 - exp(-2 * post$a[i] * (1-(x/2)))) * exp(-post$a[i] * x)) , add=TRUE , lwd=4 , col=rethinking::col.alpha(2,0.5))
+}
+
+par(mar=c(3,3,0.25,0.25))
+covariance.plot <- recordPlot()
+dev.off()
+covariance.plot
+```
+
+Prior vs. Posterior Plot for Regression
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+optima.post<-data.frame(post$optima)
+names(optima.post)<-"post.optima"
+
+beta.post<-data.frame(post$beta)
+names(beta.post)<-"post.beta"
+
+mu.link<-function(x.seq){optima.post+x.seq*beta.post}
+x.seq <- seq(from=min(X), to=max(X) , length.out=100)
+mu <- sapply(x.seq , mu.link )
+mu.mean <-lapply( mu , mean )
+mu.mean<-data.frame(as.numeric(mu.mean))
+names(mu.mean)<-"mu.mean"
+
+mu.CI <- lapply( mu , rethinking::PI , prob=0.89 )
+mu.CI<-data.frame(t(data.frame(mu.CI)),x.seq)
+names(mu.CI)<-c("min.5.5","max.94.5","x.seq")
+
+#df<-data.frame(Y=stan_sim_data$Y,X=stan_sim_data$direct_cov)
+df<-data.frame(Y=Y,X=X)
+names(df)<-c("Y","X")
+
+df2<-data.frame(x.seq,mu.mean)
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::geom_abline(intercept=optima,slope=beta,alpha=0.5,linetype=2)+
+  ggplot2::geom_line(data=df2,ggplot2::aes(x=x.seq,y=mu.mean),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect X")+
+  ggsci::scale_color_npg()
+
+slope.plot
+```
+
 
 ```{r}
 rm(list=ls())
@@ -199,7 +416,6 @@ l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
 phy$edge.length<-phy$edge.length/l.tree 
 
 tip.label<-phy$tip.label
-
 
 ```
 
@@ -235,13 +451,13 @@ We will set the intercept (alpha) to 2 and the slope to 0.25. We will use the *B
 Then we will simulate mu before using it and V to simulate Y. Finally we make a quick plot of the results.
 
 ```{r}
-alpha<-2 #Intecept
+optima<-2 #Intecept
 beta<-0.25 #Slope
 
 dmX<-calc_adaptive_dmX(phy,a,X) #Calculate the design matrix
 V<-calc_adaptive_V(phy,a, sigma2_y, beta,  sigma2_x, Z_adaptive) #Calculate adaptive variance/covariance matrix
 
-mu<-alpha+dmX%*%beta #Simulate mu for Y
+mu<-optima+dmX%*%beta #Simulate mu for Y
 Y<-MASS::mvrnorm(n=1,mu,V) #Simulate adaptive model Y trait
 
 df<-data.frame(Y=Y,X=X)
@@ -276,18 +492,114 @@ trait.data<-data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error))
 trdata<-treeplyr::make.treedata(phy,trait.data)
 
 ############################################################################################################
+```
+
+Next we set the priors following the format above
+```{r}
+########################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(2,0.2) #Informed by linear model
+beta.prior<-c(0,0.25) #Informed by linear model
+#View priors in Prior and Posterior Plots Code.Rmd
+```
+
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+
+Half-life Prior plot
+```{r}
+hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+names(hl.sims)<-"prior.hl.sims"
+
+hl.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+hl.prior.plot
+```
+
+
+Vy Prior Plot
+```{r}
+vy.sims<-rexp(n=1000,rate=vy.prior)
+vy.sims<-data.frame(vy.sims)
+names(vy.sims)<-"prior.vy.sims"
+
+vy.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+
+vy.prior.plot
 
 ```
 
-We will use the helper function blouch.adapt.prep() to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the helper function the number of predictor traits, 1 here.
+Prior on how shared branch lengths correspond to covariance
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_adaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta,x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+par(mar=c(3,3,0.25,0.25))
+covariance.prior.plot <- recordPlot()
+dev.off()
+covariance.prior.plot
+
+```
+
+
+Slope and intercept Prior Plot
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+prior.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=X))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive X")+
+  ggsci::scale_color_npg()
+
+prior.slope.plot
+```
+
+We will use the helper function blouch.adapt.prep() to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the helper function the number of predictor traits, 1 here, and the prior distributions on the parameters.
 
 ```{r blouch.adapt.prep}
 #Test Blouch prep code - adaptive model
-dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=Z_adaptive)
-
+dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",hl.prior,vy.prior,optima.prior,beta.prior)
 ```
-## Exploring Priors
-At this point one would want to explore if the priors are appropriate - see Simulation Example article for one way to go about this.
+
 
 ## Running models
 Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
@@ -308,28 +620,145 @@ And here are the lines of Stan code for setting these priors. To change the valu
 
 ```{r, eval=FALSE}
 #Stan Code
-  target += lognormal_lpdf(hl|log(0.25),0.25);
-  target += exponential_lpdf(vy|5);
-  target += normal_lpdf(alpha|2,0.2);
-  target += normal_lpdf(beta|0.25,0.1);
 
 ```
 
 
 Now let's run the adaptive model blouchOU_adapt
 ```{r Run_adaptive_model , results='hide'}
-fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 1,cores=1,iter =400)
+fit.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_adapt,data = dat,chains = 2,cores=2,iter =2000)
 ```
 
 Here the results include both the optimal regression, beta, and the evolutionary regression, beta_e, following Hansen et al. (2008)
 ```{r Print AM_results}
-print(fit.adapt,pars = c("hl","vy","alpha","beta","beta_e"))
-#plot(rethinking::precis(fit.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
+print(fit.adapt,pars = c("hl","vy","optima","beta","beta_e"))
 post<-rstan::extract(fit.adapt)
-
 ```
 
-From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+Now lets look at the prior vs. posterior plots for the parameters
+Half-life plot
+```{r}
+hl.post<-data.frame(post$hl)
+names(hl.post)<-"post.hl.sims"
+
+hl.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.hl.sims,fill="post.hl.sims"),alpha=0.2,data=hl.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+hl.plot
+```
+
+Vy Prior vs. posterior plot
+```{r}
+vy.post<-data.frame(post$vy)
+names(vy.post)<-"post.vy.sims"
+
+
+vy.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.vy.sims,fill="post.vy.sims"),alpha=0.2,data=vy.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+vy.plot
+```
+
+
+Prior versus posterior on how shared branch lengths correspond to covariance
+Adaptation model
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+#x<-seq(from=0,to=1,by=0.001)
+#V.sim<-calc_direct_V(phy,a.sims,sigma2_y.sims)
+
+#calc_adaptive_V_plot<-function(phy,a, sigma2_y, beta,  sigma2_x){
+
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_adaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta,x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+for (i in 1:30){
+  curve(calc_adaptive_cov_plot(post$a[i],post$sigma2_y[i],post$beta[i],x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(2,0.5))
+}
+
+par(mar=c(3,3,0.25,0.25))
+covariance.plot <- recordPlot()
+dev.off()
+covariance.plot
+```
+
+
+Prior vs. Posterior Plot for Regression
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+optima.post<-data.frame(post$optima)
+names(optima.post)<-"post.optima"
+
+beta.post<-data.frame(post$beta)
+names(beta.post)<-"post.beta"
+
+mu.link<-function(x.seq){optima.post+x.seq*beta.post}
+x.seq <- seq(from=min(X), to=max(X) , length.out=100)
+mu <- sapply(x.seq , mu.link )
+mu.mean <-lapply( mu , mean )
+mu.mean<-data.frame(as.numeric(mu.mean))
+names(mu.mean)<-"mu.mean"
+
+mu.CI <- lapply( mu ,rethinking:: PI , prob=0.89 )
+mu.CI<-data.frame(t(data.frame(mu.CI)),x.seq)
+names(mu.CI)<-c("min.5.5","max.94.5","x.seq")
+
+#df<-data.frame(Y=stan_sim_data$Y,X=stan_sim_data$direct_cov)
+df<-data.frame(Y=Y,X=X)
+names(df)<-c("Y","X")
+
+df2<-data.frame(x.seq,mu.mean)
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::geom_abline(intercept=optima,slope=beta,alpha=0.5,linetype=2)+
+  ggplot2::geom_line(data=df2,ggplot2::aes(x=x.seq,y=mu.mean),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive X")+
+  ggsci::scale_color_npg()
+
+slope.plot
+```
+
+
 
 ```{r}
 rm(list=ls())
@@ -383,7 +812,6 @@ names(Xd)<-phy$tip.label
 phytools::phenogram(phy,Xd,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
 Xa<-phytools::fastBM(phy,a=vX0,sig2=sigma2_x[1,1],internal=FALSE) #Simulate X BM variable on tree, with scaling 10
 phytools::phenogram(phy,Xa,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
-#sigma2_x<-ratematrix(phy,Xa) #Calculate evolutionary v/cv matrix
 Xs<-cbind(Xd,Xa)
 
 ```
@@ -393,12 +821,12 @@ We will have one intercept term here, but two slopes - the order in *Blouch* is 
 Finally we make a quick plot of the results.
 
 ```{r}
-alpha<-2 #Intecept
+optima<-2 #Intecept
 beta<-c(0.35,0.25) #Slopes
 dmX<-calc_mixed_dmX(phy,a,Xs,Z_direct,Z_adaptive)
-mu<-alpha+dmX%*%beta #Simulate mu for Y
+mu<-optima+dmX%*%beta #Simulate mu for Y
 
-V<-calc_adaptive_V(phy,a, sigma2_y, beta[(Z_direct+1):(Z_adaptive+Z_direct)],  sigma2_x)
+V<-calc_adaptive_V(phy,a, sigma2_y, beta[(Z_direct+1):(Z_adaptive+Z_direct)],  sigma2_x, Z_adaptive)
 Y<-MASS::mvrnorm(n=1,mu,V)
 
 df<-data.frame(Y=Y,X=Xs)
@@ -438,39 +866,297 @@ Next we will use the treeplyr package (Uyeda and Harmon, 2014) make.treedata fun
 ```{r}
 ############################################################################################################
 #Make trdata file
-#trdata<-make.treedata(phy,trait.data)
 trait.data<-data.frame(cbind(Y_with_error,Y_error,X_with_error,X_error))
 trdata<-treeplyr::make.treedata(phy,trait.data)
 
 
 ```
 
+
+Next we set the priors following the format above - see above for exploring the priors
+```{r}
+########################################################################################################
+#Set Priors
+hl.prior<-c(log(0.25),0.75)
+vy.prior<-5
+optima.prior<-c(2,0.2) #Informed by linear model
+beta.prior<-c(0,0.25) #Informed by linear model
+#View priors in Prior and Posterior Plots Code.Rmd
+```
+
+## Exploring Priors
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+
+Half-life Prior plot
+```{r}
+hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+names(hl.sims)<-"prior.hl.sims"
+
+hl.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+hl.prior.plot
+```
+
+
+Vy Prior Plot
+```{r}
+vy.sims<-rexp(n=1000,rate=vy.prior)
+vy.sims<-data.frame(vy.sims)
+names(vy.sims)<-"prior.vy.sims"
+
+vy.prior.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Prior"))
+
+
+vy.prior.plot
+
+```
+
+Prior on how shared branch lengths correspond to covariance
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_adaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta,x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+par(mar=c(3,3,0.25,0.25))
+covariance.prior.plot <- recordPlot()
+dev.off()
+covariance.prior.plot
+
+```
+
+
+Slope and intercept Prior Plot
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+prior.direct.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=X.Xd))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect X")+
+  ggsci::scale_color_npg()
+
+prior.direct.slope.plot
+
+
+prior.adapt.slope.plot<-ggplot2::ggplot()+  
+ ggplot2:: geom_point(data=df,ggplot2::aes(y=Y,x=X.Xa))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive X")+
+  ggsci::scale_color_npg()
+
+prior.adapt.slope.plot
+```
+
+
 We will use the helper function blouch.direct.adapt.prep to setup the dat file for Stan. Here the names of the direct effect and adaptive columns are Xd, and Xa and their associated errors, with Z_direct and Z_adaptive the number of direct effect and adaptive traits, respectively.
 ```{r blouch.direct.adapt.prep}
 ############################################################################################################
 #Test Blouch prep code - Direct effect + Adaptive Model
-dat<-blouch.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1)
+dat<-blouch.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,hl.prior,vy.prior,optima.prior,beta.prior)
 
 ```
 
 Priors are set as above, and the blouchOU_direct_adapt model is run here.
 
 ```{r Run_direct_adapt_model , results='hide'}
-fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 1, cores=1,iter =400)
-
+fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 2, cores=2,iter =2000)
 ```
 
 Here the results include, in order, the direct effect regression, the optimal regression, and finally beta_e,  the evolutionary regression, following Hansen et al. (2008)
-
 ```{r Pring_DAM_results}
-print(fit.direct.adapt,pars = c("hl","vy","alpha","beta","beta_e"))
-#plot(rethinking::precis(fit.direct.adapt,depth=2,pars = c("hl","vy","alpha","beta")))
+print(fit.direct.adapt,pars = c("hl","vy","optima","beta","beta_e"))
 post<-rstan::extract(fit.direct.adapt)
-
-
 ```
 
-From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
+Now lets look at the prior vs. posterior plots for the parameters
+Half-life plot
+```{r}
+hl.post<-data.frame(post$hl)
+names(hl.post)<-"post.hl.sims"
+
+hl.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.hl.sims,fill="post.hl.sims"),alpha=0.2,data=hl.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="Half-life", y = "Density")+
+  ggplot2::labs(title="",x="Half-life", y = "Density")+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggplot2::geom_vline(xintercept=c(hl),linetype=2)+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+hl.plot
+```
+
+Vy Prior vs. posterior plot
+```{r}
+vy.post<-data.frame(post$vy)
+names(vy.post)<-"post.vy.sims"
+
+
+vy.plot<-ggplot2::ggplot()+
+  ggplot2::geom_density(ggplot2::aes(prior.vy.sims,fill="prior.vy.sims"),alpha=0.2,data=vy.sims)+
+  ggplot2::geom_density(ggplot2::aes(post.vy.sims,fill="post.vy.sims"),alpha=0.2,data=vy.post)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
+  ggplot2::labs(title="",x="vy", y = "Density")+
+  ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
+  
+  #scale_fill_manual(labels=c("Posterior","Prior"))+
+  ggsci::scale_fill_npg(name="",labels=c("Posterior","Prior"))
+
+vy.plot
+```
+
+
+Prior versus posterior on how shared branch lengths correspond to covariance
+Adaptation model
+```{r}
+a.sims<-log(2)/hl.sims;
+sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
+
+plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
+for (i in 1:30){
+  curve(calc_adaptive_cov_plot(a.sims[i,],sigma2_y.sims[i,],beta,x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(1,0.15))
+}
+
+for (i in 1:30){
+  curve(calc_adaptive_cov_plot(post$a[i],post$sigma2_y[i],post$beta[i],x) , add=TRUE , lwd=4 , col=rethinking::col.alpha(2,0.5))
+}
+
+par(mar=c(3,3,0.25,0.25))
+covariance.plot <- recordPlot()
+dev.off()
+covariance.plot
+```
+
+
+Prior vs. Posterior Plot for Regression
+```{r}
+optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+
+optima.post<-data.frame(post$optima)
+names(optima.post)<-"post.optima"
+
+beta.post<-data.frame(post$beta)
+names(beta.post)<-"post.beta"
+
+#Direct Effect Model
+mu.link<-function(x.seq){optima.post+x.seq*beta.post[,1]}
+x.seq <- seq(from=min(df$X.Xd), to=max(df$X.Xd) , length.out=100)
+mu <- sapply(x.seq , mu.link )
+mu.mean <-lapply( mu , mean )
+mu.mean<-data.frame(as.numeric(mu.mean))
+names(mu.mean)<-"mu.mean"
+
+mu.CI <- lapply( mu ,rethinking:: PI , prob=0.89 )
+mu.CI<-data.frame(t(data.frame(mu.CI)),x.seq)
+names(mu.CI)<-c("min.5.5","max.94.5","x.seq")
+
+
+df2<-data.frame(x.seq,mu.mean)
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.diirect.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X.Xd))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::geom_abline(intercept=optima,slope=beta[1],alpha=0.5,linetype=2)+
+  ggplot2::geom_line(data=df2,ggplot2::aes(x=x.seq,y=mu.mean),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Direct Effect X")+
+  ggsci::scale_color_npg()
+
+slope.diirect.plot
+
+
+
+#Adaptation Model
+mu.link<-function(x.seq){optima.post+x.seq*beta.post[,2]}
+x.seq <- seq(from=min(df$X.Xa), to=max(df$X.Xa) , length.out=100)
+mu <- sapply(x.seq , mu.link )
+mu.mean <-lapply( mu , mean )
+mu.mean<-data.frame(as.numeric(mu.mean))
+names(mu.mean)<-"mu.mean"
+
+mu.CI <- lapply( mu ,rethinking:: PI , prob=0.89 )
+mu.CI<-data.frame(t(data.frame(mu.CI)),x.seq)
+names(mu.CI)<-c("min.5.5","max.94.5","x.seq")
+
+df2<-data.frame(x.seq,mu.mean)
+
+#slope.prior.plot<-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+
+slope.adapt.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=Y,x=X.Xa))+
+  ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
+  ggplot2::geom_abline(intercept=optima,slope=beta[2],alpha=0.5,linetype=2)+
+  ggplot2::geom_line(data=df2,ggplot2::aes(x=x.seq,y=mu.mean),linetype=1)+
+  ggplot2::geom_ribbon(data=mu.CI,ggplot2::aes(x=x.seq,ymin=min.5.5,ymax=max.94.5),linetype=2,alpha=0.25)+
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  #ggtitle("Prior vs. Posterior for Intercept and Slope")+
+  ggplot2::ylab("Y") + ggplot2::xlab("Adaptive X")+
+  ggsci::scale_color_npg()
+
+slope.adapt.plot
+```
+
 
 ## References
 Grabowski M., Voje K.L., Hansen T.F. 2016. Evolutionary modeling and correcting for observation error support a 3/5 brain-body allometry for primates. J. Hum. Evol. 94:106–116.

@@ -97,6 +97,12 @@ data {
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N]; //Regimes at the tips
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+  vector[2] sigma_prior;
+
 }
 parameters {
   real<lower=0> hl;
@@ -122,23 +128,23 @@ model {
   vector[N] mu;
   matrix[N,N] L_v;
   matrix[N,Z_adaptive] pred_X;
-  matrix[N,n_reg+Z_adaptive] dmX;
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix;
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.75);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(5);
-  target += exponential_lpdf(vy|20);
+  target += exponential_lpdf(vy|vy_prior);
   //L_Rho ~ lkj_corr_cholesky(2);
   target += lkj_corr_cholesky_lpdf(L_Rho|2);
+  target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
   //sigma ~ exponential(5);
   //sigma ~ normal(0,1);
-  target += normal_lpdf(sigma|0,1);
+  //target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
   //optima_bar ~ normal(2.88,1.5);//Original 4 regimes
   //beta_bar ~ normal(0.31,0.25); //Original 4 regimes
-  target += normal_lpdf(optima_bar|2.88,1.5);
-  target += normal_lpdf(beta_bar|0.31,0.25);
+  target += normal_lpdf(optima_bar|optima_prior[1],optima_prior[2]);
+  target += normal_lpdf(beta_bar|beta_prior[1],beta_prior[2]);
 
   for(i in 1:n_reg){
     //Z[,i]~normal(0,1);
@@ -164,16 +170,23 @@ model {
 
 }
 generated quantities {
+  vector[N] Y_sim;
+  vector[N] Y_sim_obs;
+
   matrix[N,N] V;
   matrix[N,N] L_v;
   matrix[N,Z_adaptive] pred_X;
   matrix[N,n_reg] optima_matrix;
-  matrix[N,Z_adaptive] dmX;
   vector[N] mu;
+  real g_i;
+  real sigma_ii;
+  real sigma_i;
+  real u_i;
+  vector[N] log_lik;
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
-  vector[N] Y_sim;
-  vector[N] Y_sim_obs;
+  matrix[2,2] Rho;
+  Rho = multiply_lower_tri_self_transpose(L_Rho);
 
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x,Z_adaptive,n_reg);
   L_v = cholesky_decompose(V);
@@ -184,10 +197,10 @@ generated quantities {
   for(i in 1:N){
     mu[i] = optima_matrix[i,]*optima+pred_X[i,]*beta[reg_tips[i],]';
     }
-  Y_sim = multi_normal_cholesky_rng(mu , L_v);//Given measurement error in Y variable, uncomment this statement
+  Y_sim = multi_normal_cholesky_rng(mu , L_v);
   for(i in 1:N){
-    Y_sim_obs[i] = normal_rng(Y_sim[i],Y_error[i]); //Given measurement error in Y variable, uncomment this statement
+  Y_sim_obs[i] = normal_rng(Y_sim[i],Y_error[i]);
   }
 
-
+    
 }

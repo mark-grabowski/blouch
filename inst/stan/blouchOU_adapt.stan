@@ -25,15 +25,15 @@ functions {
 //    }else{var_opt = (beta[1:Z_adapt] .* beta[1:Z_adapt])' * sigma2_x * ones;}
     }else{var_opt = (beta[1:Z_adapt])' * sigma2_x * ones;}
     term0 = ((var_opt + sigma2_y) / (2 * a)) * (1 - exp( -2 * a * ta)) .* exp(-a * tij);
-    term1 = (1 - exp(-a * ti)) ./ (a * ti);
+    term1 = (1 - exp(-a * ti)) ./ (a * ti); 
     term2 = exp(-a * tja) .* (1 - exp(-a * ti)) ./ (a * ti);
     Vt = term0 + var_opt * (ta .* term1 .* (term1') - ((1 - exp(-a * ta)) ./ a) .* (term2 + (term2'))); //From Hansen et al. (2008)
     return Vt;
   }
 }
 data {
-  int N;
-  int Z_adapt;
+  int N; 
+  int Z_adapt; 
   vector[N] Y_obs;
   matrix[N,Z_adapt] X_obs;
   vector[N] Y_error;
@@ -43,12 +43,15 @@ data {
   matrix[N,N] tja;
   vector[N] T_term;
   matrix[Z_adapt,Z_adapt] sigma2_x;
-
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
 }
 parameters {
   real <lower = 0> hl;
-  vector<lower=0>[Z_adapt] beta;
-  real alpha;
+  vector<lower=0>[Z_adapt] beta; 
+  real optima;
   //real <lower=0> sigma2_y;
   real <lower=0> vy;
   vector[N] Y;
@@ -64,13 +67,13 @@ model {
   matrix[N,Z_adapt] dmX;
   real sigma2_y = vy*(2*(log(2)/hl));
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.25);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(5);
-  target += exponential_lpdf(vy|5);
-  //alpha ~ normal(2,0.2); //intercept from OLS
-  //beta ~ normal(0,0.25);
-  target += normal_lpdf(alpha|2,0.2);
-  target += normal_lpdf(beta|0,0.25);
+  target += exponential_lpdf(vy|vy_prior);
+  //optima ~ normal(2,0.2); //intercept from OLS
+  //beta ~ normal(0,0.25); 
+  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
+  target += normal_lpdf(beta|beta_prior[1],beta_prior[2]);
 
   a = log(2)/hl;
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
@@ -81,9 +84,9 @@ model {
     //X_obs[,i] ~ normal(X[,i], X_error[,i]);
     target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
   }
-  dmX = calc_dmX(a,T_term,X);//Given measurement error in X variable, uncomment this statement
+  dmX = calc_dmX(a,T_term,X);//Given measurement error in X variable, uncomment this statement  
   //dmX = calc_dmX(a,T_term,X_obs);//Given no measurement error in X variable, uncomment this statement
-  mu = alpha+dmX*beta;
+  mu = optima+dmX*beta;  
   //Y ~ multi_normal_cholesky(mu , L_v);//Given measurement error in Y variable, uncomment this statement
   //Y_obs ~ normal(Y,Y_error); //Given measurement error in Y variable, uncomment this statement
   //Y_obs ~ multi_normal_cholesky(mu , L_v); //Given no measurement error in Y variable, uncomment this statement
@@ -104,24 +107,23 @@ generated quantities {
 
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
-  vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term));
+  vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term)); 
   vector[Z_adapt] beta_e;
-
+  
   for(i in 1:Z_adapt){
-    beta_e[i] = beta[i]* rho[i];
-    }
-
+    beta_e[i] = beta[i]* rho[i]; 
+    }  
   //LOO-CV for multivariate normal models
-  dmX = calc_dmX(a,T_term,X);//Given measurement error in X variable, uncomment this statement
+  dmX = calc_dmX(a,T_term,X);//Given measurement error in X variable, uncomment this statement  
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
   inv_V = inverse(V);
-  mu = alpha+dmX*beta;
+  mu = optima+dmX*beta;  
   for(i in 1:N){
       g_i = (inv_V*(Y_obs-mu))[i];
       sigma_ii = inv_V[i,i];
       u_i = Y_obs[i]-g_i/sigma_ii;
       sigma_i = 1/sigma_ii;
-
+      
       log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y_obs[i]-u_i)/sigma_i);
       }
 }

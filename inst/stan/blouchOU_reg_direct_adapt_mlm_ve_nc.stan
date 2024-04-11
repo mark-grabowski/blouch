@@ -100,6 +100,11 @@ data {
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N]; //Regimes at the tips
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+  vector[2] sigma_prior;
 
 }
 
@@ -131,18 +136,23 @@ model {
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix;
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.25);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(20);
-  target += exponential_lpdf(vy|20);
+  target += exponential_lpdf(vy|vy_prior);
   //optima_bar ~ normal(mean(Y),1);
   //beta_bar ~ normal(0,0.25);
-  target += normal_lpdf(optima_bar|mean(Y),1);
-  target += normal_lpdf(beta_bar|0,0.25);
+  target += normal_lpdf(optima_bar|optima_prior[1],optima_prior[2]);
+  target += normal_lpdf(beta_bar|beta_prior[1],beta_prior[2]);
   //L_Rho ~ lkj_corr_cholesky(2);
   target += lkj_corr_cholesky_lpdf(L_Rho|2);
   //sigma ~ exponential(5);
   //sigma ~ normal(0,1);
-  target += normal_lpdf(sigma|0,1);
+  target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
+    for(i in 1:(1+Z_direct+Z_adaptive)){
+    for(j in 1:n_reg){
+       target += normal_lpdf(z[i,j]|0,1);
+       }
+    }
   for(i in 1:(Z_direct+Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     //X[,i] ~ normal(0,1);
     target += normal_lpdf(X[,i]|0,1);
@@ -184,7 +194,7 @@ generated quantities {
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta[,(Z_direct+1):(Z_direct+Z_adaptive)],sigma2_x,Z_adaptive,n_reg);
   inv_V = inverse(V);
   optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive);
+  pred_X = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive);//Given measurement error in X variable, uncomment this statement
 
   for(i in 1:N){
     mu[i] = optima_matrix[i,]*optima+pred_X[i,]*beta[reg_tips[i],]';

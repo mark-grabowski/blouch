@@ -76,6 +76,10 @@ data {
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] sigma_prior;
 }
 
 parameters {
@@ -94,14 +98,14 @@ model {
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.25);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(20);
-  target += exponential_lpdf(vy|20);
+  target += exponential_lpdf(vy|vy_prior);
   //sigma ~ exponential(5);
-  target += exponential_lpdf(sigma|5);
+  target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
   //optima_bar ~ normal(0,1);
   //optima ~ normal(optima_bar,sigma);
-  target += normal_lpdf(optima_bar|0,1);
+  target += normal_lpdf(optima_bar|optima_prior[1],optima_prior[2]);
   target += normal_lpdf(optima|optima_bar,sigma);
   V = calc_V(a, sigma2_y,ta, tij);
   L_v = cholesky_decompose(V);

@@ -4,7 +4,19 @@
 \alias{blouch.direct.adapt.prep}
 \title{blouch.direct.adapt.prep - Setup dat file to run direct effect and adpative model}
 \usage{
-blouch.direct.adapt.prep(trdata, Y, Y_error, X, X_error, Z_direct, Z_adaptive)
+blouch.direct.adapt.prep(
+  trdata,
+  Y,
+  Y_error,
+  X,
+  X_error,
+  Z_direct,
+  Z_adaptive,
+  hl.prior,
+  vy.prior,
+  optima.prior,
+  beta.prior
+)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}

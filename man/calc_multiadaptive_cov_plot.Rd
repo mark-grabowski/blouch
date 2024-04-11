@@ -4,7 +4,7 @@
 \alias{calc_multiadaptive_cov_plot}
 \title{calc_multiadaptive_cov_plot - Calcualte covariance matrix for mult-adaptive covariance plot}
 \usage{
-calc_multiadaptive_cov_plot(a, sigma2_y, beta, x, Z_adaptive, n_reg)
+calc_multiadaptive_cov_plot(a, sigma2_y, beta, x)
 }
 \arguments{
 \item{a}{Rate parameter for OU model}

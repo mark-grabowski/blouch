@@ -4,7 +4,17 @@
 \alias{blouch.direct.prep}
 \title{blouch.direct.prep - Setup dat file to run direct effect model}
 \usage{
-blouch.direct.prep(trdata, Y, Y_error, X, X_error, Z_direct)
+blouch.direct.prep(
+  trdata,
+  Y,
+  Y_error,
+  X,
+  X_error,
+  hl.prior,
+  vy.prior,
+  optima.prior,
+  beta.prior
+)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}

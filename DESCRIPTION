@@ -6,10 +6,12 @@ Authors@R:
     person("Mark", "Grabowski", , "mark.walter.grabowski@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7045-9472"))
 Description: Blouch: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, incorporates measurement error. Blouch includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models.
-License: GPL (>= 3)
-URL: https://github.com/mark-grabowski/blouch,
-    https://mark-grabowski.github.io/blouch/
-BugReports: https://github.com/mark-grabowski/blouch/issues
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Biarch: true
 Depends: 
     R (>= 3.4.0)
 Imports: 
@@ -22,8 +24,16 @@ Imports:
     rstantools (>= 2.3.1.1),
     StanHeaders,
     utils
+LinkingTo: 
+    BH (>= 1.66.0),
+    Rcpp (>= 0.12.0),
+    RcppEigen (>= 0.3.3.3.0),
+    RcppParallel (>= 5.0.1),
+    rstan (>= 2.18.1),
+    StanHeaders (>= 2.18.0)
+SystemRequirements: GNU make
 Suggests: 
-    ape,
+ ape,
     bridgesampling,
     ggplot2,
     ggsci,
@@ -34,18 +44,6 @@ Suggests:
     rethinking,
     rmarkdown,
     treeplyr
-LinkingTo: 
-    BH (>= 1.66.0),
-    Rcpp (>= 0.12.0),
-    RcppEigen (>= 0.3.3.3.0),
-    RcppParallel (>= 5.0.1),
-    rstan (>= 2.18.1),
-    StanHeaders (>= 2.18.0)
-VignetteBuilder: 
-    knitr
-Biarch: true
-Encoding: UTF-8
+VignetteBuilder: knitr
 LazyData: true
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
-SystemRequirements: GNU make
+

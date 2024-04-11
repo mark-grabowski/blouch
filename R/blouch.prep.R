@@ -42,7 +42,6 @@ calc_adaptive_V<-function(phy, a, sigma2_y, beta,  sigma2_x, Z_adaptive){
   Vt<-term0 + var_opt * (ta * term1 * t(term1) - ((1 - exp(-a * ta)) / a) * (term2 + t(term2)))
   return(Vt)
 }
-
 #' calc_adaptive_dmX - Calculate adaptive predictor matrix for Blouch
 #'
 #' @param phy Phylogeny in NEXUS format
@@ -306,7 +305,7 @@ concat.factor <- function(...){
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct){
+blouch.direct.prep<-function(trdata,Y,Y_error,X,X_error,hl.prior,vy.prior,optima.prior,beta.prior){
   phy<-trdata$phy
   dat<-data.frame(trdata$dat)
   N<-length(trdata$phy$tip.label)
@@ -314,13 +313,13 @@ blouch.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct){
   ta<-ts[[1]]
   tij<-ts[[2]]
   datX<-as.matrix(dat[X])
-  rownames(datX)<-phy$tip.label
   datXerror<-as.matrix(dat[X_error])
+  Z_direct<-dim(datX)[2]
   dat<-list(N=N,Z_direct=Z_direct,Y_obs=as.vector(t(dat[Y])),X_obs=matrix(datX,nrow=N,ncol=Z_direct),
-            Y_error=as.vector(t(dat[Y_error])),X_error=matrix(datXerror,nrow=N,ncol=Z_direct),ta=ta,tij=tij)
+            Y_error=as.vector(t(dat[Y_error])),X_error=matrix(datXerror,nrow=N,ncol=Z_direct),ta=ta,tij=tij,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior))
   return(dat)
 }
-
 #' blouch.adapt.prep - Setup dat file to run adaptive model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
@@ -333,7 +332,7 @@ blouch.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct){
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive){
+blouch.adapt.prep<-function(trdata,Y,Y_error,X,X_error,hl.prior,vy.prior,optima.prior,beta.prior){
   phy<-trdata$phy
   dat<-data.frame(trdata$dat)
   N<-length(trdata$phy$tip.label)
@@ -344,26 +343,17 @@ blouch.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive){
   tja<-ts[[4]]
 
   datX<-as.matrix(dat[X])
-  rownames(datX)<-phy$tip.label
+  rownames(datX)<-trdata$phy$tip.label
   datXerror<-as.matrix(dat[X_error])
+  evolVCV<-geiger::ratematrix(trdata$phy,datX)
+  Z_adapt<-dim(datX)[2]
 
-  if(is.na(Y_error)!=TRUE){mv.response<-dat[Y_error]}
-  else{mv.response<-as.vector(rep(0,N))}
-  if(is.na(X_error)!=TRUE){mv.pred<-matrix(datXerror,nrow=N,ncol=Z_adaptive)}
-  else{mv.pred<-matrix(0,nrow=N,ncol=Z_adaptive)}
-
-  #test<-sigma.X.estimate(phy,ta, predictor = datX, mv.predictor = mv.pred)
-
-  #brownian_mean<-test[1]
-  #sigma2_x<-test[2]
-  sigma2_x<-geiger::ratematrix(phy,datX)
-
-  dat<-list(N=N,Z_adapt=Z_adaptive,Y_obs=as.vector(t(dat[Y])),X_obs=matrix(datX,nrow=N,ncol=Z_adaptive),
-            Y_error=as.vector(t(dat[Y_error])),X_error=mv.pred,
-            ta=ta,tij=tij,tja=tja,T_term=T_term,sigma2_x=sigma2_x)
+  dat<-list(N=N,Z_adapt=Z_adapt,Y_obs=as.vector(t(dat[Y])),X_obs=matrix(datX,nrow=N,ncol=Z_adapt),
+            Y_error=as.vector(t(dat[Y_error])),X_error=matrix(datXerror,nrow=N,ncol=Z_adapt),
+            ta=ta,tij=tij,tja=tja,T_term=T_term,sigma2_x=evolVCV,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior))
   return(dat)
 }
-
 #' blouch.direct.adapt.prep - Setup dat file to run direct effect and adpative model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
@@ -377,52 +367,39 @@ blouch.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive){
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptive){
-  phy<-trdata$phy
-  dat<-data.frame(trdata$dat)
-  N<-length(trdata$phy$tip.label)
-  ts<-ts_fxn(phy)
-  ta<-ts[[1]]
-  tij<-ts[[2]]
-  T_term<-ts[[3]]
-  tja<-ts[[4]]
+blouch.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptive,hl.prior,vy.prior,optima.prior,beta.prior){
+    phy<-trdata$phy
+    dat<-data.frame(trdata$dat)
+    N<-length(trdata$phy$tip.label)
+    ts<-ts_fxn(phy)
+    ta<-ts[[1]]
+    tij<-ts[[2]]
+    T_term<-ts[[3]]
+    tja<-ts[[4]]
 
+    datX<-as.matrix(dat[X])
+    datX.direct<-datX[,1:Z_direct]
+    datX.adapt<-datX[,(Z_direct+1):(Z_adaptive+Z_direct)]
+    datX.adapt<-as.matrix(datX.adapt)
+    rownames(datX.adapt)<-trdata$phy$tip.label
+    evolVCV<-geiger::ratematrix(trdata$phy,datX.adapt)
 
-  datX<-as.matrix(dat[X])
-  rownames(datX)<-phy$tip.label
+    #Errors
+    datXerror<-as.matrix(dat[X_error])
+    datXerror.direct<-datXerror[,1:Z_direct]
+    datXerror.adapt<-datXerror[,(Z_direct+1):(Z_adaptive+Z_direct)]
 
-  datX.direct<-datX[,1:Z_direct]
-  datX.adapt<-datX[,(Z_direct+1):(Z_adaptive+Z_direct)]
+    Z<-Z_direct+Z_adaptive
+    Z_X_error<-Z_direct+Z_adaptive
 
-  datXerror<-as.matrix(dat[X_error])
+    dat<-list(N=N,Z_direct=Z_direct,Z_adaptive=Z_adaptive,Z_X_error=Z_X_error,
+              Y_obs=as.vector(t(dat[Y])),X_obs=matrix(datX,nrow=N,ncol=Z),
+              Y_error=as.vector(t(dat[Y_error])),X_error=matrix(datXerror,nrow=N,ncol=Z),
+              ta=ta,tij=tij,tja=tja,T_term=T_term,sigma2_x=evolVCV,
+              hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior))
 
-  datXerror.direct<-datXerror[,1:Z_direct]
-  datXerror.adapt<-datXerror[,(Z_direct+1):(Z_adaptive+Z_direct)]
-  if(is.na(Y_error)!=TRUE){mv.response<-dat[Y_error]}
-  else{mv.response<-as.vector(rep(0,N))}
-
-  if(any(is.na(datXerror.direct)!=TRUE)){mv.pred.direct<-matrix(datXerror.direct,nrow=N,ncol=Z_direct)}
-  else{mv.pred.direct<-matrix(0,nrow=N,ncol=Z_direct)}
-
-  if(any(is.na(datXerror.adapt)!=TRUE)){mv.pred.adapt<-matrix(datXerror.adapt,nrow=N,ncol=Z_adaptive)}
-  else{mv.pred.adapt<-matrix(0,nrow=N,ncol=Z_adaptive)}
-
-  #test<-sigma.X.estimate(phy,ta, predictor = datX.adapt, mv.predictor = mv.pred.adapt)
-
-  #brownian_mean<-test[1]
-  #sigma2_x<-test[2]
-  sigma2_x<-geiger::ratematrix(phy,datX.adapt)
-
-  Z<-Z_direct+Z_adaptive
-  Z_X_error<-Z_direct+Z_adaptive
-
-  dat<-list(N=N,Z_direct=Z_direct,Z_adaptive=Z_adaptive,Z_X_error=Z_X_error,
-            Y_obs=as.vector(t(dat[Y])),X_obs=matrix(datX,nrow=N,ncol=Z),
-            Y_error=as.vector(t(dat[Y_error])),X_error=matrix(datXerror,nrow=N,ncol=Z),
-            ta=ta,tij=tij,tja=tja,T_term=T_term,sigma2_x=sigma2_x)
-  return(dat)
-}
-
+    return(dat)
+  }
 #' blouch.reg.prep - Setup dat file to run multi-optima model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
@@ -434,25 +411,98 @@ blouch.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptiv
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,anc_maps="regimes"){
+blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,hl.prior,vy.prior,optima.prior){
+    #Data should be send in treeplyr format
+    #Only allows for regime shifts at nodes at present, not SIMMAP
+    #Get Phylogeny info
+    phy<-trdata$phy
+    dat<-data.frame(trdata$dat)
+    N<-length(trdata$phy$tip.label)
+    anc_maps<-"regimes"
+    n<-length(trdata$phy$tip.label)
+    mrca1 <- ape::mrca(trdata$phy)
+    times <- ape::node.depth.edgelength(trdata$phy)
+    ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+    T.term <- times[1:n]
+    tia <- times[1:n] - ta
+    tja <- t(tia)
+    tij <- tja + tia
+
+    #Get internal regimes
+    regimes_internal <-trdata$phy$node.label
+    regimes_tip <- dat[reg.column][,1]
+
+    regimes <- concat.factor(regimes_tip, regimes_internal)
+    #anc_maps<-"regimes"
+    lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+    #return(lineages)
+    ############################################################################################################
+    nodes<-NULL
+    store<-NULL
+    reg_num_lineage<-NULL
+    for(i in 1:length(lineages)){
+      store<-c(store,length(lineage.nodes(trdata$phy,i))) #Calculate max node height
+      reg_num_lineage<-c(reg_num_lineage,length(unique(lineages[[i]]$lineage_regimes)))
+      nodes<-c(nodes,length(lineages[[i]]$nodes))
+    }
+    max_node_num<-max(store)
+    times<-matrix(0,length(lineages),max_node_num)
+    t_end<-matrix(0,length(lineages),max_node_num)
+    t_beginning<-matrix(0,length(lineages),max_node_num)
+    reg_match<-data.frame(matrix(0,length(lineages),max_node_num))
+
+    for(i in 1:length(lineages)){
+      times[i,1:length(lineages[[i]]$times)]<-lineages[[i]]$times
+      t_end[i,1:length(lineages[[i]]$t_end)]<-lineages[[i]]$t_end
+      t_beginning[i,1:length(lineages[[i]]$t_beginning)]<-lineages[[i]]$t_beginning
+      reg_match[i,1:length(lineages[[i]]$lineage_regimes)]<-rev(as.numeric(lineages[[i]]$lineage_regimes))
+    }
+    ############################################################################################################
+    #Y_obs<-trdata$dat$Y
+    #Y_error<-trdata$dat$Y_error #Standard error not variance
+
+    reg_tips<-dat[reg.column][,1]
+    reg_tips<-as.numeric(as.factor(reg_tips))
+    Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+
+    ############################################################################################################
+    #print(as.vector(t(dat[Y_error])))
+    dat<-list(N=N,n_reg=length(unique(regimes)),max_node_num=max_node_num,Y_obs=as.vector(t(dat[Y])),Y_error=as.vector(t(dat[Y_error])),ta=ta,tij=tij,
+              t_beginning=t_beginning,t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,Dmat=Dmat,
+              hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior))
+
+    return(dat)
+}
+#' blouch.reg.mlm.prep - Setup dat file to run multilevel multi-optima model
+#'
+#' @param trdata An object of the class treedata from function treeplyr
+#' @param Y Vector containing name of column in treedata containing response variable
+#' @param Y_error Vector containing name of column in treedata containing error of response variable
+#' @param reg.column Vector containing name of regime column in treedata$dat
+#' @param anc_maps Vector containing name of regime type - at nodes "regimes" or SIMMAP
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param sigma.prior Numeric with prior for scale of sigma
+#' @return dat - list file containing objecs setup for Blouch
+#' @export
+#'
+blouch.reg.mlm.prep<-function(trdata,Y,Y_error,reg.column,hl.prior,vy.prior,optima.prior,sigma.prior){
   #Data should be send in treeplyr format
   #Only allows for regime shifts at nodes at present, not SIMMAP
   #Get Phylogeny info
   phy<-trdata$phy
   dat<-data.frame(trdata$dat)
   N<-length(trdata$phy$tip.label)
-  #mrca1 <- ape::mrca(trdata$phy)
-  #times <- ape::node.depth.edgelength(trdata$phy)
-  #ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
-  #T.term <- times[1:n]
-  #tia <- times[1:n] - ta
-  #tja <- t(tia)
-  #tij <- tja + tia
-  ts<-ts_fxn(phy)
-  ta<-ts[[1]]
-  tij<-ts[[2]]
-  T_term<-ts[[3]]
-  tja<-ts[[4]]
+  anc_maps<-"regimes"
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T.term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
 
   #Get internal regimes
   regimes_internal <-trdata$phy$node.label
@@ -460,7 +510,7 @@ blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,anc_maps="regimes"){
 
   regimes <- concat.factor(regimes_tip, regimes_internal)
   #anc_maps<-"regimes"
-  lineages <- lapply(1:N, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
   #return(lineages)
   ############################################################################################################
   nodes<-NULL
@@ -489,11 +539,14 @@ blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,anc_maps="regimes"){
 
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   ############################################################################################################
   #print(as.vector(t(dat[Y_error])))
   dat<-list(N=N,n_reg=length(unique(regimes)),max_node_num=max_node_num,Y_obs=as.vector(t(dat[Y])),Y_error=as.vector(t(dat[Y_error])),ta=ta,tij=tij,
-            t_beginning=t_beginning,t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,Dmat=tij)
+            t_beginning=t_beginning,t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,Dmat=Dmat,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),sigma_prior=sigma.prior)
+
   return(dat)
 }
 
@@ -506,11 +559,14 @@ blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,anc_maps="regimes"){
 #' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
 #' @param Z_direct Vector containing number of direct effect predictor traits
 #' @param reg.column Vector containing name of regime column in treedata$dat
-#'
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column){
+blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column,hl.prior,vy.prior,optima.prior,beta.prior){
   #Data should be send in treeplyr format
   #Only allows for regime shifts at nodes at present, not SIMMAP
   #Get Phylogeny info
@@ -518,20 +574,26 @@ blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column)
   anc_maps="regimes"
   phy<-trdata$phy
   dat<-data.frame(trdata$dat)
+  #return(dat)
   N<-length(trdata$phy$tip.label)
 
-  ts<-ts_fxn(phy)
-  ta<-ts[[1]]
-  tij<-ts[[2]]
-  T_term<-ts[[3]]
-  tja<-ts[[4]]
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T_term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
 
   #Get internal regimes
   regimes_internal <-trdata$phy$node.label
   regimes_tip <- dat[reg.column][,1]
 
   regimes <- concat.factor(regimes_tip, regimes_internal)
-  lineages <- lapply(1:N, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  #return(regimes)
+  #anc_maps<-"regimes"
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
   ############################################################################################################
   nodes<-NULL
   store<-NULL
@@ -556,17 +618,97 @@ blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column)
   ############################################################################################################
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  #Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_direct=Z_direct,Z_X_error=Z_direct,max_node_num=max_node_num,
             Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),#,nrow=N,ncol=Z_direct),
             Y_error=as.vector(t(dat[Y_error])),X_error=data.matrix(dat[X_error]),#matrix(dat[X_error],nrow=N,ncol=Z_direct),
             ta=ta,tij=tij,tja=tja,T_term=T_term,t_beginning=t_beginning,
-            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips)
+            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior))
 
   return(dat)
 }
+#' blouch.reg.direct.mlm.prep - Setup dat file to run Multilevel Multi-Optima direct effect model
+#'
+#' @param trdata An object of the class treedata from function treeplyr
+#' @param Y Vector containing name of column in treedata containing response variable
+#' @param Y_error Vector containing name of column in treedata containing error of response variable
+#' @param X Vector containing name(s) of column in treedata containing predictor variable(s)
+#' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
+#' @param Z_direct Vector containing number of direct effect predictor traits
+#' @param reg.column Vector containing name of regime column in treedata$dat
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
+#' @param sigma.prior Numeric with prior for scale of sigma
+#' @return dat - list file containing objecs setup for Blouch
+#' @export
+#'
+blouch.reg.direct.mlm.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column,hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior){
+  #Data should be send in treeplyr format
+  #Only allows for regime shifts at nodes at present, not SIMMAP
+  #Get Phylogeny info
 
+  anc_maps="regimes"
+  phy<-trdata$phy
+  dat<-data.frame(trdata$dat)
+  #return(dat)
+  N<-length(trdata$phy$tip.label)
+
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T_term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
+
+  #Get internal regimes
+  regimes_internal <-trdata$phy$node.label
+  regimes_tip <- dat[reg.column][,1]
+
+  regimes <- concat.factor(regimes_tip, regimes_internal)
+  #return(regimes)
+  #anc_maps<-"regimes"
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  ############################################################################################################
+  nodes<-NULL
+  store<-NULL
+  reg_num_lineage<-NULL
+  for(i in 1:length(lineages)){
+    store<-c(store,length(lineage.nodes(trdata$phy,i))) #Calculate max node height
+    reg_num_lineage<-c(reg_num_lineage,length(unique(lineages[[i]]$lineage_regimes)))
+    nodes<-c(nodes,length(lineages[[i]]$nodes))
+  }
+  max_node_num<-max(store)
+  times<-matrix(0,length(lineages),max_node_num)
+  t_end<-matrix(0,length(lineages),max_node_num)
+  t_beginning<-matrix(0,length(lineages),max_node_num)
+  reg_match<-data.frame(matrix(0,length(lineages),max_node_num))
+
+  for(i in 1:length(lineages)){
+    times[i,1:length(lineages[[i]]$times)]<-lineages[[i]]$times
+    t_end[i,1:length(lineages[[i]]$t_end)]<-lineages[[i]]$t_end
+    t_beginning[i,1:length(lineages[[i]]$t_beginning)]<-lineages[[i]]$t_beginning
+    reg_match[i,1:length(lineages[[i]]$lineage_regimes)]<-rev(as.numeric(lineages[[i]]$lineage_regimes))
+  }
+  ############################################################################################################
+  reg_tips<-dat[reg.column][,1]
+  reg_tips<-as.numeric(as.factor(reg_tips))
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+
+  dat<-list(N=N,n_reg=length(unique(regimes)),Z_direct=Z_direct,Z_X_error=Z_direct,max_node_num=max_node_num,
+            Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),#,nrow=N,ncol=Z_direct),
+            Y_error=as.vector(t(dat[Y_error])),X_error=data.matrix(dat[X_error]),#matrix(dat[X_error],nrow=N,ncol=Z_direct),
+            ta=ta,tij=tij,tja=tja,T_term=T_term,t_beginning=t_beginning,
+            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior),sigma_prior=sigma.prior)
+
+  return(dat)
+}
 #' blouch.reg.adapt.prep - Setup dat file to run multi-optima adaptive model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
@@ -576,30 +718,38 @@ blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column)
 #' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
 #' @param Z_adaptive Vector containing number of adaptive predictor traits
 #' @param reg.column Vector containing name of regime column in treedata$dat
-#'
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column){
+blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column,hl.prior,vy.prior,optima.prior,beta.prior){
   #Data should be send in treeplyr format
   #Only allows for regime shifts at nodes at present, not SIMMAP
   #Get Phylogeny info
   anc_maps="regimes"
   phy<-trdata$phy
   dat<-data.frame(trdata$dat)
+  #return(dat)
   N<-length(trdata$phy$tip.label)
 
-  ts<-ts_fxn(phy)
-  ta<-ts[[1]]
-  tij<-ts[[2]]
-  T_term<-ts[[3]]
-  tja<-ts[[4]]
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T_term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
 
   #Get internal regimes
   regimes_internal <-trdata$phy$node.label
   regimes_tip <- dat[reg.column][,1]
   regimes <- concat.factor(regimes_tip, regimes_internal)
-  lineages <- lapply(1:N, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  #anc_maps<-"regimes"
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
   ############################################################################################################
   nodes<-NULL
   store<-NULL
@@ -624,29 +774,110 @@ blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column
   ############################################################################################################
 
   datX<-as.matrix(dat[X])
-  rownames(datX)<-phy$tip.label
-  datXerror<-as.matrix(dat[X_error])
-  mv.pred.adapt<-matrix(datXerror,nrow=N,ncol=Z_adaptive)
-  #test<-sigma.X.estimate(phy,ta, predictor = datX, mv.predictor = mv.pred.adapt)
-
-  #brownian_mean<-test[1]
-  #sigma2_x<-test[2]
-  sigma2_x<-geiger::ratematrix(phy,datX)
-
+  rownames(datX)<-trdata$phy$tip.label
+  evolVCV<-geiger::ratematrix(trdata$phy,datX)
 
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_adaptive=Z_adaptive,Z_X_error=Z_adaptive,
             max_node_num=max_node_num,
             Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),
             Y_error=as.vector(t(dat[Y_error])),X_error=data.matrix(dat[X_error]),
-            sigma2_x=sigma2_x,ta=ta,tij=tij,tja=tja,
+            sigma2_x=evolVCV,ta=ta,tij=tij,tja=tja,
             T_term=T_term,t_beginning=t_beginning,
-            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips)
+            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior))
+
+
   return(dat)
 }
+#' blouch.reg.adapt.mlm.prep - Setup dat file to run Multilevel Multi-Optima adaptive model
+#'
+#' @param trdata An object of the class treedata from function treeplyr
+#' @param Y Vector containing name of column in treedata containing response variable
+#' @param Y_error Vector containing name of column in treedata containing error of response variable
+#' @param X Vector containing name(s) of column in treedata containing predictor variable(s)
+#' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
+#' @param Z_adaptive Vector containing number of adaptive predictor traits
+#' @param reg.column Vector containing name of regime column in treedata$dat
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
+#' @param sigma.prior Numeric with prior for scale of sigma
+#' @return dat - list file containing objecs setup for Blouch
+#' @export
+#'
+blouch.reg.adapt.mlm.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column,hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior){
+  #Data should be send in treeplyr format
+  #Only allows for regime shifts at nodes at present, not SIMMAP
+  #Get Phylogeny info
+  anc_maps="regimes"
+  phy<-trdata$phy
+  dat<-data.frame(trdata$dat)
+  #return(dat)
+  N<-length(trdata$phy$tip.label)
 
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T_term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
+
+  #Get internal regimes
+  regimes_internal <-trdata$phy$node.label
+  regimes_tip <- dat[reg.column][,1]
+  regimes <- concat.factor(regimes_tip, regimes_internal)
+  #anc_maps<-"regimes"
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  ############################################################################################################
+  nodes<-NULL
+  store<-NULL
+  reg_num_lineage<-NULL
+  for(i in 1:length(lineages)){
+    store<-c(store,length(lineage.nodes(trdata$phy,i))) #Calculate max node height
+    reg_num_lineage<-c(reg_num_lineage,length(unique(lineages[[i]]$lineage_regimes)))
+    nodes<-c(nodes,length(lineages[[i]]$nodes))
+  }
+  max_node_num<-max(store)
+  times<-matrix(0,length(lineages),max_node_num)
+  t_end<-matrix(0,length(lineages),max_node_num)
+  t_beginning<-matrix(0,length(lineages),max_node_num)
+  reg_match<-data.frame(matrix(0,length(lineages),max_node_num))
+
+  for(i in 1:length(lineages)){
+    times[i,1:length(lineages[[i]]$times)]<-lineages[[i]]$times
+    t_end[i,1:length(lineages[[i]]$t_end)]<-lineages[[i]]$t_end
+    t_beginning[i,1:length(lineages[[i]]$t_beginning)]<-lineages[[i]]$t_beginning
+    reg_match[i,1:length(lineages[[i]]$lineage_regimes)]<-rev(as.numeric(lineages[[i]]$lineage_regimes))
+  }
+  ############################################################################################################
+
+  datX<-as.matrix(dat[X])
+  rownames(datX)<-trdata$phy$tip.label
+  evolVCV<-geiger::ratematrix(trdata$phy,datX)
+
+  reg_tips<-dat[reg.column][,1]
+  reg_tips<-as.numeric(as.factor(reg_tips))
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+
+  dat<-list(N=N,n_reg=length(unique(regimes)),Z_adaptive=Z_adaptive,Z_X_error=Z_adaptive,
+            max_node_num=max_node_num,
+            Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),
+            Y_error=as.vector(t(dat[Y_error])),X_error=data.matrix(dat[X_error]),
+            sigma2_x=evolVCV,ta=ta,tij=tij,tja=tja,
+            T_term=T_term,t_beginning=t_beginning,
+            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior),sigma_prior=sigma.prior)
+
+
+  return(dat)
+}
 #' blouch.reg.direct.adapt.prep - Setup dat file to run multi-optima direct effect adaptive model
 #'
 #' @param trdata An object of the class treedata from function treeplyr
@@ -657,30 +888,38 @@ blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column
 #' @param Z_direct Vector containing number of direct effect predictor traits
 #' @param Z_adaptive Vector containing number of adaptive predictor traits
 #' @param reg.column Vector containing name of regime column in treedata$dat
-#'
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
 #'
-blouch.reg.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptive,reg.column){
+blouch.reg.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptive,reg.column,hl.prior,vy.prior,optima.prior,beta.prior){
   #Data should be send in treeplyr format
   #Only allows for regime shifts at nodes at present, not SIMMAP
   #Get Phylogeny info
   anc_maps="regimes"
   phy<-trdata$phy
   dat<-data.frame(trdata$dat)
+  #return(dat)
   N<-length(trdata$phy$tip.label)
 
-  ts<-ts_fxn(phy)
-  ta<-ts[[1]]
-  tij<-ts[[2]]
-  T_term<-ts[[3]]
-  tja<-ts[[4]]
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T_term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
 
   #Get internal regimes
   regimes_internal <-trdata$phy$node.label
   regimes_tip <- dat[reg.column][,1]
   regimes <- concat.factor(regimes_tip, regimes_internal)
-  lineages <- lapply(1:N, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  #anc_maps<-"regimes"
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
   ############################################################################################################
   nodes<-NULL
   store<-NULL
@@ -704,37 +943,22 @@ blouch.reg.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_ada
   }
   ############################################################################################################
   Z_X_error<-length(X_error) #Number of X traits with error
-
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
   ############################################################################################################
 
   datX<-as.matrix(dat[X])
-  rownames(datX)<-phy$tip.label
-
   datX.direct<-datX[,1:Z_direct]
   datX.adapt<-datX[,(Z_direct+1):(Z_adaptive+Z_direct)]
+  datX.adapt<-as.matrix(datX.adapt)
+  rownames(datX.adapt)<-trdata$phy$tip.label
+  evolVCV<-geiger::ratematrix(trdata$phy,datX.adapt)
 
   datXerror<-as.matrix(dat[X_error])
-
   datXerror.direct<-datXerror[,1:Z_direct]
   datXerror.adapt<-datXerror[,(Z_direct+1):(Z_adaptive+Z_direct)]
 
-  if(is.na(Y_error)!=TRUE){mv.response<-dat[Y_error]}
-  else{mv.response<-as.vector(rep(0,N))}
-
-  if(any(is.na(datXerror.direct)!=TRUE)){mv.pred.direct<-matrix(datXerror.direct,nrow=N,ncol=Z_direct)}
-  else{mv.pred.direct<-matrix(0,nrow=N,ncol=Z_direct)}
-
-  if(any(is.na(datXerror.adapt)!=TRUE)){mv.pred.adapt<-matrix(datXerror.adapt,nrow=N,ncol=Z_adaptive)}
-  else{mv.pred.adapt<-matrix(0,nrow=N,ncol=Z_adaptive)}
-
-  #test<-sigma.X.estimate(phy,ta, predictor = datX.adapt, mv.predictor = mv.pred.adapt)
-
-  #brownian_mean<-test[1]
-  #sigma2_x<-test[2]
-  sigma2_x<-geiger::ratematrix(phy,datX.adapt)
 
 
   Z<-Z_direct+Z_adaptive
@@ -742,10 +966,106 @@ blouch.reg.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_ada
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_direct=Z_direct,Z_adaptive=Z_adaptive,Z_X_error=Z_X_error,max_node_num=max_node_num,
             Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),Y_error=as.vector(t(dat[Y_error])),
-            X_error=data.matrix(dat[X_error]),sigma2_x=sigma2_x,ta=ta,tij=tij,
+            X_error=data.matrix(dat[X_error]),sigma2_x=evolVCV,ta=ta,tij=tij,
             tja=tja,T_term=T_term,t_beginning=t_beginning,
-            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips)
+            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior))
 
+
+
+  return(dat)
+}
+#' blouch.reg.direct.adapt.mlm.prep - Setup dat file to run multi-optima direct effect adaptive model
+#'
+#' @param trdata An object of the class treedata from function treeplyr
+#' @param Y Vector containing name of column in treedata containing response variable
+#' @param Y_error Vector containing name of column in treedata containing error of response variable
+#' @param X Vector containing name(s) of column in treedata containing predictor variable(s)
+#' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
+#' @param Z_direct Vector containing number of direct effect predictor traits
+#' @param Z_adaptive Vector containing number of adaptive predictor traits
+#' @param reg.column Vector containing name of regime column in treedata$dat
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
+#' @param sigma.prior Numeric with prior for scale of sigma
+#' @return dat - list file containing objecs setup for Blouch
+#' @export
+#'
+blouch.reg.direct.adapt.mlm.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptive,reg.column,hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior){
+  #Data should be send in treeplyr format
+  #Only allows for regime shifts at nodes at present, not SIMMAP
+  #Get Phylogeny info
+  anc_maps="regimes"
+  phy<-trdata$phy
+  dat<-data.frame(trdata$dat)
+  #return(dat)
+  N<-length(trdata$phy$tip.label)
+
+  n<-length(trdata$phy$tip.label)
+  mrca1 <- ape::mrca(trdata$phy)
+  times <- ape::node.depth.edgelength(trdata$phy)
+  ta <- matrix(times[mrca1], nrow=n, dimnames = list(trdata$phy$tip.label, trdata$phy$tip.label))
+  T_term <- times[1:n]
+  tia <- times[1:n] - ta
+  tja <- t(tia)
+  tij <- tja + tia
+
+  #Get internal regimes
+  regimes_internal <-trdata$phy$node.label
+  regimes_tip <- dat[reg.column][,1]
+  regimes <- concat.factor(regimes_tip, regimes_internal)
+  #anc_maps<-"regimes"
+  lineages <- lapply(1:n, function(e) lineage.constructor(trdata$phy, e, anc_maps, regimes)) #Trace lineage from tips (n) to root and determine regimes of each node or branch
+  ############################################################################################################
+  nodes<-NULL
+  store<-NULL
+  reg_num_lineage<-NULL
+  for(i in 1:length(lineages)){
+    store<-c(store,length(lineage.nodes(trdata$phy,i))) #Calculate max node height
+    reg_num_lineage<-c(reg_num_lineage,length(unique(lineages[[i]]$lineage_regimes)))
+    nodes<-c(nodes,length(lineages[[i]]$nodes))
+  }
+  max_node_num<-max(store)
+  times<-matrix(0,length(lineages),max_node_num)
+  t_end<-matrix(0,length(lineages),max_node_num)
+  t_beginning<-matrix(0,length(lineages),max_node_num)
+  reg_match<-data.frame(matrix(0,length(lineages),max_node_num))
+
+  for(i in 1:length(lineages)){
+    times[i,1:length(lineages[[i]]$times)]<-lineages[[i]]$times
+    t_end[i,1:length(lineages[[i]]$t_end)]<-lineages[[i]]$t_end
+    t_beginning[i,1:length(lineages[[i]]$t_beginning)]<-lineages[[i]]$t_beginning
+    reg_match[i,1:length(lineages[[i]]$lineage_regimes)]<-rev(as.numeric(lineages[[i]]$lineage_regimes))
+  }
+  ############################################################################################################
+  Z_X_error<-length(X_error) #Number of X traits with error
+  reg_tips<-dat[reg.column][,1]
+  reg_tips<-as.numeric(as.factor(reg_tips))
+  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  ############################################################################################################
+
+  datX<-as.matrix(dat[X])
+  datX.direct<-datX[,1:Z_direct]
+  datX.adapt<-datX[,(Z_direct+1):(Z_adaptive+Z_direct)]
+  datX.adapt<-as.matrix(datX.adapt)
+  rownames(datX.adapt)<-trdata$phy$tip.label
+  evolVCV<-geiger::ratematrix(trdata$phy,datX.adapt)
+
+  datXerror<-as.matrix(dat[X_error])
+  datXerror.direct<-datXerror[,1:Z_direct]
+  datXerror.adapt<-datXerror[,(Z_direct+1):(Z_adaptive+Z_direct)]
+
+  Z<-Z_direct+Z_adaptive
+  Z_X_error<-Z_direct+Z_adaptive
+
+  dat<-list(N=N,n_reg=length(unique(regimes)),Z_direct=Z_direct,Z_adaptive=Z_adaptive,Z_X_error=Z_X_error,max_node_num=max_node_num,
+            Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),Y_error=as.vector(t(dat[Y_error])),
+            X_error=data.matrix(dat[X_error]),sigma2_x=evolVCV,ta=ta,tij=tij,
+            tja=tja,T_term=T_term,t_beginning=t_beginning,
+            t_end=t_end,times=times,reg_match=reg_match,nodes=nodes,reg_tips=reg_tips,
+            hl_prior=as.vector(hl.prior),vy_prior=vy.prior,optima_prior=as.vector(optima.prior),beta_prior=as.vector(beta.prior),sigma_prior=sigma.prior)
 
   return(dat)
 }

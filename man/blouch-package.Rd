@@ -4,10 +4,17 @@
 \name{blouch-package}
 \alias{blouch-package}
 \alias{blouch}
-\title{The 'blouch' package.}
+\title{blouch: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses}
 \description{
-Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses (BLOUCH) fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, and incorporates measurement error.
+Blouch: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, incorporates measurement error. Blouch includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models.
+
+A DESCRIPTION OF THE PACKAGE
 }
 \references{
-Stan Development Team (2023). RStan: the R interface to Stan. R package version 2.26.22. https://mc-stan.org
+Stan Development Team (NA). RStan: the R interface to Stan. R package version 2.32.6. https://mc-stan.org
 }
+\author{
+\strong{Maintainer}: Mark Grabowski \email{mark.walter.grabowski@gmail.com} (\href{https://orcid.org/0000-0001-7045-9472}{ORCID})
+
+}
+\keyword{internal}

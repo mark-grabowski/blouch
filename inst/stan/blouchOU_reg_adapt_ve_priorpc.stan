@@ -102,6 +102,10 @@ data {
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N]; //Regimes at the tips
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
 
 }
 
@@ -109,6 +113,7 @@ parameters {
 }
 
 model {
+
 }
 generated quantities {
   matrix[N,N] V;
@@ -116,25 +121,27 @@ generated quantities {
   matrix[N,Z_adaptive] pred_X;
   matrix[N,n_reg] optima_matrix;
   vector[N] mu;
+
   vector[N] Y_sim;
   matrix[N,Z_adaptive] X_sim;
   vector[N] Y_sim_obs;
+
   matrix[n_reg,Z_adaptive] beta;
   vector[n_reg] optima;
 
-  real hl = lognormal_rng(log(0.25),0.75);
-  real vy = exponential_rng(20);
+  real<lower=0> hl = lognormal_rng(hl_prior[1],hl_prior[2]);
+  real<lower=0> vy = exponential_rng(vy_prior);
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
-
   for(i in 1:n_reg){
-    optima[i] = normal_rng(2.8,1);
-    }
-  for(i in 1:(Z_adaptive)){
+    optima[i] = normal_rng(optima_prior[1],optima_prior[2]);
+  }
+  for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     for(j in 1:n_reg){
-      beta[j,i] = normal_rng(0.16,0.25);
+      beta[j,i] = normal_rng(beta_prior[1],beta_prior[2]);
     }
   }
+
   for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     for(j in 1:N){
       X_sim[j,i] = normal_rng(X_obs[j,i], X_error[j,i]);
@@ -145,8 +152,6 @@ generated quantities {
   pred_X = calc_dmX(a,T_term,X_sim);//Given measurement error in X variable, uncomment this nested statement
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x,Z_adaptive,n_reg);
   L_v = cholesky_decompose(V);
-
-
   for(i in 1:N){
     mu[i] = optima_matrix[i,]*optima+pred_X[i,]*beta[reg_tips[i],]';
     }

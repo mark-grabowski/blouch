@@ -84,11 +84,14 @@ data {
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N];
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+
 }
 
 parameters {
-
-
 }
 transformed parameters{
 }
@@ -98,32 +101,32 @@ generated quantities {
   matrix[N,N] V;
   matrix[N,N] L_v;
   vector[N] Y_sim;
-  matrix[N,Z_direct] X_sim;
   vector[N] Y_sim_obs;
+  matrix[N,Z_direct] X_sim;
   matrix[N,n_reg] optima_matrix;
   vector[N] mu;
-  matrix[n_reg,Z_direct] beta;
-  vector[n_reg] optima;
-  real hl = lognormal_rng(log(0.25),0.75);
-  real vy = exponential_rng(5);
+  real<lower=0> hl = lognormal_rng(hl_prior[1],hl_prior[2]);
+  real<lower=0> vy = exponential_rng(vy_prior);
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
-  for(i in 1:n_reg){
-    optima[i] = normal_rng(-1.79247,0.25);
-  }
-  for(i in 1:Z_direct){
-    for(j in 1:n_reg){
-     beta[j,i] = normal_rng(0,0.25);
+  V = calc_direct_V(a, sigma2_y,ta, tij);
+  L_v = cholesky_decompose(V);
+  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes); //X data
+  vector[n_reg] optima;
+  matrix[n_reg,Z_direct] beta;
+  for (i in 1:n_reg){
+    optima[i] = normal_rng(optima_prior[1],optima_prior[2]);}
+
+  for (i in 1:n_reg){
+    for (j in 1:Z_direct){
+      beta[i,j]= normal_rng(beta_prior[1],beta_prior[2]);
+      }
     }
-  }
-  for(i in 1:(Z_direct)){
+  for(i in 1:(Z_direct)){//Given measurement error in X variable, uncomment this nested statement
     for(j in 1:N){
       X_sim[j,i] = normal_rng(X_obs[j,i], X_error[j,i]);
     }
   }
-  V = calc_direct_V(a, sigma2_y,ta, tij);
-  L_v = cholesky_decompose(V);
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes); //X data
   for(i in 1:N){
       mu[i] = optima_matrix[i,]*optima+X_sim[i,]*beta[reg_tips[i],]';
     }

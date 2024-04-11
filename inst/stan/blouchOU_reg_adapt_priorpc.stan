@@ -103,6 +103,11 @@ data {
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+
 }
 
 parameters {
@@ -113,33 +118,28 @@ model {
 }
 generated quantities {
   matrix[N,N] V;
-  matrix[N,N] L_v;
   vector[N] mu;
+  matrix[N,N] L_v;
   matrix[N,Z_adaptive] pred_X;
   matrix[N,n_reg+Z_adaptive] dmX;
   matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
-
-  real hl = lognormal_rng(log(0.25),0.75);
-  real vy = exponential_rng(20);
+  real<lower=0> hl = lognormal_rng(hl_prior[1],hl_prior[2]);
+  real<lower=0> vy = exponential_rng(vy_prior);
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
-
   vector[n_reg] optima_sim;
   vector[Z_adaptive] beta_sim;
-  vector[n_reg+Z_adaptive] optima_beta;
-
+  //vector[n_reg+Z_adaptive] optima_beta;
   vector[N] Y_sim;
   matrix[N,Z_adaptive] X_sim;
   vector[N] Y_sim_obs;
-
   for(i in 1:n_reg){
-    optima_sim[i] = normal_rng(2.88,0.5);
+    optima_sim[i] = normal_rng(optima_prior[1],optima_prior[2]);
   }
   for(i in 1:Z_adaptive){
-     beta_sim[i]= normal_rng(0.31,0.1);
+     beta_sim[i]= normal_rng(beta_prior[1],beta_prior[2]);
   }
-
-  optima_beta = append_row(optima_sim,beta_sim);
+  //optima_beta = append_row(optima_sim,beta_sim);
   for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     for(j in 1:N){
       X_sim[j,i] = normal_rng(X_obs[j,i], X_error[j,i]);
@@ -147,11 +147,12 @@ generated quantities {
   }
   optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
   pred_X = calc_dmX(a,T_term,X_sim); //Given measurement error in X variable, uncomment this nested statement
-  //pred_X = calc_dmX(a,T_term,X_obs); //Given no measurement error in X variable, uncomment this nested statement
-  dmX = append_col(optima_matrix,pred_X);
+  //dmX = append_col(optima_matrix,pred_X);
   V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta_sim,sigma2_x);
   L_v = cholesky_decompose(V);
-  mu = dmX*optima_beta;
+  //mu = dmX*optima_beta;
+  mu = optima_matrix*optima_sim+pred_X*beta_sim;
+
   Y_sim = multi_normal_cholesky_rng(mu , L_v);//Given measurement error in Y variable, uncomment this statement
   for(i in 1:N){
     Y_sim_obs[i] = normal_rng(Y_sim[i],Y_error[i]); //Given measurement error in Y variable, uncomment this statement

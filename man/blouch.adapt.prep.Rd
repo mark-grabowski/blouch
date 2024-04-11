@@ -4,7 +4,17 @@
 \alias{blouch.adapt.prep}
 \title{blouch.adapt.prep - Setup dat file to run adaptive model}
 \usage{
-blouch.adapt.prep(trdata, Y, Y_error, X, X_error, Z_adaptive)
+blouch.adapt.prep(
+  trdata,
+  Y,
+  Y_error,
+  X,
+  X_error,
+  hl.prior,
+  vy.prior,
+  optima.prior,
+  beta.prior
+)
 }
 \arguments{
 \item{trdata}{An object of the class treedata from function treeplyr}

@@ -54,7 +54,8 @@ set.converge.regimes<-function(trdata,regimes){
     }
 
   trdata$phy$node.label<-internal.nodes.regimes
-  reg.colors<-ggsci::pal_npg(palette=c("nrc"),alpha=1)(length(regimes)+1)
+  #reg.colors<-ggsci::pal_npg(palette=c("nrc"),alpha=1)(length(regimes)+1)
+  reg.colors<-microViz::distinct_palette(n=length(regimes)+1)
 
   #Combine external coding and internal coding to plot tree with colored shifts
   regimes.total<-c(trdata$dat$regimes,internal.nodes.regimes)

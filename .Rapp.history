@@ -1,0 +1,280 @@
+exp(-0.25617981)
+exp(-2.7--2.37)
+1-exp(-2.70 - - 2.37)
+1-exp(-1.66—0.95)
+1-exp(-1.66— - 0.95)
+1-exp(-1.66 — -0.95)
+exp(-1.66 — -0.95)
+(-1.66 - -0.95)
+exp(-1.66 - -0.95)
+1-exp(-1.66 - -0.95)
+exp(-0.95 -1.66)
+exp(-0.95- -1.66)
+exp(-1.66 - -0.95)
+1-exp(-1.66 - -0.95)
+exp(-0.15- -0.95)
+exp(-1.11)
+exp(1.11)
+1-exp(-1.58 - -0.85)
+exp(-0.05- -0.85)
+exp(-2.85)
+1-exp(-2.85)
+1-exp(-0.67)
+1-exp(-0.44)
+1-exp(-0.75 - -0.09)
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+# Compile packages using all cores#
+Sys.setenv(MAKEFLAGS = paste0("-j",parallel::detectCores()))#
+#
+install.packages(c("StanHeaders","rstan"),type="source")
+remove.packages(c("StanHeaders", "rstan"))#
+install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))#
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(rstan)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+dotR <- file.path(Sys.getenv("HOME"), ".R")#
+if (!file.exists(dotR)) dir.create(dotR)#
+M <- file.path(dotR, "Makevars")#
+if (!file.exists(M)) file.create(M)#
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")#
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),#
+    file = M, sep = "\n", append = FALSE)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+exp(-4)
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages(c("StanHeaders", "rstan"))
+if (file.exists(".RData")) file.remove(".RData")
+install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies = TRUE)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages(c("StanHeaders", "rstan"))#
+install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))#
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+1-exp((log(2)*-0.04))
+0.0001*2*69.31472
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(rstan)
+0.0001*2*69.31472
+log(2)/0.69
+exp(-5*1)
+exp(-10*1)
+exp(-10*10)
+5+27.5
+(5+27.5)/40
+# function to simulate weights of individuals from height#
+sim_weight <- function(H,b,sd) {#
+mulate weights of individuals from height U <- rnorm( length(H) , 0 , sd )#
+W <- b*H + U nction(H,b,sd) {#
+return(W)#
+length(H) , 0 , sd ) }
+# function to simulate weights of individuals from height#
+sim_weight <- function(H,b,sd) {#
+U <- rnorm( length(H) , 0 , sd )#
+W <- b*H + U nction(H,b,sd) {#
+return(W)#
+length(H) , 0 , sd ) }
+# function to simulate weights of individuals from height#
+sim_weight <- function(H,b,sd) {#
+U <- rnorm( length(H) , 0 , sd )#
+W <- b*H + U nction(H,b,sd) #
+return(W)#
+length(H) , 0 , sd ) }
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_install()
+macrtools::is_xcode_cli_installed()
+macrtools::is_gfortran_installed()
+macrtools::gfortran_install()
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+macrtools::is_gfortran_installed()
+macrtools::is_xcode_cli_installed()
+macrtools::macos_rtools_uninstall()
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages(c("StanHeaders", "rstan"))
+install.packages(c("StanHeaders","rstan"),type="source")
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+Sys.setenv(MAKEFLAGS = paste0("-j",parallel::detectCores()))
+install.packages(c("StanHeaders","rstan"),type="source")
+library("rstan") # observe startup messages
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(rstan)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", "StanHeaders",repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+install.packages("rstan",repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(rstan)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+Sys.setenv(MAKEFLAGS = paste0("-j",parallel::detectCores()))#
+#
+install.packages(c("StanHeaders","rstan"),type="source")
+install.packages(c("BH","Rcpp","RcppEigen","RcppParallel"))
+Sys.setenv(MAKEFLAGS = paste0("-j",parallel::detectCores()))#
+install.packages(c("StanHeaders","rstan"),type="source")
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+macrtools::macos_rtools_install()
+remotes::install_github("coatless-mac/macrtools")
+install.packages("remotes")
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_install()
+macrtools::is_gfortran_installed()
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1) # only necessary for Linux without the nodejs library / headers#
+install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies = TRUE)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+example(stan_model,package="rstan",run.dontrun=T,verbose=T)
+file.edit("~/.Renviron")
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages(c("StanHeaders", "rstan"))
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_install()
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+remove.packages(c("StanHeaders", "rstan"))
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_uninstall()
+macrtools::gfortran_uninstall()
+macrtools::xcode_cli_uninstall()
+remotes::install_github("coatless-mac/macrtools")
+remotes::install_github("coatless-mac/macrtools",force=TRUE)
+macrtools::macos_rtools_install()
+macrtools::xcode_cli_uninstall()
+macrtools::gfortran_uninstall()
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages(c("StanHeaders", "rstan"))
+remotes::install_github("coatless-mac/macrtools")
+install.packages("remotes")
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_install()
+macrtools::is_gfortran_installed()
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+remove.packages("rstan")#
+if (file.exists(".RData")) file.remove(".RData")
+Sys.setenv(DOWNLOAD_STATIC_LIBV8 = 1) # only necessary for Linux without the nodejs library / headers#
+install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies = TRUE)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+library(rstan)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+# Compile packages using all cores#
+Sys.setenv(MAKEFLAGS = paste0("-j",parallel::detectCores()))#
+#
+install.packages(c("StanHeaders","rstan"),type="source")
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+optima<-c(2,1.5,1,0.5)beta<-c(0.75,0.5,0.35,0.25) #Two Optima/Two Slopes
+cor(optima,beta)
+cov(optima,beta)
+cor(rev(optima),beta)
+0.5/0.13
+0.5*0.13
+0.117/24.9
+0.117/.0000249
+300000/25
+60000/25
+0.13*0.5
+1/(0.13*0.5)
+1/(0.13*0.8)
+100/107.13
+1-100/107.13
+107.13/100
+log(107.13/100)
+log(107.13/100)/log(0.28)
+log(107.13/100)/log(1+0.28)
+107.13/100/0.28
+107.13/100/(1+0.28)
+log(107.13/100)
+log(107.13/100)/0.000872033
+log(107.13/100)/log(0.000872033)
+log(107.13/100)/log(1+0.000872033)
+0.28*0.31
+log(107.13/100)
+log(107.13/100)/0.000872033
+100/7.13
+log(107.13/100)
+log(107.13/100)/log(1+ 0.0868)
+log(107.13/100)/log(1+ 0.000868)
+log(107.13/100)/log(1+(0.0868/100))
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+macrtools::macos_rtools_install()
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_install()
+macrtools::is_gfortran_installed()
+macrtools::is_xcode_cli_installed()
+run the next line if you already have rstan installed
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+if (file.exists(".RData")) file.remove(".RData")
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+install.packages("RcppParallel")
+RcppParallel::LdFlags()
+RcppParallel::CxxFlags()
+Sys.unsetenv("TBB_LIB")#
+Sys.unsetenv("TBB_INC")
+install.packages("RcppParallel", type = "source")#
+RcppParallel::LdFlags()#
+RcppParallel::CxxFlags()
+remove.packages(c("rstan", "StanHeaders"))#
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+RcppParallel::tbbLibraryPath()
+RcppParallel::LdFlags()
+remove.packages(c("StanHeaders", "rstan"))
+remotes::install_github("coatless-mac/macrtools")
+macrtools::macos_rtools_install()
+macrtools::is_xcode_cli_installed()
+macrtools::is_gfortran_installed()
+if (file.exists(".RData")) file.remove(".RData")
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+? rstan_options
+? parallel
+5042+#
+668+#
+369+#
+1064
+devtools::install_github("ahb108/rcarbon")
+x <- calibrate(x=4200,errors=30,calCurves='intcal20')
+library(rcarbon)
+library(devtools)library(roxygen2)
+setwd("/Users/markgrabowski/Library/CloudStorage/GoogleDrive-mark.walter.grabowski@gmail.com/My Drive/Current/Blouch/R Packages - SBR2 - cloned/testing")
+devtools::document()
+devtools::check()
+devtools::document()
+.Last.error

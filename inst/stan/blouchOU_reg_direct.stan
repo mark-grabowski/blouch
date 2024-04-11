@@ -82,6 +82,10 @@ data {
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
 }
 
 parameters {
@@ -97,19 +101,19 @@ model {
   matrix[N,N] V;
   vector[N] mu;
   matrix[N,N] L_v;
-  matrix[N,n_reg+Z_direct] dmX;
+  //matrix[N,n_reg+Z_direct] dmX;
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix;
-  vector[n_reg+Z_direct] optima_beta = append_row(optima,beta);
+  //vector[n_reg+Z_direct] optima_beta = append_row(optima,beta);
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.75);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(5);
-  target += exponential_lpdf(vy|10);
+  target += exponential_lpdf(vy|vy_prior);
   //optima ~ normal(-1.179507,0.75);
   //beta ~ normal(6.304451,1.5);
-  target += normal_lpdf(optima|-1.179507,0.75);
-  target += normal_lpdf(beta|6.304451,1.5);
+  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
+  target += normal_lpdf(beta|beta_prior[1],beta_prior[2]);
 
   for(i in 1:(Z_direct)){//Given measurement error in X variable, uncomment this nested statement
     //X[,i] ~ normal(0,1);
@@ -118,14 +122,12 @@ model {
     target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
   }
   optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  dmX = append_col(optima_matrix,X); //Given measurement error in X variable, uncomment this nested statement
-  //dmX = append_col(optima_matrix,X_obs); //Given no measurement error in X variable, uncomment this nested statement
+  //dmX = append_col(optima_matrix,X); //Given measurement error in X variable, uncomment this nested statement
   V = calc_direct_V(a, sigma2_y,ta, tij);
   L_v = cholesky_decompose(V);
-  mu = dmX*optima_beta;
-  //Y ~ multi_normal_cholesky(mu , L_v);//Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ normal(Y,Y_error);//Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ multi_normal_cholesky(mu , L_v); //Given no measurement error in Y variable, uncomment this statement
+  //mu = dmX*optima_beta;
+  mu = optima_matrix*optima+X*beta;
+
   target += multi_normal_cholesky_lpdf(Y | mu , L_v);
   target += normal_lpdf(Y_obs | Y, Y_error);
 }
@@ -138,20 +140,20 @@ generated quantities {
   real sigma_i;
   real u_i;
   vector[N] log_lik;
-  matrix[N,n_reg+Z_direct] dmX;
+  //matrix[N,n_reg+Z_direct] dmX;
   matrix[N,n_reg] optima_matrix;
-  vector[n_reg+Z_direct] optima_beta = append_row(optima,beta);
+  //vector[n_reg+Z_direct] optima_beta = append_row(optima,beta);
 
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
   vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term));
   //LOO-CV for multivariate normal models
   optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  dmX = append_col(optima_matrix,X); //Given measurement error in X variable, uncomment this nested statement
+  //dmX = append_col(optima_matrix,X); //Given measurement error in X variable, uncomment this nested statement
   //dmX = append_col(optima_matrix,X_obs); //Given no measurement error in X variable, uncomment this nested statement
   V = calc_direct_V(a, sigma2_y,ta, tij);
   inv_V = inverse(V);
-  mu = dmX*optima_beta;
+  mu = optima_matrix*optima+X*beta;
   for(i in 1:N){
       g_i = (inv_V*(Y-mu))[i];
       sigma_ii = inv_V[i,i];

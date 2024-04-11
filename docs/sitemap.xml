@@ -4,9 +4,6 @@
     <loc>/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
     <loc>/articles/Basic_Models-Examples.html</loc>
   </url>
   <url>
@@ -31,6 +28,15 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/adapt.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/adapt.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/antler.data.html</loc>
+  </url>
+  <url>
     <loc>/reference/blouch-package.html</loc>
   </url>
   <url>
@@ -43,19 +49,34 @@
     <loc>/reference/blouch.direct.prep.html</loc>
   </url>
   <url>
+    <loc>/reference/blouch.reg.adapt.mlm.prep.html</loc>
+  </url>
+  <url>
     <loc>/reference/blouch.reg.adapt.prep.html</loc>
+  </url>
+  <url>
+    <loc>/reference/blouch.reg.direct.adapt.mlm.prep.html</loc>
   </url>
   <url>
     <loc>/reference/blouch.reg.direct.adapt.prep.html</loc>
   </url>
   <url>
+    <loc>/reference/blouch.reg.direct.mlm.prep.html</loc>
+  </url>
+  <url>
     <loc>/reference/blouch.reg.direct.prep.html</loc>
+  </url>
+  <url>
+    <loc>/reference/blouch.reg.mlm.prep.html</loc>
   </url>
   <url>
     <loc>/reference/blouch.reg.prep.html</loc>
   </url>
   <url>
     <loc>/reference/calc_adaptive_V.html</loc>
+  </url>
+  <url>
+    <loc>/reference/calc_adaptive_cov_plot.html</loc>
   </url>
   <url>
     <loc>/reference/calc_adaptive_dmX.html</loc>
@@ -70,7 +91,43 @@
     <loc>/reference/calc_multiadaptive_cov_plot.html</loc>
   </url>
   <url>
+    <loc>/reference/cervidae.tree.html</loc>
+  </url>
+  <url>
     <loc>/reference/concat.factor.html</loc>
+  </url>
+  <url>
+    <loc>/reference/covariance.prior.adapt.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/covariance.prior.direct.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/covariance.prior.post.adapt.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/covariance.prior.post.direct.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/direct.adapt.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/direct.adapt.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/direct.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/direct.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/hl.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/hl.prior.post.emp.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/hl.prior.post.plot.code.html</loc>
   </url>
   <url>
     <loc>/reference/index.html</loc>
@@ -82,16 +139,118 @@
     <loc>/reference/lineage.nodes.html</loc>
   </url>
   <url>
+    <loc>/reference/optima.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/optima.prior.post.plot.code.html</loc>
+  </url>
+  <url>
     <loc>/reference/parent.html</loc>
   </url>
   <url>
+    <loc>/reference/reg.adapt.mlm.ve.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.adapt.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.adapt.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.adapt.ve.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.adapt.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.adapt.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.adapt.ve.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.mlm.ve.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.prior.post.emp.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.ve.prior.post.emp.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reg.direct.ve.prior.post.plot.code.html</loc>
+  </url>
+  <url>
     <loc>/reference/set.converge.regimes.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sigma.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sigma.prior.post.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.adaptive.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.adaptive.multi.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.direct.adaptive.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.direct.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.direct.multi.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.adapt.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.adapt.mlm.ve.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.adapt.ve.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.direct.adapt.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.direct.adapt.ve.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.direct.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.direct.mlm.ve.data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sim.reg.direct.ve.data.html</loc>
   </url>
   <url>
     <loc>/reference/tree.10K.html</loc>
   </url>
   <url>
     <loc>/reference/ts_fxn.html</loc>
+  </url>
+  <url>
+    <loc>/reference/vy.prior.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/vy.prior.post.emp.plot.code.html</loc>
+  </url>
+  <url>
+    <loc>/reference/vy.prior.post.plot.code.html</loc>
   </url>
   <url>
     <loc>/reference/weight.matrix.html</loc>
@@ -101,5 +260,8 @@
   </url>
   <url>
     <loc>/reference/weights_segments.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ysim.ppc.plot.code.html</loc>
   </url>
 </urlset>

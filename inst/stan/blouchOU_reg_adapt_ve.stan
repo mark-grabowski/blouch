@@ -69,11 +69,7 @@ functions {
     matrix[N,N] term2;
     matrix[N,N] Vt;
     real var_opt;
-    //if(Z_adaptive>1){
-    // var_opt=((beta)'*sigma2_x*ones)[1,1];}
-    //else{
     var_opt=sum(square(beta)*sigma2_x);
-    //}
     term0 = ((var_opt + sigma2_y) / (2 * a)) * (1 - exp( -2 * a * ta)) .* exp(-a * tij);
     term1 = (1 - exp(-a * ti)) ./ (a * ti);
     term2 = exp(-a * tja) .* (1 - exp(-a * ti)) ./ (a * ti);
@@ -102,6 +98,10 @@ data {
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N]; //Regimes at the tips
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
 
 }
 
@@ -124,14 +124,14 @@ model {
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix;
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.75);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(20);
-  target += exponential_lpdf(vy|20);
+  target += exponential_lpdf(vy|vy_prior);
   //optima ~ normal(2.88,1.5);//Original 4 regimes
-    target += normal_lpdf(optima|2.8,1);
+  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
   for(i in 1:(Z_adaptive)){
     //beta[,i] ~ normal(0.31,0.25);
-    target += normal_lpdf(beta[,i]|0.16,0.25);
+    target += normal_lpdf(beta[,i]|beta_prior[1],beta_prior[2]);
   }
   for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
     //X[,i] ~ normal(0,1);

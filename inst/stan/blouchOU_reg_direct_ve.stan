@@ -13,12 +13,12 @@ functions {
       n += 1;
   return(n);
   }
-
+  
   int[] which_equal(vector x, real y) {
     int match_positions[num_matches(x, y)];
     int pos = 1;
     //for (i in 1:size(x)) {
-    for (i in 1:(dims(x)[1])) {
+    for (i in 1:(dims(x)[1])) {  
       if (x[i] == y) {
         match_positions[pos] = i;
         pos += 1;
@@ -31,7 +31,7 @@ functions {
     vector[nodes] weights = append_row(exp(-a * t_beginning) - exp(-a * t_end),exp(-a * time));
     return(weights);
   }
-
+  
   row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
     //Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
@@ -46,7 +46,7 @@ functions {
       }
     return(reg_weights');
   }
-
+  
   matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
@@ -79,11 +79,16 @@ data {
   matrix[N,N] tja;
   vector[N] T_term;
   matrix[N, max_node_num] t_beginning; //Matrix of times for beginning of segments to node
-  matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
+  matrix[N, max_node_num] t_end; //Matrix of times for end of segments to 
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
   int nodes[N]; //Vector of number of nodes per lineage
   int reg_tips[N];
+  vector[2] hl_prior;
+  real vy_prior;
+  vector[2] optima_prior;
+  vector[2] beta_prior;
+
 }
 
 parameters {
@@ -105,15 +110,15 @@ model {
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix;
   //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|log(0.25),0.75);
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   //vy ~ exponential(5);
-  target += exponential_lpdf(vy|10);
+  target += exponential_lpdf(vy|vy_prior);
   //optima ~ normal(-1.179507,0.75); //Intercept
-  target += normal_lpdf(optima|-1.179507,0.75); //Intercept
+  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
   //beta ~ normal(6.304451,1.75);
   for(i in 1:(Z_direct)){
     //beta[,i] ~ normal(6.304451,1.75); //Prior for slope for a single X variable
-    target += normal_lpdf(beta[,i]|6.304451,1.75); //Prior for slope for a single X variable
+    target += normal_lpdf(beta[,i]|beta_prior[1],beta_prior[2]); //Prior for slope for a single X variable
   }
   for(i in 1:(Z_direct)){//Given measurement error in X variable, uncomment this nested statement
     //X[,i] ~ normal(0,1);
@@ -159,7 +164,7 @@ generated quantities {
       sigma_ii = inv_V[i,i];
       u_i = Y[i]-g_i/sigma_ii;
       sigma_i = 1/sigma_ii;
-
+      
       log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y[i]-u_i)/sigma_i);
       }
 
