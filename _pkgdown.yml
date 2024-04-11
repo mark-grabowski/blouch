@@ -1,6 +1,6 @@
-pandoc: 3.1.1
-pkgdown: 2.0.7
-pkgdown_sha: ~
+url: https://mark-grabowski.github.io/blouch/
+template:
+  bootstrap: 5
 navbar:
   type: default
   left:
@@ -10,15 +10,13 @@ navbar:
     href: reference/index.html
   - text: Articles
     menu:
-    - text: Simulation Example from Grabowski (in revision)
-      href: articles/Simulation-Example.html
-    - text: Empirical Example from Grabowski (in revision)
+    - text: Empitical Example from Grabowski (in revision)
       href: articles/Empirical-Example.html
-    - text: Basic Models Examples
+    - text: Similation Example from Grabowski (in revision)
+      href: articles/Simulation-Example.html
+    - text: Basic Models
       href: articles/Basic_Models-Examples.html
-    - text: Multi-Optima Models Examples
+    - text: Multi-Opima Models
       href: articles/Multi-optima_Models-Examples.html
-    - text: Varying Effects Models Examples
+    - text: Varying Effects Models
       href: articles/Varying_Effects_Models-Examples.html
-  - text: News
-    href: news/index.html
