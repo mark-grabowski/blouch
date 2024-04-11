@@ -10,9 +10,9 @@ navbar:
     href: reference/index.html
   - text: Articles
     menu:
-    - text: Empitical Example from Grabowski (in revision)
+    - text: Empirical Example from Grabowski (in revision)
       href: articles/Empirical-Example.html
-    - text: Similation Example from Grabowski (in revision)
+    - text: Simulation Example from Grabowski (in revision)
       href: articles/Simulation-Example.html
     - text: Basic Models
       href: articles/Basic_Models-Examples.html

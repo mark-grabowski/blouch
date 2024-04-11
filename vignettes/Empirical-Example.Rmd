@@ -16,14 +16,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-This is the Empirical Example from Grabowski (in revision) using data from Tsuboi et al. (2024) available at DRYAD:
-https://doi.org/10.5061/dryad.kh18932dt, which the presents basic and advanced options of *Blouch*
 
+This example presents the basic and advanced options of *Blouch* and the code below is the complete analysis of the empirical example from Grabowski (in revision) on antler size and breeding group evolution.
 
 ```{r}
 rm(list=ls())
 library(blouch)
 ```
+
+## Background
 
 Tsuboi et al. (2024) collected an expansive dataset on antler size and body size and generated a new Cervidae phylogeny to test the hypothesis of Gould (1973) that the elaborate antlers of the Irish Elk were the result of a positive allometric relationship with body size. I supplemented this dataset with data on Cervidae breeding group size categories from Plard et al. (2011) and Clutton-Brock et al. (1980) to test the hypothesis that antler size is influenced by sexual selection by using breeding group size as a predictor of antler size.
 
@@ -49,7 +50,8 @@ dag
 
 ```
 
-*Blouch* uses RStan to implement Stan. The following code enables some compiler optimizations to improve the estimation speed of the model, and is taken from: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
+*Blouch* uses RStan to implement Stan. The following code enables some compiler optimizations to improve the estimation speed of the model, and is taken from: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started.
+
 ```{r optimizations}
 options(mc.cores = parallel::detectCores())
 rstan::rstan_options(auto_write = TRUE)
@@ -63,7 +65,10 @@ cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256
     file = M, sep = "\n", append = FALSE)
 ```
 
-First, load the tree from Tsuboi et al. (2024) and the supplemented dataset
+#Load datasets
+
+First, load the tree from Tsuboi et al. (2024) and the dataset. Original ata from Tsuboi et al. (2024) is available at DRYAD:
+https://doi.org/10.5061/dryad.kh18932dt, and dataset including breeding group regims is included in the *Blouch* package.
 ```{r Load_data}
 ########################################################################################################
 set.seed(10)
@@ -151,6 +156,7 @@ reg.colors<-ggsci::pal_aaas("default", alpha = 1)(length(unique(edge.regimes)))
 plot(cervid.trdata.BGS$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.5)
 ```
 
+# Setup dataset and add measurement errors
 
 Now lets set up the variables - including measurement errors. We could call the data whatever we wanted (e.g "Y_with_error" below), as long as we combine all the data together into one 
 ```{r Measurement_Errors}

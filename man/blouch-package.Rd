@@ -13,6 +13,13 @@ A DESCRIPTION OF THE PACKAGE
 \references{
 Stan Development Team (NA). RStan: the R interface to Stan. R package version 2.32.6. https://mc-stan.org
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://mark-grabowski.github.io/blouch/}
+}
+
+}
 \author{
 \strong{Maintainer}: Mark Grabowski \email{mark.walter.grabowski@gmail.com} (\href{https://orcid.org/0000-0001-7045-9472}{ORCID})
 
