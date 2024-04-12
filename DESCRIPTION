@@ -35,6 +35,7 @@ SystemRequirements: GNU make
 Suggests: 
     ape,
     bridgesampling,
+    ggdag,
     ggplot2,
     ggsci,
     knitr,
