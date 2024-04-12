@@ -42,6 +42,7 @@ Suggests:
     MASS,
     phytools,
     rethinking (>= 2.40),
+    cmdstanr,
     rmarkdown,
     treeplyr (>= 0.1.11)
 VignetteBuilder: knitr
@@ -49,4 +50,5 @@ LazyData: true
 URL: https://mark-grabowski.github.io/blouch/
 Remotes:  
     uyedaj/treeplyr,
-    rmcelreath/rethinking
+    rmcelreath/rethinking,
+    stan-dev/cmdstanr
