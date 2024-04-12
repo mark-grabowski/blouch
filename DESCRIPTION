@@ -33,7 +33,7 @@ LinkingTo:
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
 Suggests: 
- ape,
+    ape,
     bridgesampling,
     ggplot2,
     ggsci,
@@ -41,9 +41,12 @@ Suggests:
     loo,
     MASS,
     phytools,
-    rethinking,
+    rethinking (>= 2.40),
     rmarkdown,
-    treeplyr
+    treeplyr (>= 0.1.11)
 VignetteBuilder: knitr
 LazyData: true
 URL: https://mark-grabowski.github.io/blouch/
+Remotes:  
+    uyeda/treeplyr,
+    rmcelreath/rethinking
