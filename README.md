@@ -55,8 +55,6 @@ library(blouch)
 
 For a complete walkthrough of the package visit the package website:
 <a href="https://mark-grabowski.github.io/blouch/" title="here.">here</a>.
-Package development is ongoing at the blouch-project github page:
-<a href="https://mark-grabowski.github.io/blouch-project/" title="here.">here</a>.
 
 ## References
 
