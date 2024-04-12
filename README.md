@@ -24,7 +24,7 @@ sampler.
 ## Getting Started
 
 If you are just getting started with *Blouch* I recommend starting with
-the Simulation Example article available on the package website. The
+the Empirical and Simulation Example articles available on the package website. The
 other articles are abbreviated versions of this example showing the
 various models implemented by *Blouch* - most of the steps of a
 preliminary analysis will be the same.
@@ -53,7 +53,7 @@ library(blouch)
 
 ## Documentation
 
-Please visit the package website
+For a complete walkthrough of the package visit the package website:
 <a href="https://mark-grabowski.github.io/blouch/" title="here.">here</a>.
 
 ## References
