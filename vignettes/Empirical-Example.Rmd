@@ -1147,7 +1147,6 @@ loo_mlm_ve_nc <- loo::loo(fit.reg.direct.mlm.ve.nc, save_psis = TRUE)
 print(loo_mlm_ve_nc)
 plot(loo_mlm_ve_nc)
 plot(loo_mlm_ve_nc,label_points=TRUE)
-loo_mlm_ve_nc.plot<-recordPlot()
 
 
 #library(loo) #Non-mlm varying effects model
@@ -1155,7 +1154,6 @@ loo_ve <- loo::loo(fit.reg.direct.ve, save_psis = TRUE)
 print(loo_ve)
 plot(loo_ve)
 plot(loo_ve,label_points=TRUE)
-loo_ve.plot<-recordPlot()
 
 
 #library(loo) #MLM Varying intercepts model
@@ -1163,7 +1161,6 @@ loo_mlm_vi_nc <- loo::loo(fit.reg.direct.mlm.vi.nc, save_psis = TRUE)
 print(loo_mlm_vi_nc)
 plot(loo_mlm_vi_nc)
 plot(loo_mlm_vi_nc,label_points=TRUE)
-loo_mlm_vi_nc.plot<-recordPlot()
 
 
 #library(loo) #Basic model
@@ -1171,26 +1168,12 @@ loo_basic <- loo::loo(fit.reg.direct, save_psis = TRUE)
 print(loo_basic)
 plot(loo_basic)
 plot(loo_basic,label_points=TRUE)
-loo_basic.plot<-recordPlot()
-
 
 loo::loo_compare(loo_mlm_ve_nc, loo_ve, loo_mlm_vi_nc, loo_basic)
 2.6 + c(-1,1)*3.3*1.86 #95% interval of the difference, z-score of 1.86
 
 ```
 
-Let's combine the four plots into one figure
-```{r}
-
-#pdf(file="/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS7.pdf", width=10, height=8 )
-
-cowplot::plot_grid(loo_basic.plot,loo_ve.plot,loo_mlm_vi_nc.plot,loo_mlm_ve_nc.plot,labels=c("A)","B)","C)","D)"))
-#fig<-ggpubr::ggarrange(loo_mlm_ve.plot, loo_ve.plot,ncol=2,nrow=1, labels = c("A)","B)"),common.legend = TRUE,legend="top")
-#fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Adaptive Model - Varying Effects,\n hl=",hl,sep=""))
-
-#dev.off()
-
-```
 
 
 ## Model Comparison using Bayes Factors
@@ -1247,6 +1230,13 @@ unscaled.hl<-post.ve$hl*l.tree
 mean(unscaled.hl)
 rethinking::PI(unscaled.hl,prob=0.95)
 ```
+
+
+Calculate direct causal effect of moving from smaller to larger breeding groups size - make all species have larger group sizes and all species have smaller group sizes and look at the contrast in antler size
+```{r}
+
+```
+
 
 Combined Figure - Varying effects Model - FigS8
 ```{r}

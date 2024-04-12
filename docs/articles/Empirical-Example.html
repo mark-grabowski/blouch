@@ -36,10 +36,17 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item">
-  <a class="nav-link" href="../index.html">Intro</a>
-</li>
-<li class="nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="active nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (in revision)</a>
+    <a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (in revision)</a>
+    <a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic Models</a>
+    <a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-Optima Models</a>
+    <a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models</a>
+  </div>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -447,7 +454,7 @@ distribution for later use.</p>
 <span><span class="co">#&gt; optima[3]  0.46    0.00 0.22  0.00  0.31  0.46  0.60  0.87  5459    1</span></span>
 <span><span class="co">#&gt; beta[1]    5.03    0.01 0.44  4.18  4.73  5.02  5.32  5.90  4589    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 14:02:44 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 15:55:37 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -660,7 +667,7 @@ file.</p>
 <span><span class="co">#&gt; beta[2,1] 4.47    0.01 0.57  3.36  4.10 4.45 4.83  5.62  5696    1</span></span>
 <span><span class="co">#&gt; beta[3,1] 4.62    0.01 0.59  3.48  4.22 4.59 5.02  5.84  3930    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 14:03:09 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 15:56:02 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -901,7 +908,7 @@ estimation.</p>
 <span><span class="co">#&gt; beta[1]     5.02    0.01 0.48  4.12  4.70  5.00  5.33  6.02  1717    1</span></span>
 <span><span class="co">#&gt; sigma       0.92    0.01 0.43  0.25  0.61  0.85  1.15  1.93  1766    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 14:04:17 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 15:57:10 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1118,7 +1125,7 @@ estimates.</p>
 <span><span class="co">#&gt; beta[2,1]   4.52    0.01 0.57  3.41  4.13  4.51 4.90  5.66  3294    1</span></span>
 <span><span class="co">#&gt; beta[3,1]   4.74    0.01 0.59  3.57  4.36  4.74 5.13  5.86  4588    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 14:05:45 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Apr 12 15:58:38 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1345,7 +1352,6 @@ the same package.</p>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_ve_nc</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_ve_nc</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">loo_mlm_ve_nc.plot</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co">#library(loo) #Non-mlm varying effects model</span></span>
@@ -1371,7 +1377,6 @@ the same package.</p>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">loo_ve.plot</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co">#library(loo) #MLM Varying intercepts model</span></span>
@@ -1397,7 +1402,6 @@ the same package.</p>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_vi_nc</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_vi_nc</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">loo_mlm_vi_nc.plot</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co">#library(loo) #Basic model</span></span>
@@ -1423,8 +1427,6 @@ the same package.</p>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_basic</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_basic</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">loo_basic.plot</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
 <span></span>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">loo_mlm_ve_nc</span>, <span class="va">loo_ve</span>, <span class="va">loo_mlm_vi_nc</span>, <span class="va">loo_basic</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        elpd_diff se_diff</span></span>
@@ -1434,29 +1436,6 @@ the same package.</p>
 <span><span class="co">#&gt; model3 -3.1       3.6</span></span>
 <span><span class="fl">2.6</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="fl">3.3</span><span class="op">*</span><span class="fl">1.86</span> <span class="co">#95% interval of the difference, z-score of 1.86</span></span>
 <span><span class="co">#&gt; [1] -3.538  8.738</span></span></code></pre></div>
-<p>Let’s combine the four plots into one figure</p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co">#pdf(file="/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS7.pdf", width=10, height=8 )</span></span>
-<span></span>
-<span><span class="fu">cowplot</span><span class="fu">::</span><span class="fu"><a href="https://wilkelab.org/cowplot/reference/plot_grid.html" class="external-link">plot_grid</a></span><span class="op">(</span><span class="va">loo_basic.plot</span>,<span class="va">loo_ve.plot</span>,<span class="va">loo_mlm_vi_nc.plot</span>,<span class="va">loo_mlm_ve_nc.plot</span>,labels<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A)"</span>,<span class="st">"B)"</span>,<span class="st">"C)"</span>,<span class="st">"D)"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in grid.echo.recordedplot(x$x, newpage = FALSE, x$prefix, x$device): No</span></span>
-<span><span class="co">#&gt; graphics to replay</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in grid.echo.recordedplot(x$x, newpage = FALSE, x$prefix, x$device): No</span></span>
-<span><span class="co">#&gt; graphics to replay</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in grid.echo.recordedplot(x$x, newpage = FALSE, x$prefix, x$device): No</span></span>
-<span><span class="co">#&gt; graphics to replay</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in grid.echo.recordedplot(x$x, newpage = FALSE, x$prefix, x$device): No</span></span>
-<span><span class="co">#&gt; graphics to replay</span></span></code></pre></div>
-<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-40-1.png" width="700"></p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#fig&lt;-ggpubr::ggarrange(loo_mlm_ve.plot, loo_ve.plot,ncol=2,nrow=1, labels = c("A)","B)"),common.legend = TRUE,legend="top")</span></span>
-<span><span class="co">#fig&lt;-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Adaptive Model - Varying Effects,\n hl=",hl,sep=""))</span></span>
-<span></span>
-<span><span class="co">#dev.off()</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="model-comparison-using-bayes-factors">Model Comparison using Bayes Factors<a class="anchor" aria-label="anchor" href="#model-comparison-using-bayes-factors"></a>
@@ -1465,7 +1444,7 @@ the same package.</p>
 <em>bridgesampling</em> R package (Gronau et al. 2020). Looking below,
 we can read the results as the data is X times more likely under a model
 that assumes the first mode rather than second model.</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="va">lml.fit.reg.direct.mlm.ve.nc</span><span class="op">&lt;-</span><span class="fu">bridgesampling</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bridgesampling/man/bridge_sampler.html" class="external-link">bridge_sampler</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve.nc</span>,silent<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">lml.fit.reg.direct.mlm.vi.nc</span><span class="op">&lt;-</span><span class="fu">bridgesampling</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bridgesampling/man/bridge_sampler.html" class="external-link">bridge_sampler</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.vi.nc</span>,silent<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1484,21 +1463,21 @@ that assumes the first mode rather than second model.</p>
 </h4>
 <p>Let’s look at traceplots of our models, which give a visualization of
 degree of convergence.</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Trankplots/Traceplots 4X10</span></span>
 <span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html" class="external-link">traceplot</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-41-1.png" width="700"></p>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-40-1.png" width="700"></p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html" class="external-link">traceplot</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve.nc</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span>,<span class="st">"sigma"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-41-2.png" width="700"></p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-40-2.png" width="700"></p>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html" class="external-link">traceplot</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.vi.nc</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-41-3.png" width="700"></p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-40-3.png" width="700"></p>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html" class="external-link">traceplot</a></span><span class="op">(</span><span class="va">fit.reg.direct</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-41-4.png" width="700"></p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<p><img src="Empirical-Example_files/figure-html/unnamed-chunk-40-4.png" width="700"></p>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">plot.emp.ve</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html" class="external-link">traceplot</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">plot.emp.mlm.ve</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-traceplot.html" class="external-link">traceplot</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve.nc</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span>,<span class="st">"sigma"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
@@ -1511,7 +1490,7 @@ degree of convergence.</p>
 <span><span class="co">########################################################################################################</span></span></code></pre></div>
 <p>Now that we have our best model, lets compare the posterior
 distributions of slopes and other usuful stats</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">########################################################################################################</span></span>
 <span><span class="co">#Compare slopes</span></span>
 <span><span class="va">df</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post.ve</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span>
@@ -1531,8 +1510,12 @@ distributions of slopes and other usuful stats</p>
 <span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html" class="external-link">PI</a></span><span class="op">(</span><span class="va">unscaled.hl</span>,prob<span class="op">=</span><span class="fl">0.95</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       3%      98% </span></span>
 <span><span class="co">#&gt; 2.030006 5.282994</span></span></code></pre></div>
+<p>Calculate direct causal effect of moving from smaller to larger
+breeding groups size - make all species have larger group sizes and all
+species have smaller group sizes and look at the contrast in antler
+size</p>
 <p>Combined Figure - Varying effects Model - FigS8</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#post&lt;-post.ve</span></span>
 <span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#hl.plot&lt;-hl.prior.post.emp.plot.code(hl.prior,post)</span></span>
@@ -1545,7 +1528,7 @@ distributions of slopes and other usuful stats</p>
 <span><span class="co">#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS8.pdf", plot = fig, width=7, height=7 )</span></span>
 <span><span class="co">########################################################################################################</span></span></code></pre></div>
 <p>Combined Figure - Multilevel - Varying effects Model - FigS9</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#post&lt;-post.mlm.ve</span></span>
 <span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#hl.plot&lt;-hl.prior.post.emp.plot.code(hl.prior,post)</span></span>
@@ -1558,7 +1541,7 @@ distributions of slopes and other usuful stats</p>
 <span><span class="co">#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS9.pdf", plot = fig, width=7, height=7 )</span></span>
 <span><span class="co">########################################################################################################</span></span></code></pre></div>
 <p>Combined Figure - Multilevel - Varying Intercepts Model - FigS10</p>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#post&lt;-post.mlm.vi</span></span>
 <span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#hl.plot&lt;-hl.prior.post.emp.plot.code(hl.prior,post)</span></span>
@@ -1571,7 +1554,7 @@ distributions of slopes and other usuful stats</p>
 <span><span class="co">#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS10.pdf", plot = fig, width=7, height=7 )</span></span>
 <span><span class="co">########################################################################################################</span></span></code></pre></div>
 <p>Combined Figure - Basic - Varying Intercepts Model - FigS11</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#post&lt;-post.basic</span></span>
 <span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#hl.plot&lt;-hl.prior.post.emp.plot.code(hl.prior,post)</span></span>
@@ -1584,7 +1567,7 @@ distributions of slopes and other usuful stats</p>
 <span><span class="co">#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS11.pdf", plot = fig, width=7, height=7 )</span></span>
 <span><span class="co">########################################################################################################</span></span></code></pre></div>
 <p>Prior predictive checks on best model</p>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.direct.prep.html">blouch.reg.direct.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="st">"X_with_error"</span>,<span class="st">"X_error"</span>,Z_direct<span class="op">=</span><span class="fl">1</span>,<span class="st">"BGS"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit.reg.direct.ve.priorpc</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_ve_priorpc</span>,data<span class="op">=</span><span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>, iter <span class="op">=</span><span class="fl">2000</span>,algorithm<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Fixed_param"</span><span class="op">)</span><span class="op">)</span></span>
@@ -1599,7 +1582,7 @@ distributions of slopes and other usuful stats</p>
 <span><span class="va">plots</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/ysim.ppc.plot.code.html">ysim.ppc.plot.code</a></span><span class="op">(</span><span class="va">dat</span>,<span class="va">post</span>,<span class="fl">1</span><span class="op">:</span><span class="va">num.plots</span><span class="op">)</span></span>
 <span><span class="va">plots</span><span class="op">&lt;-</span><span class="fu">gridExtra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">grid.arrange</a></span><span class="op">(</span>grobs<span class="op">=</span><span class="va">plots</span>, ncol<span class="op">=</span><span class="fl">5</span>, nrow<span class="op">=</span><span class="fl">1</span>,common.legend<span class="op">=</span><span class="cn">TRUE</span>,legend<span class="op">=</span><span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Empirical-Example_files/figure-html/unnamed-chunk-47-1.png" width="700"></p>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tgrob</span> <span class="op">&lt;-</span> <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/text_grob.html" class="external-link">text_grob</a></span><span class="op">(</span><span class="st">"Multi-Optima Direct Effect Model - Varying Efects - Prior PC"</span>,size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">plots.prior</span><span class="op">&lt;-</span><span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html" class="external-link">annotate_figure</a></span><span class="op">(</span><span class="va">plots</span>,top<span class="op">=</span><span class="va">tgrob</span><span class="op">)</span></span>
 <span></span>
@@ -1616,14 +1599,14 @@ distributions of slopes and other usuful stats</p>
 <span><span class="va">plots</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/ysim.ppc.plot.code.html">ysim.ppc.plot.code</a></span><span class="op">(</span><span class="va">dat</span>,<span class="va">post</span>,<span class="fl">1</span><span class="op">:</span><span class="va">num.plots</span><span class="op">)</span></span>
 <span><span class="va">plots</span><span class="op">&lt;-</span><span class="fu">gridExtra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">grid.arrange</a></span><span class="op">(</span>grobs<span class="op">=</span><span class="va">plots</span>, ncol<span class="op">=</span><span class="fl">5</span>, nrow<span class="op">=</span><span class="fl">1</span>,common.legend<span class="op">=</span><span class="cn">TRUE</span>,legend<span class="op">=</span><span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Empirical-Example_files/figure-html/unnamed-chunk-47-2.png" width="700"></p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tgrob</span> <span class="op">&lt;-</span> <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/text_grob.html" class="external-link">text_grob</a></span><span class="op">(</span><span class="st">"Multi-Optima Direct Effect Model - Varying Efects - Posterior PC"</span>,size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">plots.post</span><span class="op">&lt;-</span><span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html" class="external-link">annotate_figure</a></span><span class="op">(</span><span class="va">plots</span>,top<span class="op">=</span><span class="va">tgrob</span><span class="op">)</span></span>
 <span><span class="va">fig</span><span class="op">&lt;-</span><span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">plots.prior</span>, <span class="va">plots.post</span>,ncol<span class="op">=</span><span class="fl">1</span>,nrow<span class="op">=</span><span class="fl">2</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C)"</span>,<span class="st">"D)"</span><span class="op">)</span>,common.legend <span class="op">=</span> <span class="cn">TRUE</span>,legend<span class="op">=</span><span class="st">"top"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">plots.prior</span></span></code></pre></div>
 <p><img src="Empirical-Example_files/figure-html/unnamed-chunk-47-3.png" width="700"></p>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plots.post</span></span></code></pre></div>
 <p><img src="Empirical-Example_files/figure-html/unnamed-chunk-47-4.png" width="700"></p>
 <p>References Pagel, M (1994) Detecting correlated evolution on

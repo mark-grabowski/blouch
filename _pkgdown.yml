@@ -2,16 +2,10 @@ url: https://mark-grabowski.github.io/blouch/
 template:
   bootstrap: 5
 navbar:
-  structure:
-  left:
-  - text: Intro
-    href: index.html
-  - text: Reference
-    href: reference/index.html
-    components:
-      articles:
-      - text: Articles
-        menu:
+  components:
+    articles:
+      text: Articles
+      menu:
         - text: Empirical Example from Grabowski (in revision)
           href: articles/Empirical-Example.html
         - text: Simulation Example from Grabowski (in revision)

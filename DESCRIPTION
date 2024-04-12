@@ -48,5 +48,5 @@ VignetteBuilder: knitr
 LazyData: true
 URL: https://mark-grabowski.github.io/blouch/
 Remotes:  
-    uyeda/treeplyr,
+    uyedaj/treeplyr,
     rmcelreath/rethinking
