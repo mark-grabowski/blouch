@@ -1,5 +1,7 @@
 ---
-title: "Basic_Models-Examples"
+title: "Basic Model Walkthrough"
+author: "Mark Grabowski"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Basic_Models-Examples}

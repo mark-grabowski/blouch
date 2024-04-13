@@ -1,5 +1,7 @@
 ---
-title: "Empirical Example"
+title: "Empirical Example from Grabowski (in revision) Walkthrough"
+author: "Mark Grabowski"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Empirical Example}

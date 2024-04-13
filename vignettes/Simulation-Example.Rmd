@@ -1,5 +1,7 @@
 ---
-title: "Simulation Example"
+title: "Simulation Example from Grabowski (in revision) Walkthrough"
+author: "Mark Grabowski"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Simulation Example}
