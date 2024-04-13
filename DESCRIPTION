@@ -42,6 +42,7 @@ Suggests:
     knitr,
     loo,
     MASS,
+    microViz,
     phytools,
     rethinking (>= 2.40),
     cmdstanr,
@@ -51,6 +52,7 @@ VignetteBuilder: knitr
 LazyData: true
 URL: https://mark-grabowski.github.io/blouch/
 Remotes:  
+    david-barnett/microViz,
     uyedaj/treeplyr,
     rmcelreath/rethinking,
     stan-dev/cmdstanr
