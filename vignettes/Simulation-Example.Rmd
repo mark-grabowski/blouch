@@ -659,7 +659,7 @@ rstan::traceplot(fit.reg.adapt.ve,pars = c(c("hl","vy","optima","beta")))
 
 ## Predictive Checks
 
-Now lets run prior predictive checks and posterior predictive checks for our two models. Prior predictive checks generate predictions from the model using only the prior distributions in order to assess whether the priors are appropriate – they are equivalent to running the model without data (Gabry et al. 2019).  Posterior predictive checks generate data according to the posterior predictive distribution and compare it to the observed data to assess the fit of the model (Gabry et al. 2019). *Blouch* includes Stan functions to run prior and posterior predictive checks for each of the included models and their use is demonstrated below in the simulation and empirical examples.
+Now lets run prior and posterior predictive checks for our two models. Prior predictive checks generate predictions from the model using only the prior distributions in order to assess whether the priors are appropriate – they are equivalent to running the model without data (Gabry et al. 2019).  Posterior predictive checks generate data according to the posterior predictive distribution and compare it to the observed data to assess the fit of the model (Gabry et al. 2019). *Blouch* includes Stan functions to run prior and posterior predictive checks for each of the included models and their use is demonstrated below in the simulation and empirical examples.
 
 ```{r Prior_Post_Checks}
 
