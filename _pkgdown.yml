@@ -1,22 +1,38 @@
 url: https://mark-grabowski.github.io/blouch/
-template:
-  bootstrap: 5
 navbar:
-  type: default
+  components: ~
   left:
-  - text: Get Started
-    href: index.html
-  - text: Reference
-    href: reference/index.html
-  - text: Articles
-    menu:
-        - text: Empirical Example from Grabowski (in revision)
+    - 
+      text: Get Started
+      href: index.html
+    - 
+      text: Reference
+      href: reference/index.html
+  - 
+    text: Articles
+      menu:
+        - 
+          text: Empirical Example from Grabowski (in revision)
           href: articles/Empirical-Example.html
-        - text: Simulation Example from Grabowski (in revision)
+        - 
+          text: Simulation Example from Grabowski (in revision)
           href: articles/Simulation-Example.html
-        - text: Basic Models
+        - 
+          text: Basic Models
           href: articles/Basic_Models-Examples.html
-        - text: Multi-Optima Models
+        - 
+          text: Multi-Optima Models
           href: articles/Multi-optima_Models-Examples.html
-        - text: Varying Effects Models
+        - 
+          text: Varying Effects Models
           href: articles/Varying_Effects_Models-Examples.html
+    right: 
+      - 
+          href: "https://github.com/mark-grabowski/blouch"
+          icon: "fa-github fa-lg"
+          text: Github
+    title: blouch
+    type: inverse
+template: 
+  bootstrap: 5
+  bootswatch: flatly 
