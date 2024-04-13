@@ -67,7 +67,7 @@ cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256
     file = M, sep = "\n", append = FALSE)
 ```
 
-#Load datasets
+## Load datasets
 
 First, load the tree from Tsuboi et al. (2024) and the dataset. Original ata from Tsuboi et al. (2024) is available at DRYAD:
 https://doi.org/10.5061/dryad.kh18932dt, and dataset including breeding group regims is included in the *Blouch* package.
@@ -88,6 +88,7 @@ antler.data<-dplyr::filter(antler.data,Genus_Species != "Sinomegaloceros_yabei" 
 
 ############################################################################################################
 ## Combine data and tree and paint regimes on tree.
+
 Next we will use the *treeplyr* package (Uyeda and Harmon, 2014) make.treedata function to combine the data and tree based on the taxa names. See https://github.com/uyedaj/treeplyr for more on this package.
 
 ```{r Setup_data}
@@ -158,7 +159,7 @@ reg.colors<-ggsci::pal_aaas("default", alpha = 1)(length(unique(edge.regimes)))
 plot(cervid.trdata.BGS$phy,edge.color = reg.colors[edge.regimes], edge.width = 1, cex = 0.5)
 ```
 
-# Setup dataset and add measurement errors
+## Setup dataset and add measurement errors
 
 Now lets set up the variables - including measurement errors. We could call the data whatever we wanted (e.g "Y_with_error" below), as long as we combine all the data together into one 
 ```{r Measurement_Errors}
@@ -203,6 +204,7 @@ ols.plot
 ```
 
 Below are the priors used for this first analysis. See Grabowski (in revision) for more on setting these priors, but here our optima (intercept) and slope are informed by the linar model.
+
 ```{r}
 ############################################################################################################
 #Set Priors
@@ -217,6 +219,7 @@ beta.prior<-c(6.304451,1.75) #Informed by linear model above
 Lets simulate from our priors to check if these are reasonable values for the intercept and slope - futher below is code for looking at the priors for the other parameters in the model, in the prior vs. posterior plots section. These are the ".sims" values - the priors are based on the intercept and slope of the OLS regression above, with standard deviations set by visualizing the priors versus the data.
 
 Half-life Prior plot
+
 ```{r}
 hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
 names(hl.sims)<-"prior.hl.sims"
@@ -239,6 +242,7 @@ hl.prior.plot
 
 
 Vy Prior Plot
+
 ```{r}
 vy.sims<-rexp(n=1000,rate=vy.prior)
 vy.sims<-data.frame(vy.sims)
@@ -263,6 +267,7 @@ vy.prior.plot
 ```
 
 Prior on how shared branch lengths correspond to covariance
+
 ```{r}
 hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
 vy.sims<-rexp(n=1000,rate=vy.prior)
@@ -287,6 +292,7 @@ p
 
 
 Slope and intercept Prior Plot
+
 ```{r}
 optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
 beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
@@ -309,6 +315,7 @@ slope.plot.1
 ## Explore Priors - built in functions
 
 Blouch also contains built in functions to plot the priors, as seen below.
+
 ```{r}
 hl.prior.plot.code(hl.prior)
 vy.prior.plot.code(vy.prior)
@@ -330,7 +337,6 @@ First we will run the multi-optima direct effect model with varying intercepts. 
 
 Now let's run the model. Stan prints out a lot of info, so lets just look at the parameter estimates here and store the posterior distribution for later use.
 
-
 ```{r Reg_Direct_Model, results='hide'}
 #Combination of regime model with multiple traits direct effect model with measurement error and varying intercepts
 fit.reg.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct,data = dat,chains = 2,cores=2,iter =4000)
@@ -338,6 +344,7 @@ fit.reg.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direc
 ```
 
 Results
+
 ```{r}
 print(fit.reg.direct,pars = c("hl","vy","optima","beta"))
 post.basic<-rstan::extract(fit.reg.direct)
@@ -348,6 +355,7 @@ post.basic<-rstan::extract(fit.reg.direct)
 ## Priors vs. posterior plots for multi-optima direct effect model
 
 Half-life
+
 ```{r}
 ########################################################################################################
 #Composite Figures
@@ -378,6 +386,7 @@ hl.plot
 ```
 
 Vy
+
 ```{r}
 ########################################################################################################
 vy.sims<-rexp(n=1000,rate=vy.prior)
@@ -404,6 +413,7 @@ vy.plot
 ```
 
 Covariance
+
 ```{r}
 ########################################################################################################
 hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
@@ -431,6 +441,7 @@ covariance.plot
 ```
 
 Regression plots
+
 ```{r}
 ########################################################################################################
 #Varying intercepts
@@ -514,6 +525,7 @@ regression.plot
 ```
 
 Let's combine all four plots into one plot
+
 ```{r}
 regression.plot<-regression.plot+ggplot2::theme(legend.position="none")
 fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
@@ -526,13 +538,13 @@ fig
 
 Now lets run the multi-optima direct effect model with varying effects. This will allow our intercepts (optima) and slopes to vary with the regimes, but does not allow for multilevel modeling. We will use the same priors and the sane data formatting step above to produce our "dat" file.
 
-
 ```{r non_MLM_VE}
 fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =4000)
 #Fig S8 from Grabowski (in revision)
 ```
 
 Results
+
 ```{r}
 print(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
 post.ve<-rstan::extract(fit.reg.direct.ve)
@@ -572,6 +584,8 @@ hl.plot<-ggplot2::ggplot(data=df)+
 hl.plot
 ```
 
+Vy
+
 ```{r}
 ########################################################################################################
 vy.sims<-rexp(n=1000,rate=vy.prior)
@@ -596,6 +610,8 @@ vy.plot<-ggplot2::ggplot(data=df)+
 
 vy.plot
 ```
+
+Covariance
 
 ```{r}
 ########################################################################################################
@@ -624,6 +640,7 @@ covariance.plot
 ```
 
 Now lets look at the varying effects model
+
 ```{r}
 ########################################################################################################
 #For Fig. 2
@@ -713,6 +730,7 @@ fig2
 ```
 
 Let's combine all four plots into one plot
+
 ```{r}
 fig2<-fig2+ggplot2::theme(legend.position="none")
 fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,fig2,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
@@ -726,6 +744,7 @@ Now let's run the multilevel version of those two models. As a multilevel model,
 
 
 Below are the priors used for this first analysis. See Grabowski (in revision) for more on setting these priors. The only new prior is on sigma
+
 ```{r}
 ############################################################################################################
 #Set Priors
@@ -747,6 +766,7 @@ dat<-blouch.reg.direct.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","
 ```
 
 Fit the model
+
 ```{r Reg_direct_mlm}
 fit.reg.direct.mlm.vi.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi_nc,data = dat,chains = 2,cores=2,iter =4000,control = list(adapt_delta = 0.99))
 
@@ -755,6 +775,7 @@ fit.reg.direct.mlm.vi.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU
 ```
 
 Let's check out the results
+
 ```{r Reg_direct_mlm_results}
 print(fit.reg.direct.mlm.vi.nc,pars = c("hl","vy","optima","optima_bar","beta","sigma"))
 post.mlm.vi<-rstan::extract(fit.reg.direct.mlm.vi.nc)
@@ -764,6 +785,7 @@ post.mlm.vi<-rstan::extract(fit.reg.direct.mlm.vi.nc)
 ## Priors vs. posterior plots for multilevel multi-optima direct effect model with varying intercepts
 Lets look at the Prior versus Posterior plots of the parameter estimates
 Half-life
+
 ```{r}
 ########################################################################################################
 #Composite Figures
@@ -794,6 +816,7 @@ hl.plot
 ```
 
 Vy
+
 ```{r}
 ########################################################################################################
 vy.sims<-rexp(n=1000,rate=vy.prior)
@@ -820,6 +843,7 @@ vy.plot
 ```
 
 Covariance
+
 ```{r}
 ########################################################################################################
 hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
@@ -848,6 +872,7 @@ covariance.plot
 
 
 Regression Plots
+
 ```{r}
 ########################################################################################################
 #Varying intercepts
@@ -931,6 +956,7 @@ regression.plot
 
 
 Let's combine all four plots into one plot
+
 ```{r}
 fig2<-fig2+ggplot2::theme(legend.position="none")
 fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
@@ -949,14 +975,17 @@ fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU
 ```
 
 Results
+
 ```{r}
 print(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho[1,2]","sigma","optima","beta"))
 post.mlm.ve<-rstan::extract(fit.reg.direct.mlm.ve.nc)
 ```
 
 ## Priors vs. posterior plots for multilevel multi-optima direct effect model with varying effects
+
 Lets look at the Prior versus Posterior plots of the parameter estimates
 Half-life
+
 ```{r}
 ########################################################################################################
 #Composite Figures
@@ -987,6 +1016,7 @@ hl.plot
 ```
 
 Vy
+
 ```{r}
 ########################################################################################################
 vy.sims<-rexp(n=1000,rate=vy.prior)
@@ -1013,6 +1043,7 @@ vy.plot
 ```
 
 Covariance
+
 ```{r}
 ########################################################################################################
 hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
@@ -1040,6 +1071,7 @@ covariance.plot
 ```
 
 Regression Plots
+
 ```{r}
 ########################################################################################################
 #For Fig. 3
@@ -1127,6 +1159,7 @@ regression.plot
 ```
 
 Let's combine all four plots into one plot
+
 ```{r}
 fig2<-fig2+ggplot2::theme(legend.position="none")
 fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
@@ -1135,6 +1168,7 @@ fig
 ```
 
 ## Model Comparison using PSIS
+
 Lets do some model comparison using Pareto-Smoothed Importance Sampling (PSIS) from the R Package *loo* (Vehtari et al. 2023). loo estimates leave-one-out cross-validation for Bayesian analyses. Here we are looking for Pareto k values below ~0.7, which suggest the results are an accurate estimation of cross-validation. PSIS also provides a way to look at outliers in our analysis.
 
 We then compare the two models using the loo_compare function from the same package.
@@ -1176,9 +1210,8 @@ loo::loo_compare(loo_mlm_ve_nc, loo_ve, loo_mlm_vi_nc, loo_basic)
 
 ```
 
-
-
 ## Model Comparison using Bayes Factors
+
 Now lets compare our two models using Bayes Factors. Here we use the *bridgesampling* R package (Gronau et al. 2020). Looking below, we can read the results as the data is X times more likely under a model that assumes the first mode rather than second model.
 
 ```{r Model_comparison_BF}
@@ -1195,8 +1228,10 @@ bridgesampling::bf(lml.fit.reg.direct.ve, lml.fit.reg.direct)
 
 ```
 
-### Trace for estimated parameters
+## Trace for estimated parameters
+
 Let's look at traceplots of our models, which give a visualization of degree of convergence.
+
 ```{r}
 ############################################################################################################
 #Trankplots/Traceplots 4X10
@@ -1205,12 +1240,12 @@ rstan::traceplot(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_
 rstan::traceplot(fit.reg.direct.mlm.vi.nc,pars = c("hl","vy","optima","optima_bar","beta","sigma"))
 rstan::traceplot(fit.reg.direct,pars = c("hl","vy","optima","beta"))
 
-plot.emp.ve<-rstan::traceplot(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
-plot.emp.mlm.ve<-rstan::traceplot(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
-plot.emp.vi<-rstan::traceplot(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
-plot.emp.mlm.vi<-rstan::traceplot(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima","optima_bar","beta","sigma"))
+#plot.emp.ve<-rstan::traceplot(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
+#plot.emp.mlm.ve<-rstan::traceplot(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima_bar","beta_bar","Rho","sigma","optima","beta"))
+#plot.emp.vi<-rstan::traceplot(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
+#plot.emp.mlm.vi<-rstan::traceplot(fit.reg.direct.mlm.ve.nc,pars = c("hl","vy","optima","optima_bar","beta","sigma"))
 
-fig<-ggpubr::ggarrange(plot.emp.vi, plot.emp.ve,plot.emp.mlm.vi,plot.emp.mlm.ve,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
+#fig<-ggpubr::ggarrange(plot.emp.vi, plot.emp.ve,plot.emp.mlm.vi,plot.emp.mlm.ve,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
 #fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
 #ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS6.pdf", plot = fig, width=9, height=9)
 ########################################################################################################
@@ -1218,7 +1253,10 @@ fig<-ggpubr::ggarrange(plot.emp.vi, plot.emp.ve,plot.emp.mlm.vi,plot.emp.mlm.ve,
 
 ```
 
+## Compare posterior distributions
+
 Now that we have our best model, lets compare the posterior distributions of slopes and other usuful stats
+
 ```{r}
 ########################################################################################################
 #Compare slopes
@@ -1231,77 +1269,6 @@ sum((df[,1]-df[,2])>=0)/4000
 unscaled.hl<-post.ve$hl*l.tree
 mean(unscaled.hl)
 rethinking::PI(unscaled.hl,prob=0.95)
-```
-
-
-Calculate direct causal effect of moving from smaller to larger breeding groups size - make all species have larger group sizes and all species have smaller group sizes and look at the contrast in antler size
-```{r}
-
-```
-
-
-Combined Figure - Varying effects Model - FigS8
-```{r}
-post<-post.ve
-############################################################################################################
-hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
-############################################################################################################
-fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
-#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS8.pdf", plot = fig, width=7, height=7 )
-########################################################################################################
-
-```
-
-Combined Figure - Multilevel - Varying effects Model - FigS9
-```{r}
-post<-post.mlm.ve
-############################################################################################################
-hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-############################################################################################################
-regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
-fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
-#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS9.pdf", plot = fig, width=7, height=7 )
-########################################################################################################
-
-```
-
-Combined Figure - Multilevel - Varying Intercepts Model - FigS10
-```{r}
-post<-post.mlm.vi
-############################################################################################################
-hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
-############################################################################################################
-fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
-#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS10.pdf", plot = fig, width=7, height=7 )
-########################################################################################################
-
-```
-
-Combined Figure - Basic - Varying Intercepts Model - FigS11
-```{r}
-post<-post.basic
-############################################################################################################
-hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
-############################################################################################################
-fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
-#ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS11.pdf", plot = fig, width=7, height=7 )
-########################################################################################################
-
 ```
 
 
