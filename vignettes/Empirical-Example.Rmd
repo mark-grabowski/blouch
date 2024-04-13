@@ -1242,15 +1242,15 @@ Calculate direct causal effect of moving from smaller to larger breeding groups 
 
 Combined Figure - Varying effects Model - FigS8
 ```{r}
-#post<-post.ve
+post<-post.ve
 ############################################################################################################
-#hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-#vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-#covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-#regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
+hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
+vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
+covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
+regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
 ############################################################################################################
-#fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-#fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
+fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
+fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
 #ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS8.pdf", plot = fig, width=7, height=7 )
 ########################################################################################################
 
@@ -1258,15 +1258,15 @@ Combined Figure - Varying effects Model - FigS8
 
 Combined Figure - Multilevel - Varying effects Model - FigS9
 ```{r}
-#post<-post.mlm.ve
+post<-post.mlm.ve
 ############################################################################################################
-#hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-#vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-#covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
+hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
+vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
+covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
 ############################################################################################################
-#regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
-#fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-#fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
+regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
+fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
+fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
 #ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS9.pdf", plot = fig, width=7, height=7 )
 ########################################################################################################
 
@@ -1274,15 +1274,15 @@ Combined Figure - Multilevel - Varying effects Model - FigS9
 
 Combined Figure - Multilevel - Varying Intercepts Model - FigS10
 ```{r}
-#post<-post.mlm.vi
+post<-post.mlm.vi
 ############################################################################################################
-#hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-#vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-#covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-#regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
+hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
+vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
+covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
+regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
 ############################################################################################################
-#fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-#fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
+fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
+fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
 #ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS10.pdf", plot = fig, width=7, height=7 )
 ########################################################################################################
 
@@ -1290,15 +1290,15 @@ Combined Figure - Multilevel - Varying Intercepts Model - FigS10
 
 Combined Figure - Basic - Varying Intercepts Model - FigS11
 ```{r}
-#post<-post.basic
+post<-post.basic
 ############################################################################################################
-#hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
-#vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
-#covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
-#regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
+hl.plot<-hl.prior.post.emp.plot.code(hl.prior,post)
+vy.plot<-vy.prior.post.emp.plot.code(vy.prior,post)
+covariance.plot<-covariance.prior.post.direct.plot.code(hl.prior,vy.prior,post)
+regression.plot<-reg.direct.ve.prior.post.emp.plot.code(trdata,optima.prior,beta.prior,post)
 ############################################################################################################
-#fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
-#fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
+fig<-ggpubr::ggarrange(hl.plot, vy.plot,covariance.plot,regression.plot,ncol=2,nrow=2, labels = c("A)","B)","C)","D)"),common.legend = TRUE,legend="top")
+fig<-ggpubr::annotate_figure(fig,top=paste("Multi-Optima Direct Effect - Varying Effects, hl=",hl,sep=""))
 #ggplot2::ggsave("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS11.pdf", plot = fig, width=7, height=7 )
 ########################################################################################################
 
