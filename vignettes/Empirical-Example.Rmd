@@ -1305,7 +1305,10 @@ plots.prior
 plots.post
 ```
 
-References
+## References
+
 Pagel, M (1994) Detecting correlated evolution on phylogenies: a general method for the comparative analysis of discrete characters. Proceedings of the Royal Society of London. Series B. Biological Sciences, 255, 37--445.
+
+Tsuboi M., Kopperud B.T., Matschiner M., Grabowski M., Syrowatka C., Pélabon C., Hansen T.F. 2024. Antler Allometry, the Irish Elk and Gould Revisited. Evol Biol.
 
 
