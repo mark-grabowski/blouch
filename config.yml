@@ -1,7 +1,0 @@
-remote_theme: pages-themes/minimal@v0.2.0
-title: blouch
-description: *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative
-Hypotheses fits allometric and adaptive models of continuous trait
-evolution in a Bayesian framework based on fixed or continuous
-predictors and incorporates measurement error.
-show_downloads: true
