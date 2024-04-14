@@ -40,7 +40,7 @@ Suggests:
     ggplot2,
     ggpubr,
     ggsci,
-    gridextra,
+    gridExtra,
     knitr,
     loo,
     MASS,
