@@ -4,7 +4,7 @@ author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Varying_Effects_Models-Examples}
+  %\VignetteIndexEntry{Varying Effects and Multilevel Models Walkthrough}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

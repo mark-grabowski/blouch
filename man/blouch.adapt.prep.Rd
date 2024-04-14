@@ -27,7 +27,13 @@ blouch.adapt.prep(
 
 \item{X_error}{Vector containing name(s) of column in treedata containing error of predictor variable(s)}
 
-\item{Z_adaptive}{Number of adaptive traits}
+\item{hl.prior}{Vector containing log mu and standard error for half-life prior}
+
+\item{vy.prior}{Numeric with prior for scale of Vy}
+
+\item{optima.prior}{Vector containing mu and standard error for optima prior}
+
+\item{beta.prior}{Vector containing mu and standard error for beta prior}
 }
 \value{
 dat - list file containing objecs setup for Blouch

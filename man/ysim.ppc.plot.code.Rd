@@ -11,7 +11,7 @@ ysim.ppc.plot.code(dat, post, row.nums)
 
 \item{post}{Posterior distribution of stanfit class}
 
-\item{rownums}{Rows to be sampled from distribution}
+\item{row.nums}{Rows to be sampled from distribution}
 }
 \value{
 Plots in ggplot2 format

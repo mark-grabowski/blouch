@@ -21,6 +21,10 @@ sim.direct.adaptive.data(
 
 \item{N}{Number of tips on tree}
 
+\item{Z_direct}{Number of direct effect traits}
+
+\item{Z_adaptive}{Number of adaptive traits}
+
 \item{hl}{True half-life value}
 
 \item{vy}{True Vy value}
@@ -30,8 +34,6 @@ sim.direct.adaptive.data(
 \item{optima}{True optima}
 
 \item{beta}{True beta}
-
-\item{Z}{Number of traits}
 }
 \value{
 Merged phylogeny and data in treeplyr format

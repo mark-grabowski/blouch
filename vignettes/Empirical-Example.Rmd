@@ -4,7 +4,7 @@ author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Empirical Example}
+  %\VignetteIndexEntry{Empirical Example from Grabowski (in revision) Walkthrough}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -55,7 +55,8 @@ dag
 *Blouch* uses RStan to implement Stan. The following code enables some compiler optimizations to improve the estimation speed of the model, and is taken from: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started.
 
 ```{r optimizations}
-options(mc.cores = parallel::detectCores())
+#options(mc.cores = parallel::detectCores())
+options(mc.cores = 2) #2 For R package checks - use line above on your own machine
 rstan::rstan_options(auto_write = TRUE)
 
 dotR <- file.path(Sys.getenv("HOME"), ".R")

@@ -4,8 +4,6 @@
 #' @param sigma2_y Variance of Y
 #' @param beta Slope parameter
 #' @param x X axis value
-#' @param Z_adaptive Number of adaptive predictors
-#' @param n_reg Number of regimes
 #'
 #' @return Variance/covariance matrix
 #' @export

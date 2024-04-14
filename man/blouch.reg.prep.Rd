@@ -23,7 +23,11 @@ blouch.reg.prep(
 
 \item{reg.column}{Vector containing name of regime column in treedata$dat}
 
-\item{anc_maps}{Vector containing name of regime type - at nodes "regimes" or SIMMAP}
+\item{hl.prior}{Vector containing log mu and standard error for half-life prior}
+
+\item{vy.prior}{Numeric with prior for scale of Vy}
+
+\item{optima.prior}{Vector containing mu and standard error for optima prior}
 }
 \value{
 dat - list file containing objecs setup for Blouch

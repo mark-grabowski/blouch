@@ -32,6 +32,14 @@ blouch.direct.adapt.prep(
 \item{Z_direct}{Vector containing number of direct effect predictor traits}
 
 \item{Z_adaptive}{Vector containing number of adaptive predictor traits}
+
+\item{hl.prior}{Vector containing log mu and standard error for half-life prior}
+
+\item{vy.prior}{Numeric with prior for scale of Vy}
+
+\item{optima.prior}{Vector containing mu and standard error for optima prior}
+
+\item{beta.prior}{Vector containing mu and standard error for beta prior}
 }
 \value{
 dat - list file containing objecs setup for Blouch

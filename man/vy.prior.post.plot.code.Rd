@@ -11,7 +11,7 @@ vy.prior.post.plot.code(vy.prior, post, vy)
 
 \item{post}{Posterior distribution of stanfit class}
 
-\item{hl}{True Vy}
+\item{vy}{True Vy}
 }
 \value{
 Plots in ggplot2 format

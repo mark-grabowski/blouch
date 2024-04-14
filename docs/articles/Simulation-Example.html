@@ -80,7 +80,7 @@
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-04-13</h4>
+            <h4 data-toc-skip class="date">2024-04-14</h4>
       
       
       <div class="d-none name"><code>Simulation-Example.Rmd</code></div>
@@ -107,7 +107,8 @@ values.</p>
 enables some compiler optimizations to improve the estimation speed of
 the model, and is taken from: <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started" class="external-link uri">https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started</a></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>mc.cores <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co">#options(mc.cores = parallel::detectCores())</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>mc.cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="co">#2 For R package checks - use line above on your own machine</span></span>
 <span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/rstan_options.html" class="external-link">rstan_options</a></span><span class="op">(</span>auto_write <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dotR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"HOME"</span><span class="op">)</span>, <span class="st">".R"</span><span class="op">)</span></span>
@@ -183,7 +184,7 @@ sure we have done everything correctly.</p>
 <span><span class="co">#&gt; [163] OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2</span></span>
 <span><span class="co">#&gt; [181] OU2 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3 OU3</span></span>
 <span><span class="co">#&gt; Levels: OU1 OU2 OU3 OU4</span></span>
-<span><span class="co">#&gt; [1] "#A6CEE3"   "#1F78B4"   "#B2DF8A"   "#33A02C"   "lightgrey"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF" "#00A087FF" "#3C5488FF"</span></span></code></pre></div>
 <p><img src="Simulation-Example_files/figure-html/Set_regimes-1.png" width="700"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -544,7 +545,7 @@ fitting additional models, but I have done so previously.</p>
 <span><span class="co">#&gt; beta[3,1]    0.22    0.00 0.18 -0.18  0.11  0.24  0.35  0.53  3664    1</span></span>
 <span><span class="co">#&gt; beta[4,1]    0.28    0.00 0.06  0.18  0.24  0.28  0.32  0.40  6087    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Apr 13 21:04:55 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Apr 14 13:18:50 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -585,7 +586,7 @@ values we set earlier.</p>
 <span><span class="co">#&gt; beta[3,1] 0.15       0 0.17 -0.20 0.03 0.15 0.27  0.49  7508    1</span></span>
 <span><span class="co">#&gt; beta[4,1] 0.28       0 0.05  0.17 0.24 0.28 0.31  0.39  7722    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Apr 13 21:11:14 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Apr 14 13:25:04 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>

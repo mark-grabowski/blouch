@@ -2,7 +2,7 @@
 #'
 #' @param dat  Data formatted for Blouch models by blouch.prep functions
 #' @param post Posterior distribution of stanfit class
-#' @param rownums Rows to be sampled from distribution
+#' @param row.nums Rows to be sampled from distribution
 #'
 #' @return Plots in ggplot2 format
 #' @export
@@ -138,7 +138,7 @@ vy.prior.plot.code<-function(vy.prior){
 #'
 #' @param vy.prior  Prior scale parameter
 #' @param post  Posterior distribution of stanfit class
-#' @param hl True Vy
+#' @param vy True Vy
 #' @return Plots in ggplot2 format
 #' @export
 #'
@@ -1452,8 +1452,7 @@ reg.direct.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prio
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
 #' @param post Posterior distribution in stanfit class
-#' @param optima True optima
-#' @param beta True beta
+#' @param vary.effects Data frame with true optima and beta for each regime
 #' @return Plots in ggplot2 format
 #' @export
 #'
@@ -1519,8 +1518,7 @@ reg.direct.mlm.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
 #' @param post Posterior distribution in stanfit class
-#' @param optima True optima
-#' @param beta True beta
+#' @param vary.effects Data frame with true optima and beta for each regime
 #' @return Plots in ggplot2 format
 #' @export
 #'

@@ -300,7 +300,10 @@ concat.factor <- function(...){
 #' @param Y_error Vector containing name of column in treedata containing error of response variable
 #' @param X Vector containing name(s) of column in treedata containing predictor variable(s)
 #' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
-#' @param Z_direct Number of direct effect traits
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
 #'
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
@@ -327,7 +330,10 @@ blouch.direct.prep<-function(trdata,Y,Y_error,X,X_error,hl.prior,vy.prior,optima
 #' @param Y_error Vector containing name of column in treedata containing error of response variable
 #' @param X Vector containing name(s) of column in treedata containing predictor variable(s)
 #' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
-#' @param Z_adaptive Number of adaptive traits
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
 #'
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
@@ -363,6 +369,11 @@ blouch.adapt.prep<-function(trdata,Y,Y_error,X,X_error,hl.prior,vy.prior,optima.
 #' @param X_error Vector containing name(s) of column in treedata containing error of predictor variable(s)
 #' @param Z_direct Vector containing number of direct effect predictor traits
 #' @param Z_adaptive Vector containing number of adaptive predictor traits
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
+#' @param beta.prior Vector containing mu and standard error for beta prior
+
 #'
 #' @return dat - list file containing objecs setup for Blouch
 #' @export
@@ -406,7 +417,9 @@ blouch.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_adaptiv
 #' @param Y Vector containing name of column in treedata containing response variable
 #' @param Y_error Vector containing name of column in treedata containing error of response variable
 #' @param reg.column Vector containing name of regime column in treedata$dat
-#' @param anc_maps Vector containing name of regime type - at nodes "regimes" or SIMMAP
+#' @param hl.prior Vector containing log mu and standard error for half-life prior
+#' @param vy.prior Numeric with prior for scale of Vy
+#' @param optima.prior Vector containing mu and standard error for optima prior
 #'
 #' @return dat - list file containing objecs setup for Blouch
 #' @export

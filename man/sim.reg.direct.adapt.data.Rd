@@ -8,7 +8,7 @@ sim.reg.direct.adapt.data(
   phy,
   N,
   Z_direct,
-  Z_adapt,
+  Z_adaptive,
   hl,
   vy,
   Sxx,
@@ -24,6 +24,8 @@ sim.reg.direct.adapt.data(
 
 \item{Z_direct}{Number of Direct Effect X traits}
 
+\item{Z_adaptive}{Number of Adaptive X traits}
+
 \item{hl}{True half-life value}
 
 \item{vy}{True Vy value}
@@ -35,8 +37,6 @@ sim.reg.direct.adapt.data(
 \item{beta}{True beta}
 
 \item{shifts}{Nodes for regime shifts}
-
-\item{Z_adaptive}{Number of Adaptive X traits}
 }
 \value{
 Merged phylogeny and data in treeplyr format

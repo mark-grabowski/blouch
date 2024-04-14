@@ -21,9 +21,7 @@ reg.direct.mlm.ve.prior.post.plot.code(
 
 \item{post}{Posterior distribution in stanfit class}
 
-\item{optima}{True optima}
-
-\item{beta}{True beta}
+\item{vary.effects}{Data frame with true optima and beta for each regime}
 }
 \value{
 Plots in ggplot2 format

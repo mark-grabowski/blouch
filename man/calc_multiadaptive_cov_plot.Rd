@@ -14,10 +14,6 @@ calc_multiadaptive_cov_plot(a, sigma2_y, beta, x)
 \item{beta}{Slope parameter}
 
 \item{x}{X axis value}
-
-\item{Z_adaptive}{Number of adaptive predictors}
-
-\item{n_reg}{Number of regimes}
 }
 \value{
 Variance/covariance matrix

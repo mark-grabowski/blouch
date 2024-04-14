@@ -213,7 +213,8 @@ sim.adaptive.multi.data<-function(phy,N,Z,hl,vy,Sxx,optima,beta){
 #' sim.adaptive.multi.data- Simulate Direct Effect + Adaptive Data with Multiple X Traits
 #' @param phy An object of the class "phylo"
 #' @param N Number of tips on tree
-#' @param Z Number of traits
+#' @param Z_direct Number of direct effect traits
+#' @param Z_adaptive Number of adaptive traits
 #' @param hl True half-life value
 #' @param vy True Vy value
 #' @param Sxx Instantaneous variance of the BM process
@@ -725,7 +726,7 @@ sim.reg.adapt.ve.data<-function(phy,N,Z_adaptive,hl,vy,Sxx,optima,beta,shifts){
 #' @return Merged phylogeny and data in treeplyr format
 #' @export
 #'
-sim.reg.direct.adapt.data<-function(phy,N,Z_direct,Z_adapt,hl,vy,Sxx,optima,beta,shifts){
+sim.reg.direct.adapt.data<-function(phy,N,Z_direct,Z_adaptive,hl,vy,Sxx,optima,beta,shifts){
   set.seed(10)
   trdata<-data.frame(phy$tip.label)
   trdata<-treeplyr::make.treedata(phy,trdata)
