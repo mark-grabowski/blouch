@@ -30,8 +30,8 @@ library(blouch)
 ```{r}
 ########################################################################################################
 #For execution on a local, multicore CPU with excess RAM we recommend calling
-options(mc.cores = parallel::detectCores())
-#options(mc.cores = 8)
+#options(mc.cores = parallel::detectCores())
+options(mc.cores = 2) #2 For R package checks - use line above on your own machine
 rstan::rstan_options(auto_write = TRUE)
 
 dotR <- file.path(Sys.getenv("HOME"), ".R")

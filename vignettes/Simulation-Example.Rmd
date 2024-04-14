@@ -697,8 +697,6 @@ plots.post
 
 Posterior predictive checks show that the model is well fit as it generates data that are a close approximation of the true dataset.
 
-If this was a real data analysis, a comparison of the distribution of differences between the true values and the predicted values might be warranted, rather than a single simulation.
-
 
 ## References
 Arnold, C., L. J. Matthews, and C. L. Nunn. 2010. The 10kTrees Website: A New Online Resource for Primate Phylogeny. Evolutionary Anthropology 19:114-118.

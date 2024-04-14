@@ -6,7 +6,7 @@ Authors@R:
     person("Mark", "Grabowski", , "mark.walter.grabowski@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7045-9472"))
 Description: Blouch: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits adaptive models of continuous trait evolution in a Bayesian framework based on categorical or continuous predictors, incorporates measurement error. Blouch includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models.
-License: use_gpl3_license()
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
@@ -52,7 +52,7 @@ Suggests:
 VignetteBuilder: knitr
 LazyData: true
 URL: https://mark-grabowski.github.io/blouch/
-Remotes:  
+Remotes: 
     uyedaj/treeplyr,
     rmcelreath/rethinking,
     stan-dev/cmdstanr

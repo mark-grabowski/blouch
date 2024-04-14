@@ -1306,6 +1306,8 @@ plots.prior
 plots.post
 ```
 
+Posterior predictive checks show that the model is well fit as it generates data that are a close approximation of the true dataset.
+
 ## References
 
 Pagel, M (1994) Detecting correlated evolution on phylogenies: a general method for the comparative analysis of discrete characters. Proceedings of the Royal Society of London. Series B. Biological Sciences, 255, 37--445.
