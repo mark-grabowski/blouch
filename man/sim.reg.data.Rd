@@ -4,7 +4,7 @@
 \alias{sim.reg.data}
 \title{sim.reg.data- Simulate Multi-Optima Data}
 \usage{
-sim.reg.data(phy, N, hl, vy, Sxx, optima, shits)
+sim.reg.data(phy, N, hl, vy, Sxx, optima, shifts)
 }
 \arguments{
 \item{phy}{An object of the class "phylo"}

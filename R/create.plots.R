@@ -190,13 +190,14 @@ vy.prior.post.emp.plot.code<-function(vy.prior,post){
     ggplot2::scale_fill_manual(values=mypal,name="",labels=c("Posterior","Prior"))
   return(vy.prior.post.plot)
 }
+
 #' sigma.prior.plot.code- Create Prior vs. Posterior Plot for Sigma
 #'
 #' @param sigma.prior  Prior for mean and sd parameters of sigma
 #' @return Plots in ggplot2 format
 #' @export
 #'
-sigma.prior.plot.code<-function(sigma.prior){
+sig.prior.plot.code<-function(sigma.prior){
   sigma.sims<-data.frame(abs(rnorm(n=1000,mean=sigma.prior[1],sd=sigma.prior[2])))
   names(sigma.sims)<-"prior.sigma.sims"
   sigma.prior.plot<-ggplot2::ggplot()+
@@ -216,7 +217,7 @@ sigma.prior.plot.code<-function(sigma.prior){
 #' @return Plots in ggplot2 format
 #' @export
 #'
-sigma.prior.post.plot.code<-function(sigma.prior,post){
+sig.prior.post.plot.code<-function(sigma.prior,post){
   sigma.sims<-data.frame(abs(rnorm(n=1000,mean=sigma.prior[1],sd=sigma.prior[2])))
   names(sigma.sims)<-"prior.sigma.sims"
   sigma.post<-data.frame(post$sigma)
@@ -234,7 +235,6 @@ sigma.prior.post.plot.code<-function(sigma.prior,post){
     ggsci::scale_fill_npg(name="",labels=c("Posterior Beta","Posterior Optima","Prior"))
   return(sigma.plot)
 }
-############################################################################################################
 #' covariance.prior.direct.plot.code- Create Prior Covariance Plot for Direct Effect Model
 #'
 #' @param hl.prior  Prior mean and scale parameter for Half-life
@@ -1182,6 +1182,8 @@ reg.direct.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
 #' @param post Posterior distribution in stanfit class
+#' @param optima True optima
+#' @param beta True beta
 #' @return Plots in ggplot2 format
 #' @export
 #'

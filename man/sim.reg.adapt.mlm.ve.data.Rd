@@ -12,9 +12,9 @@ sim.reg.adapt.mlm.ve.data(
   vy,
   Sxx,
   optima.bar,
-  optima.sigma,
+  optima.sd,
   beta.bar,
-  beta.sigma,
+  beta.sd,
   rho,
   shifts
 )
@@ -34,15 +34,15 @@ sim.reg.adapt.mlm.ve.data(
 
 \item{optima.bar}{True average optima}
 
+\item{optima.sd}{True standard deviation of the optima}
+
 \item{beta.bar}{True average beta}
+
+\item{beta.sd}{True standard deviation of the betas}
 
 \item{rho}{True corelation between optimas and betas}
 
 \item{shifts}{Nodes for regime shifts}
-
-\item{optima.sd}{True standard deviation of the optima}
-
-\item{beta.sd}{True standard deviation of the betas}
 }
 \value{
 Merged phylogeny and data in treeplyr format

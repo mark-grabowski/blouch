@@ -492,7 +492,6 @@ blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,hl.prior,vy.prior,optima.p
 #' @param Y Vector containing name of column in treedata containing response variable
 #' @param Y_error Vector containing name of column in treedata containing error of response variable
 #' @param reg.column Vector containing name of regime column in treedata$dat
-#' @param anc_maps Vector containing name of regime type - at nodes "regimes" or SIMMAP
 #' @param hl.prior Vector containing log mu and standard error for half-life prior
 #' @param vy.prior Numeric with prior for scale of Vy
 #' @param optima.prior Vector containing mu and standard error for optima prior

@@ -1180,28 +1180,28 @@ old.par <- par(mar = c(0, 0, 0, 0))
 par(old.par)
 
 ############################################################################################################
-loo_mlm_ve_nc <- loo::loo(fit.reg.direct.mlm.ve.nc, save_psis = TRUE)
+loo_mlm_ve_nc <- loo::loo(fit.reg.direct.mlm.ve.nc, cores = 2, save_psis = TRUE)
 print(loo_mlm_ve_nc)
 plot(loo_mlm_ve_nc)
 plot(loo_mlm_ve_nc,label_points=TRUE)
 
 
 #library(loo) #Non-mlm varying effects model
-loo_ve <- loo::loo(fit.reg.direct.ve, save_psis = TRUE)
+loo_ve <- loo::loo(fit.reg.direct.ve, cores = 2, save_psis = TRUE)
 print(loo_ve)
 plot(loo_ve)
 plot(loo_ve,label_points=TRUE)
 
 
 #library(loo) #MLM Varying intercepts model
-loo_mlm_vi_nc <- loo::loo(fit.reg.direct.mlm.vi.nc, save_psis = TRUE)
+loo_mlm_vi_nc <- loo::loo(fit.reg.direct.mlm.vi.nc, cores = 2, save_psis = TRUE)
 print(loo_mlm_vi_nc)
 plot(loo_mlm_vi_nc)
 plot(loo_mlm_vi_nc,label_points=TRUE)
 
 
 #library(loo) #Basic model
-loo_basic <- loo::loo(fit.reg.direct, save_psis = TRUE)
+loo_basic <- loo::loo(fit.reg.direct, cores = 2, save_psis = TRUE)
 print(loo_basic)
 plot(loo_basic)
 plot(loo_basic,label_points=TRUE)

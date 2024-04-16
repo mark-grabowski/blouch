@@ -21,6 +21,10 @@ reg.direct.ve.prior.post.emp.plot.code(
 \item{beta.prior}{Prior mean and scale parameter for half-life}
 
 \item{post}{Posterior distribution in stanfit class}
+
+\item{optima}{True optima}
+
+\item{beta}{True beta}
 }
 \value{
 Plots in ggplot2 format

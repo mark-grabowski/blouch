@@ -103,7 +103,7 @@ sim.reg.direct.mlm.ve.data<-function(phy,N,Z_direct,hl,vy,Sxx,optima.bar,optima.
 #' @return Merged phylogeny and data in treeplyr format
 #' @export
 #'
-sim.reg.adapt.mlm.ve.data<-function(phy,N,Z_adaptive,hl,vy,Sxx,optima.bar,optima.sigma,beta.bar,beta.sigma,rho,shifts){
+sim.reg.adapt.mlm.ve.data<-function(phy,N,Z_adaptive,hl,vy,Sxx,optima.bar,optima.sd,beta.bar,beta.sd,rho,shifts){
   #Code to plot regimes
   set.seed(10)
   N.regimes<-length(shifts)+1
@@ -137,7 +137,7 @@ sim.reg.adapt.mlm.ve.data<-function(phy,N,Z_adaptive,hl,vy,Sxx,optima.bar,optima
   ###############################################################################################################################################################################
   #MLM Code
   mlm.mu<-c(optima.bar,beta.bar) #Vector of means
-  sigmas<-c(optima.sigma,beta.sigma) #Variance of intercepts and slopes
+  sigmas<-c(optima.sd,beta.sd) #Variance of intercepts and slopes
 
   Rho<-matrix(c(1,rho,rho,1),nrow=2) #Correlation matrix
   Sigma<-diag(sigmas)%*%Rho%*%diag(sigmas) #Covariance matrix - variance of intercepts and slopes, covariance of intercepts and slopes
@@ -147,9 +147,8 @@ sim.reg.adapt.mlm.ve.data<-function(phy,N,Z_adaptive,hl,vy,Sxx,optima.bar,optima
   plot(optima.mlm,beta.mlm)
   vary.effects<-data.frame(Regimes=paste("OU",1:N.regimes,sep=""),Intercept=vary.effects[,1],Slope=vary.effects[,2])
   #Plot
-  library(ellipse)
   for ( l in c(0.1,0.3,0.5,0.8,0.99)){
-    lines(ellipse(Sigma,centre=mlm.mu,level=l))}
+    lines(ellipse::ellipse(Sigma,centre=mlm.mu,level=l))}
 
   ##################################################################################################################
   a<-log(2)/hl

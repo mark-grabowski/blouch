@@ -299,7 +299,7 @@ sim.direct.adaptive.data<-function(phy,N,Z_direct,Z_adaptive,hl,vy,Sxx,optima,be
 #' @return Merged phylogeny and data in treeplyr format
 #' @export
 #'
-sim.reg.data<-function(phy,N,hl,vy,Sxx,optima,shits){
+sim.reg.data<-function(phy,N,hl,vy,Sxx,optima,shifts){
   set.seed(10)
   trdata<-data.frame(phy$tip.label)
   trdata<-treeplyr::make.treedata(phy,trdata)

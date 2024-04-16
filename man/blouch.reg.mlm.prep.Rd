@@ -31,8 +31,6 @@ blouch.reg.mlm.prep(
 \item{optima.prior}{Vector containing mu and standard error for optima prior}
 
 \item{sigma.prior}{Numeric with prior for scale of sigma}
-
-\item{anc_maps}{Vector containing name of regime type - at nodes "regimes" or SIMMAP}
 }
 \value{
 dat - list file containing objecs setup for Blouch
