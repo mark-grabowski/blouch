@@ -16,14 +16,11 @@ Depends:
 Imports: 
     geiger,
     methods,
-    parallel,
     Rcpp (>= 0.12.0),
     RcppParallel (>= 5.0.1),
     rstan (>= 2.18.1),
     rstantools (>= 2.3.1.1),
     StanHeaders,
-    stats,
-    utils
 LinkingTo: 
     BH (>= 1.66.0),
     Rcpp (>= 0.12.0),
@@ -42,15 +39,20 @@ Suggests:
     ggplot2,
     ggpubr,
     ggsci,
+    graphics,
+    grDevices,
     gridExtra,
     knitr,
     loo,
     MASS,
+    parallel,
     phytools,
     rethinking (>= 2.40),
     cmdstanr,
     rmarkdown,
-    treeplyr (>= 0.1.11)
+    stats,
+    treeplyr (>= 0.1.11),
+    utils
 VignetteBuilder: knitr
 LazyData: true
 URL: https://mark-grabowski.github.io/blouch/

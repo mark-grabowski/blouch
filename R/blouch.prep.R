@@ -134,6 +134,7 @@ lineage.nodes <- function(phy, x){ #Given a certain node, return the list of all
 }
 
 #' lineage.constructor function - Construct a list with variables based on regime timing and placement
+#' @importFrom utils head tail
 #' @param phy phylogeny in NEXUS format
 #' @param e Lineage number
 #' @param anc_maps Vector with name of regime placement type
@@ -217,10 +218,10 @@ lineage.constructor <- function(phy, e, anc_maps="regimes", regimes){ #Revised 2
   #[1] 1 1 1 1
   #$OU2
   #[1] 0 0 0 0
-  t_end <- tail(timeflip, n = -1) #Remove first element - tip value
+  t_end <- utils::tail(timeflip, n = -1) #Remove first element - tip value
   #[1] 0.0000000 0.5205264 0.8593693 1.0000000 - original
   #[1] 0.5205264 0.8593693 1.0000000 -
-  t_beginning <- head(timeflip, n = -1) #Remove last element - root value
+  t_beginning <- utils::head(timeflip, n = -1) #Remove last element - root value
   #[1] 0.0000000 0.5205264 0.8593693
   regime_time <- c(t_end - t_beginning, min_age) #Calculate time within a regime?
   #Sum(time at end of linege - time at beginning of lineage)
@@ -476,7 +477,7 @@ blouch.reg.prep<-function(trdata,Y,Y_error,reg.column,hl.prior,vy.prior,optima.p
 
     reg_tips<-dat[reg.column][,1]
     reg_tips<-as.numeric(as.factor(reg_tips))
-    Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+    Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
     ############################################################################################################
     #print(as.vector(t(dat[Y_error])))
@@ -551,7 +552,7 @@ blouch.reg.mlm.prep<-function(trdata,Y,Y_error,reg.column,hl.prior,vy.prior,opti
 
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   ############################################################################################################
   #print(as.vector(t(dat[Y_error])))
@@ -630,7 +631,7 @@ blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column,
   ############################################################################################################
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_direct=Z_direct,Z_X_error=Z_direct,max_node_num=max_node_num,
             Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),#,nrow=N,ncol=Z_direct),
@@ -642,7 +643,6 @@ blouch.reg.direct.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.column,
   return(dat)
 }
 #' blouch.reg.direct.mlm.prep - Setup dat file to run Multilevel Multi-Optima direct effect model
-#'
 #' @param trdata An object of the class treedata from function treeplyr
 #' @param Y Vector containing name of column in treedata containing response variable
 #' @param Y_error Vector containing name of column in treedata containing error of response variable
@@ -710,7 +710,7 @@ blouch.reg.direct.mlm.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,reg.col
   ############################################################################################################
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_direct=Z_direct,Z_X_error=Z_direct,max_node_num=max_node_num,
             Y_obs=as.vector(t(dat[Y])),X_obs=data.matrix(dat[X]),#,nrow=N,ncol=Z_direct),
@@ -791,7 +791,7 @@ blouch.reg.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.column
 
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_adaptive=Z_adaptive,Z_X_error=Z_adaptive,
             max_node_num=max_node_num,
@@ -876,7 +876,7 @@ blouch.reg.adapt.mlm.prep<-function(trdata,Y,Y_error,X,X_error,Z_adaptive,reg.co
 
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
 
   dat<-list(N=N,n_reg=length(unique(regimes)),Z_adaptive=Z_adaptive,Z_X_error=Z_adaptive,
             max_node_num=max_node_num,
@@ -957,7 +957,7 @@ blouch.reg.direct.adapt.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z_ada
   Z_X_error<-length(X_error) #Number of X traits with error
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
   ############################################################################################################
 
   datX<-as.matrix(dat[X])
@@ -1055,7 +1055,7 @@ blouch.reg.direct.adapt.mlm.prep<-function(trdata,Y,Y_error,X,X_error,Z_direct,Z
   Z_X_error<-length(X_error) #Number of X traits with error
   reg_tips<-dat[reg.column][,1]
   reg_tips<-as.numeric(as.factor(reg_tips))
-  Dmat<-cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
+  Dmat<-stats::cophenetic(trdata$phy) #Time separating tips, same as tij matrix in Slouch/Blouch code
   ############################################################################################################
 
   datX<-as.matrix(dat[X])

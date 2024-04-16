@@ -1,4 +1,5 @@
 #' sim.reg.direct.mlm.ve.data- Simulate Multilevel Multi-Optima Direct Effect Data - Varying Effects
+#' @importFrom graphics lines
 #' @param phy An object of the class "phylo"
 #' @param N Number of tips on tree
 #' @param Z_direct Number of Direct Effect X traits
@@ -37,9 +38,8 @@ sim.reg.direct.mlm.ve.data<-function(phy,N,Z_direct,hl,vy,Sxx,optima.bar,optima.
   beta.mlm<-vary.effects[,2] #Simulate betas for each regime
   plot(optima.mlm,beta.mlm)
   vary.effects<-data.frame(Regimes=paste("OU",1:N.regimes,sep=""),Intercept=vary.effects[,1],Slope=vary.effects[,2])
-  library(ellipse)
   for ( l in c(0.1,0.3,0.5,0.8,0.99)){
-    lines(ellipse(Sigma,centre=mlm.mu,level=l))}
+    graphics::lines(ellipse::ellipse(Sigma,centre=mlm.mu,level=l))}
 
   reg_tips<-trdata$dat$regimes
   reg_tips<-as.numeric(as.factor(reg_tips))
@@ -88,6 +88,7 @@ sim.reg.direct.mlm.ve.data<-function(phy,N,Z_direct,hl,vy,Sxx,optima.bar,optima.
 
 }
 #' sim.reg.adapt.mlm.ve.data- Simulate Multilevel Multi-Optima Adaptive Model Data - Varying Effects
+#' @importFrom graphics lines
 #' @param phy An object of the class "phylo"
 #' @param N Number of tips on tree
 #' @param Z_adaptive Number of Adaptive X traits
@@ -148,7 +149,7 @@ sim.reg.adapt.mlm.ve.data<-function(phy,N,Z_adaptive,hl,vy,Sxx,optima.bar,optima
   vary.effects<-data.frame(Regimes=paste("OU",1:N.regimes,sep=""),Intercept=vary.effects[,1],Slope=vary.effects[,2])
   #Plot
   for ( l in c(0.1,0.3,0.5,0.8,0.99)){
-    lines(ellipse::ellipse(Sigma,centre=mlm.mu,level=l))}
+    graphics::lines(ellipse::ellipse(Sigma,centre=mlm.mu,level=l))}
 
   ##################################################################################################################
   a<-log(2)/hl

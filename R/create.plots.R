@@ -42,7 +42,7 @@ ysim.ppc.plot.code<-function(dat,post,row.nums){
 #' @export
 #'
 hl.prior.plot.code<-function(hl.prior){
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
   names(hl.sims)<-"prior.hl.sims"
   hl.prior.plot<-ggplot2::ggplot()+
     ggplot2::geom_density(ggplot2::aes(prior.hl.sims,fill="prior.hl.sims"),alpha=0.2,data=hl.sims)+
@@ -58,6 +58,7 @@ hl.prior.plot.code<-function(hl.prior){
 #' hl.prior.plot.code- Create Prior vs Posterior Plot for Half-life Prior Distribution for Simulated Dataset
 #'
 #' @param hl.prior  Prior log mean and log sd for half-life
+#' @importFrom grDevices hcl palette
 #' @param post  Posterior distribution of stanfit class
 #' @param hl True half-life value
 #' @return Plots in ggplot2 format
@@ -65,9 +66,9 @@ hl.prior.plot.code<-function(hl.prior){
 #'
 hl.prior.post.plot.code<-function(hl.prior,post,hl){
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
-  mypal[2]<-palette()[1]
+  mypal[2]<-grDevices::palette()[1]
 
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
   names(hl.sims)<-"prior.hl.sims"
   hl.post<-data.frame(post$hl)
   names(hl.post)<-"post.hl.sims"
@@ -86,7 +87,7 @@ hl.prior.post.plot.code<-function(hl.prior,post,hl){
   return(hl.prior.plot)
 }
 #' hl.prior.post.emp.plot.code- Create Prior vs. Posterior Plot for Half-life Prior Distribution for Empirical Dataset
-#'
+#' @importFrom grDevices hcl palette
 #' @param hl.prior  Prior log mean and log sd for half-life
 #' @param post  Posterior distribution of stanfit class
 #' @return Plots in ggplot2 format
@@ -94,8 +95,8 @@ hl.prior.post.plot.code<-function(hl.prior,post,hl){
 #
 hl.prior.post.emp.plot.code<-function(hl.prior,post){
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
-  mypal[2]<-palette()[1]
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  mypal[2]<-grDevices::palette()[1]
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
   names(hl.sims)<-"prior.hl.sims"
   hl.post<-data.frame(post$hl)
   names(hl.post)<-"post.hl.sims"
@@ -120,7 +121,7 @@ hl.prior.post.emp.plot.code<-function(hl.prior,post){
 #' @export
 #'
 vy.prior.plot.code<-function(vy.prior){
-  vy.sims<-rexp(n=1000,rate=vy.prior)
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
   vy.sims<-data.frame(vy.sims)
   names(vy.sims)<-"prior.vy.sims"
   vy.prior.plot<-ggplot2::ggplot()+
@@ -135,7 +136,7 @@ vy.prior.plot.code<-function(vy.prior){
   return(vy.prior.plot)
 }
 #' vy.prior.post.plot.code- Create Prior vs. Posterior Plot for Vy
-#'
+#' @importFrom grDevices hcl palette
 #' @param vy.prior  Prior scale parameter
 #' @param post  Posterior distribution of stanfit class
 #' @param vy True Vy
@@ -144,8 +145,8 @@ vy.prior.plot.code<-function(vy.prior){
 #'
 vy.prior.post.plot.code<-function(vy.prior,post,vy){
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
-  mypal[2]<-palette()[1]
-  vy.sims<-rexp(n=1000,rate=vy.prior)
+  mypal[2]<-grDevices::palette()[1]
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
   vy.sims<-data.frame(vy.sims)
   names(vy.sims)<-"prior.vy.sims"
   vy.post<-data.frame(post$vy)
@@ -164,7 +165,7 @@ vy.prior.post.plot.code<-function(vy.prior,post,vy){
   return(vy.prior.post.plot)
 }
 #' vy.prior.post.emp.plot.code- Create Prior vs. Posterior Plot for Vy for Empirical Dataset
-#'
+#' @importFrom grDevices hcl palette
 #' @param vy.prior  Prior log mean and log sd for half-life
 #' @param post  Posterior distribution of stanfit class
 #' @return Plots in ggplot2 format
@@ -172,8 +173,8 @@ vy.prior.post.plot.code<-function(vy.prior,post,vy){
 #'
 vy.prior.post.emp.plot.code<-function(vy.prior,post){
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
-  mypal[2]<-palette()[1]
-  vy.sims<-rexp(n=1000,rate=vy.prior)
+  mypal[2]<-grDevices::palette()[1]
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
   vy.sims<-data.frame(vy.sims)
   names(vy.sims)<-"prior.vy.sims"
   vy.post<-data.frame(post$vy)
@@ -192,13 +193,13 @@ vy.prior.post.emp.plot.code<-function(vy.prior,post){
 }
 
 #' sigma.prior.plot.code- Create Prior vs. Posterior Plot for Sigma
-#'
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param sigma.prior  Prior for mean and sd parameters of sigma
 #' @return Plots in ggplot2 format
 #' @export
 #'
 sig.prior.plot.code<-function(sigma.prior){
-  sigma.sims<-data.frame(abs(rnorm(n=1000,mean=sigma.prior[1],sd=sigma.prior[2])))
+  sigma.sims<-data.frame(abs(stats::rnorm(n=1000,mean=sigma.prior[1],sd=sigma.prior[2])))
   names(sigma.sims)<-"prior.sigma.sims"
   sigma.prior.plot<-ggplot2::ggplot()+
     ggplot2::geom_density(ggplot2::aes(prior.sigma.sims,fill="prior.sigma.sims"),alpha=0.2,data=sigma.sims)+
@@ -218,7 +219,6 @@ sig.prior.plot.code<-function(sigma.prior){
 #' @export
 #'
 sig.prior.post.plot.code<-function(sigma.prior,post){
-  sigma.sims<-data.frame(abs(rnorm(n=1000,mean=sigma.prior[1],sd=sigma.prior[2])))
   names(sigma.sims)<-"prior.sigma.sims"
   sigma.post<-data.frame(post$sigma)
   names(sigma.post)<-c("post.sigma.optima","post.sigma.beta")
@@ -243,8 +243,8 @@ sig.prior.post.plot.code<-function(sigma.prior,post){
 #' @export
 #'
 covariance.prior.direct.plot.code<-function(hl.prior,vy.prior){
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
-  vy.sims<-rexp(n=1000,rate=vy.prior)
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
   a.sims<-log(2)/hl.sims
   sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims))
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
@@ -272,8 +272,8 @@ covariance.prior.direct.plot.code<-function(hl.prior,vy.prior){
 #' @export
 #'
 covariance.prior.post.direct.plot.code<-function(hl.prior,vy.prior,post){
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
-  vy.sims<-rexp(n=1000,rate=vy.prior)
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
   a.sims<-log(2)/hl.sims
   sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims))
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
@@ -296,7 +296,7 @@ covariance.prior.post.direct.plot.code<-function(hl.prior,vy.prior,post){
   return(p)
 }
 #' covariance.prior.adapt.plot.code- Create Prior Covariance Plot for Adaptive Model
-#'
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param hl.prior  Prior mean and scale parameter for Half-life
 #' @param vy.prior Prior scale parameter for Vy
 #' @param beta.prior Prior mean and scale parameter for beta/slope
@@ -304,9 +304,9 @@ covariance.prior.post.direct.plot.code<-function(hl.prior,vy.prior,post){
 #' @export
 #'
 covariance.prior.adapt.plot.code<-function(hl.prior,vy.prior,beta.prior){
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
-  vy.sims<-rexp(n=1000,rate=vy.prior)
-  beta.sims<-data.frame(rnorm(n=1000,beta.prior[1],beta.prior[2]))
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
+  beta.sims<-data.frame(stats::rnorm(n=1000,beta.prior[1],beta.prior[2]))
   a.sims<-log(2)/hl.sims
   sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims))
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
@@ -328,7 +328,7 @@ covariance.prior.adapt.plot.code<-function(hl.prior,vy.prior,beta.prior){
   return(p)
 }
 #' covariance.prior.post.adapt.plot.code- Create Prior vs. Posterior Covariance Plot for Adaptive Model
-#'
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param hl.prior  Prior mean and scale parameter for Half-life
 #' @param vy.prior Prior scale parameter for Vy
 #' @param beta.prior Prior mean and scale parameter for beta/slope
@@ -337,9 +337,9 @@ covariance.prior.adapt.plot.code<-function(hl.prior,vy.prior,beta.prior){
 #' @export
 #'
 covariance.prior.post.adapt.plot.code<-function(hl.prior,vy.prior,beta.prior,post){
-  hl.sims<-data.frame(rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
-  vy.sims<-rexp(n=1000,rate=vy.prior)
-  beta.sims<-data.frame(rnorm(n=1000,beta.prior[1],beta.prior[2]))
+  hl.sims<-data.frame(stats::rlnorm(n=1000,meanlog=hl.prior[1],sdlog=hl.prior[2]))
+  vy.sims<-stats::rexp(n=1000,rate=vy.prior)
+  beta.sims<-data.frame(stats::rnorm(n=1000,beta.prior[1],beta.prior[2]))
   a.sims<-log(2)/hl.sims
   sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims))
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
@@ -367,6 +367,7 @@ covariance.prior.post.adapt.plot.code<-function(hl.prior,vy.prior,beta.prior,pos
 }
 ############################################################################################################
 #' direct.prior.plot.code- Create Prior Plot for Direct Effect Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -374,8 +375,8 @@ covariance.prior.post.adapt.plot.code<-function(hl.prior,vy.prior,beta.prior,pos
 #' @export
 #'
 direct.prior.plot.code<-function(trdata,optima.prior,beta.prior){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   prior.slope.plot<-ggplot2::ggplot()+
     ggplot2:: geom_point(data=as.data.frame(trdata$dat),ggplot2::aes(y=Y_with_error,x=X_with_error))+
     ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
@@ -390,6 +391,7 @@ direct.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 }
 ############################################################################################################
 #' direct.prior.plot.code- Create Prior vs. Posterior Plot for Direct Effect Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -400,8 +402,8 @@ direct.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 #' @export
 #'
 direct.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
 
   optima.post<-data.frame(post$optima)
@@ -440,6 +442,7 @@ direct.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima
   return(prior.post.slope.plot)
 }
 #' adapt.prior.plot.code- Create Prior Plot for Adaptive Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -447,8 +450,8 @@ direct.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima
 #' @export
 #'
 adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   prior.slope.plot<-ggplot2::ggplot()+
     ggplot2:: geom_point(data=as.data.frame(trdata$dat),ggplot2::aes(y=Y_with_error,x=X_with_error))+
     ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
@@ -462,6 +465,7 @@ adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
   return(prior.slope.plot)
 }
 #' adapt.prior.post.plot.code- Create Prior vs. Posterior Plot for Adaptive Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -472,8 +476,8 @@ adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 #' @export
 #'
 adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
 
   optima.post<-data.frame(post$optima)
@@ -511,13 +515,14 @@ adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,
   return(prior.post.slope.plot)
 }
 #' optima.prior.plot.code- Create Prior Plot for Multi-Optima Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @return Plots in ggplot2 format
 #' @export
 #'
 optima.prior.plot.code<-function(trdata,optima.prior){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
   optima.sims<-data.frame(optima.sims,Prior="Prior")
   df<-data.frame(Y=trdata$dat$Y_with_error,regimes=trdata$dat$regimes)
   names(df)<-c("Y","Regimes")
@@ -535,6 +540,7 @@ optima.prior.plot.code<-function(trdata,optima.prior){
   return(optima.prior.plot)
 }
 #' optima.prior.post.plot.code- Create Prior Plot for Multi-Optima Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param post Posterior distribution in stanfit class
@@ -543,7 +549,7 @@ optima.prior.plot.code<-function(trdata,optima.prior){
 #' @export
 #'
 optima.prior.post.plot.code<-function(trdata,optima.prior,post,optima){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
   optima.sims<-data.frame(optima.sims,Prior="Prior")
   optima.post<-data.frame(post$optima)
   names(optima.post)<-c(paste("OU",1:dim(optima.post)[2],sep=""))
@@ -582,6 +588,7 @@ optima.prior.post.plot.code<-function(trdata,optima.prior,post,optima){
   return(optima.prior.post.plot)
 }
 #' direct.adapt.prior.plot.code- Create Prior Plot for Direct Effect + Adaptive Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -589,8 +596,8 @@ optima.prior.post.plot.code<-function(trdata,optima.prior,post,optima){
 #' @export
 #'
 direct.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   prior.slope.plot.1<-ggplot2::ggplot()+
     ggplot2:: geom_point(data=as.data.frame(trdata$dat),ggplot2::aes(y=Y_with_error,x=Xd))+
     ggplot2::geom_abline(intercept=optima.sims,slope=beta.sims,alpha=0.15)+
@@ -612,6 +619,7 @@ direct.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
   return(list(prior.slope.plot.1,prior.slope.plot.2))
 }
 #' direct.adapt.prior.post.plot.code- Create Prior vs. Posterior Plot for Direct Effect + Adaptive Model - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -622,8 +630,8 @@ direct.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 #' @export
 #'
 direct.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
   optima.post<-data.frame(post$optima)
   names(optima.post)<-"post.optima"
@@ -688,6 +696,7 @@ direct.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,
   return(list(slope.plot.1,slope.plot.2))
 }
 #' reg.direct.prior.plot.code- Create Prior Plot for Multi-Optima Direct Effect Model - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -696,8 +705,8 @@ direct.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,
 #'
 reg.direct.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   df<-data.frame(Y=trdata$dat$Y_with_error,X=trdata$dat$X_with_error)
 
@@ -716,6 +725,7 @@ reg.direct.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 
 }
 #' reg.adapt.prior.plot.code- Create Prior Plot for Multi-Optima Adaptive Model - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -724,8 +734,8 @@ reg.direct.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 #'
 reg.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   df<-data.frame(Y=trdata$dat$Y_with_error,X=trdata$dat$X_with_error)
 
@@ -745,6 +755,7 @@ reg.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 
 }
 #' reg.direct.adapt.prior.plot.code- Create Prior Plot for Multi-Optima Direct Effect + Adaptive Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -753,8 +764,8 @@ reg.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 #'
 reg.direct.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   df<-data.frame(Y=trdata$dat$Y_with_error,Xd=trdata$dat$Xd,Xa=trdata$dat$Xa)
 
@@ -790,6 +801,7 @@ reg.direct.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 
 }
 #' reg.direct.prior.post.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Direct Effect Model - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -801,8 +813,8 @@ reg.direct.adapt.prior.plot.code<-function(trdata,optima.prior,beta.prior){
 #'
 reg.direct.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
 
@@ -859,6 +871,7 @@ reg.direct.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,op
 
 }
 #' reg.direct.prior.post.emp.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Direct Effect Model
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -868,8 +881,8 @@ reg.direct.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,op
 #'
 reg.direct.prior.post.emp.plot.code<-function(trdata,optima.prior,beta.prior,post){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
 
@@ -922,6 +935,7 @@ reg.direct.prior.post.emp.plot.code<-function(trdata,optima.prior,beta.prior,pos
 
 }
 #' reg.adapt.prior.post.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Adaptive Model - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -933,8 +947,8 @@ reg.direct.prior.post.emp.plot.code<-function(trdata,optima.prior,beta.prior,pos
 #'
 reg.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
 
@@ -991,6 +1005,7 @@ reg.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,opt
 
 }
 #' reg.direct.adapt.prior.post.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Direct Effect + Adaptive Model - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1001,8 +1016,8 @@ reg.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,opt
 #' @export
 #'
 reg.direct.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
   optima.post<-post$optima
 
   beta.post.1<-data.frame(post$beta[,1])
@@ -1103,6 +1118,7 @@ reg.direct.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,p
 
 }
 #' reg.direct.ve.prior.post.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Direct Effect Model - Varying Effects - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1114,8 +1130,8 @@ reg.direct.adapt.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,p
 #'
 reg.direct.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
   beta.post<-data.frame(post$beta)
@@ -1178,6 +1194,7 @@ reg.direct.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post
   return(slope.plot.1)
 }
 #' reg.direct.ve.prior.post.emp.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Direct Effect Model - Varying Effects
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1190,8 +1207,8 @@ reg.direct.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post
 reg.direct.ve.prior.post.emp.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
   mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
   beta.post<-data.frame(post$beta)
@@ -1252,6 +1269,7 @@ reg.direct.ve.prior.post.emp.plot.code<-function(trdata,optima.prior,beta.prior,
   return(slope.plot.1)
 }
 #' reg.adapt.ve.prior.post.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Adaptive Model - Varying Effects - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1263,8 +1281,8 @@ reg.direct.ve.prior.post.emp.plot.code<-function(trdata,optima.prior,beta.prior,
 #'
 reg.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
   beta.post<-data.frame(post$beta)
@@ -1327,6 +1345,7 @@ reg.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,
   return(slope.plot.1)
 }
 #' reg.direct.adapt.ve.prior.post.plot.code- Create Prior vs. Posterior Plot for Multi-Optima Direct Effect + Adaptive Model - Varying Effects - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1338,8 +1357,8 @@ reg.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,
 #'
 reg.direct.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,optima,beta){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
   beta.post<-data.frame(post$beta)
@@ -1450,6 +1469,7 @@ reg.direct.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prio
   return(list(slope.plot.1,slope.plot.2))
 }
 #' reg.direct.mlm.ve.prior.post.plot.code- Create Prior vs. Posterior Plot for Multilevel Multi-Optima Direct Effect Model - Varying Effects - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1460,8 +1480,8 @@ reg.direct.adapt.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prio
 #'
 reg.direct.mlm.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,vary.effects){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
   beta.post<-data.frame(post$beta)
@@ -1516,6 +1536,7 @@ reg.direct.mlm.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,
   return(sp1)
 }
 #' reg.adapt.mlm.ve.prior.post.plot.code- Create Prior vs. Posterior Plot for Multilevel Multi-Optima Adaptive Model - Varying Effects - Simulated Data
+#' @importFrom stats cophenetic lm rexp rlnorm rnorm
 #' @param trdata Phylogeny and data in treeplyr format
 #' @param optima.prior  Prior mean and scale parameter for optima
 #' @param beta.prior Prior mean and scale parameter for half-life
@@ -1526,8 +1547,8 @@ reg.direct.mlm.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,
 #'
 reg.adapt.mlm.ve.prior.post.plot.code<-function(trdata,optima.prior,beta.prior,post,vary.effects){
 
-  optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
-  beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])
+  optima.sims<-stats::rnorm(100,optima.prior[1],optima.prior[2])
+  beta.sims<-stats::rnorm(n=100,beta.prior[1],beta.prior[2])
 
   optima.post<-post$optima
   beta.post<-data.frame(post$beta)

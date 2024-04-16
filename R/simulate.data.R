@@ -289,6 +289,7 @@ sim.direct.adaptive.data<-function(phy,N,Z_direct,Z_adaptive,hl,vy,Sxx,optima,be
 ##################################################################################################################
 ##################################################################################################################
 #' sim.reg.data- Simulate Multi-Optima Data
+#' @importFrom grDevices hcl palette
 #' @param phy An object of the class "phylo"
 #' @param N Number of tips on tree
 #' @param hl True half-life value
@@ -312,7 +313,7 @@ sim.reg.data<-function(phy,N,hl,vy,Sxx,optima,shifts){
   #Get ggplot colors used for plot to make on tree
   gg_color_hue <- function(n) {
     hues = seq(15, 375, length=n+1)
-    hcl(h=hues, l=65, c=100)[1:n]
+    grDevices::hcl(h=hues, l=65, c=100)[1:n]
   }
 
   #reg.colors<-gg_color_hue(length(unique(trdata$dat$regimes)))
