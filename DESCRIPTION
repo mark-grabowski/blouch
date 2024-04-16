@@ -14,13 +14,16 @@ Biarch: true
 Depends: 
     R (>= 3.4.0)
 Imports: 
+    cmdstanr (>= 0.7.1),
     geiger,
     methods,
     Rcpp (>= 0.12.0),
     RcppParallel (>= 5.0.1),
+    rethinking (>= 2.40),
     rstan (>= 2.18.1),
     rstantools (>= 2.3.1.1),
     StanHeaders,
+    treeplyr (>= 0.1.11)
 LinkingTo: 
     BH (>= 1.66.0),
     Rcpp (>= 0.12.0),
@@ -47,11 +50,8 @@ Suggests:
     MASS,
     parallel,
     phytools,
-    rethinking (>= 2.40),
-    cmdstanr,
     rmarkdown,
     stats,
-    treeplyr (>= 0.1.11),
     utils
 VignetteBuilder: knitr
 LazyData: true
