@@ -4,6 +4,9 @@
     <loc>https://mark-grabowski.github.io/blouch/404.html</loc>
   </url>
   <url>
+    <loc>https://mark-grabowski.github.io/blouch/LICENSE.html</loc>
+  </url>
+  <url>
     <loc>https://mark-grabowski.github.io/blouch/articles/Basic_Models-Examples.html</loc>
   </url>
   <url>
@@ -26,6 +29,9 @@
   </url>
   <url>
     <loc>https://mark-grabowski.github.io/blouch/index.html</loc>
+  </url>
+  <url>
+    <loc>https://mark-grabowski.github.io/blouch/news/index.html</loc>
   </url>
   <url>
     <loc>https://mark-grabowski.github.io/blouch/reference/adapt.prior.plot.code.html</loc>
@@ -190,10 +196,10 @@
     <loc>https://mark-grabowski.github.io/blouch/reference/set.converge.regimes.html</loc>
   </url>
   <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sigma.prior.plot.code.html</loc>
+    <loc>https://mark-grabowski.github.io/blouch/reference/sig.prior.plot.code.html</loc>
   </url>
   <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sigma.prior.post.plot.code.html</loc>
+    <loc>https://mark-grabowski.github.io/blouch/reference/sig.prior.post.plot.code.html</loc>
   </url>
   <url>
     <loc>https://mark-grabowski.github.io/blouch/reference/sim.adaptive.data.html</loc>
