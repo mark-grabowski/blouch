@@ -29,9 +29,9 @@ other articles are abbreviated versions of this example showing the
 various models implemented by *Blouch* - most of the steps of a
 preliminary analysis will be the same.
 
-*Blouch* is based on an article currently in review:
+*Blouch* is based on an article:
 
-- Grabowski, M (in revision). *Blouch*: Bayesian Linear
+- Grabowski, M (in press). *Blouch*: Bayesian Linear
   Ornstein-Uhlenbeck models for Comparative Hypotheses
 
 ## Instalation Instructions
