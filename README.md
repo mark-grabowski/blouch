@@ -2,8 +2,8 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # *Blouch*
-[![Downloads](https://github.com/mark-grabowski/blouch)](https://github.com/mark-grabowski/blouch)
 <!-- badges: start -->
+[![Downloads](https://static.pepy.tech/badge/video2tfrecord)](https://pepy.tech/project/video2tfrecord)
 <!-- badges: end -->
 
 *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative
