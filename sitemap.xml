@@ -1,273 +1,93 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/404.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/articles/Basic_Models-Examples.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/articles/Empirical-Example.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/articles/Multi-optima_Models-Examples.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/articles/Simulation-Example.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/articles/Varying_Effects_Models-Examples.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/adapt.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/adapt.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/antler.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch-package.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.adapt.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.direct.adapt.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.direct.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.adapt.mlm.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.adapt.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.adapt.mlm.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.adapt.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.mlm.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.mlm.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.prep.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/calc_adaptive_V.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/calc_adaptive_cov_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/calc_adaptive_dmX.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/calc_direct_V.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/calc_mixed_dmX.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/calc_multiadaptive_cov_plot.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/cervidae.tree.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/concat.factor.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.adapt.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.direct.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.post.adapt.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.post.direct.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/direct.adapt.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/direct.adapt.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/direct.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/direct.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/hl.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/hl.prior.post.emp.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/hl.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/lineage.constructor.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/lineage.nodes.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/optima.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/optima.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/parent.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.mlm.ve.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.ve.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.adapt.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.adapt.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.adapt.ve.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.mlm.ve.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.prior.post.emp.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.ve.prior.post.emp.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.ve.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/set.converge.regimes.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sig.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sig.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.adaptive.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.adaptive.multi.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.direct.adaptive.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.direct.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.direct.multi.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.adapt.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.adapt.mlm.ve.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.adapt.ve.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.adapt.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.adapt.ve.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.mlm.ve.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.ve.data.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/tree.10K.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/ts_fxn.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/vy.prior.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/vy.prior.post.emp.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/vy.prior.post.plot.code.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/weight.matrix.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/weights_regimes.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/weights_segments.html</loc>
-  </url>
-  <url>
-    <loc>https://mark-grabowski.github.io/blouch/reference/ysim.ppc.plot.code.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://mark-grabowski.github.io/blouch/404.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/LICENSE.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/articles/Basic_Models-Examples.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/articles/Empirical-Example.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/articles/Multi-optima_Models-Examples.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/articles/Simulation-Example.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/articles/Varying_Effects_Models-Examples.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/articles/index.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/authors.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/index.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/news/index.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/adapt.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/adapt.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/antler.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch-package.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.adapt.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.direct.adapt.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.direct.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.adapt.mlm.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.adapt.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.adapt.mlm.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.adapt.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.mlm.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.direct.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.mlm.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/blouch.reg.prep.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/calc_adaptive_V.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/calc_adaptive_cov_plot.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/calc_adaptive_dmX.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/calc_direct_V.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/calc_mixed_dmX.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/calc_multiadaptive_cov_plot.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/cervidae.tree.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/concat.factor.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.adapt.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.direct.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.post.adapt.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/covariance.prior.post.direct.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/direct.adapt.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/direct.adapt.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/direct.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/direct.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/hl.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/hl.prior.post.emp.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/hl.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/index.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/lineage.constructor.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/lineage.nodes.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/optima.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/optima.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/parent.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.mlm.ve.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.adapt.ve.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.adapt.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.adapt.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.adapt.ve.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.mlm.ve.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.prior.post.emp.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.ve.prior.post.emp.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/reg.direct.ve.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/set.converge.regimes.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sig.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sig.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.adaptive.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.adaptive.multi.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.direct.adaptive.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.direct.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.direct.multi.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.adapt.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.adapt.mlm.ve.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.adapt.ve.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.adapt.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.adapt.ve.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.mlm.ve.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/sim.reg.direct.ve.data.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/tree.10K.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/ts_fxn.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/vy.prior.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/vy.prior.post.emp.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/vy.prior.post.plot.code.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/weight.matrix.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/weights_regimes.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/weights_segments.html</loc></url>
+<url><loc>https://mark-grabowski.github.io/blouch/reference/ysim.ppc.plot.code.html</loc></url>
 </urlset>
+

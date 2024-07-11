@@ -5,30 +5,24 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="blouch">
 <title>Varying Effects and Multilevel Models Walkthrough • blouch</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Varying Effects and Multilevel Models Walkthrough">
-<meta property="og:description" content="blouch">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Varying Effects and Multilevel Models Walkthrough">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">blouch</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -36,38 +30,27 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (in revision)</a>
-    <a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (in revision)</a>
-    <a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic Models</a>
-    <a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-Optima Models</a>
-    <a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (in revision)</a></li>
+    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (in revision)</a></li>
+    <li><a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic Models</a></li>
+    <li><a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-Optima Models</a></li>
+    <li><a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/mark-grabowski/blouch">
-    <span class="fa fa-brands fa-github"></span>
-     
-    Github
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mark-grabowski/blouch"><span class="fa fa-brands fa-github"></span> Github</a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -76,13 +59,14 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Varying Effects and Multilevel Models Walkthrough</h1>
+
+      <h1>Varying Effects and Multilevel Models Walkthrough</h1>
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-06-20</h4>
+            <h4 data-toc-skip class="date">2024-07-11</h4>
       
-      
+
       <div class="d-none name"><code>Varying_Effects_Models-Examples.Rmd</code></div>
     </div>
 
@@ -159,9 +143,8 @@ Trees phylogeny</p>
 <span><span class="co">#&gt; [77] OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; [96] OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; Levels: OU1 OU2</span></span>
-<span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span>
+<span></span>
 <span></span>
 <span><span class="co">#Check if manual setting code worked</span></span>
 <span><span class="va">shifts.total</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span>,<span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">node.label</span><span class="op">)</span></span>
@@ -173,16 +156,15 @@ Trees phylogeny</p>
 <span><span class="co">#&gt; [58] OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2</span></span>
 <span><span class="co">#&gt; [77] OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; [96] OU1 OU1 OU1</span></span>
-<span><span class="co">#&gt; Levels: OU1 OU2</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; Levels: OU1 OU2</span></span>
+<span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">reg_tips</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">reg.colors</span><span class="op">&lt;-</span><span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_npg.html" class="external-link">pal_npg</a></span><span class="op">(</span>palette<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nrc"</span><span class="op">)</span>,alpha<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/MODEMVE_setup-2.png" width="700"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Phylogeny info</span></span>
 <span><span class="va">n</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">tip.label</span><span class="op">)</span></span>
@@ -195,7 +177,7 @@ Trees phylogeny</p>
 <span><span class="va">anc_maps</span><span class="op">&lt;-</span><span class="st">"regimes"</span></span>
 <span><span class="va">lineages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="../reference/lineage.constructor.html">lineage.constructor</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>, <span class="va">e</span>, <span class="va">anc_maps</span>, <span class="va">regimes</span><span class="op">)</span><span class="op">)</span> <span class="co">#Trace lineage from tips (n) to root and determine regimes of each node or branch</span></span></code></pre></div>
 <p>Simulate X and Y data</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#########################</span></span>
 <span><span class="va">hl</span><span class="op">&lt;-</span><span class="fl">0.1</span> <span class="co">#0.1, 0.25, 0.75 - testing options</span></span>
 <span><span class="va">a</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl</span></span>
@@ -212,7 +194,7 @@ Trees phylogeny</p>
 <span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/phenogram.html" class="external-link">phenogram</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">X</span>,spread.labels<span class="op">=</span><span class="cn">TRUE</span>,spread.cost<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co">#Plot X data</span></span>
 <span><span class="co">#&gt; Optimizing the positions of the tip labels...</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">dmX</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/weight.matrix.html">weight.matrix</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>, <span class="va">a</span>, <span class="va">lineages</span><span class="op">)</span> <span class="co">#Slouch approach</span></span>
 <span><span class="va">optima</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span></span>
@@ -231,7 +213,7 @@ Trees phylogeny</p>
 <span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">df</span>,<span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X</span>,y<span class="op">=</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-4-2.png" width="700"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">Y</span><span class="op">~</span><span class="va">X</span>,<span class="va">df</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -250,9 +232,8 @@ Trees phylogeny</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard error: 0.5228 on 48 degrees of freedom</span></span>
 <span><span class="co">#&gt; Multiple R-squared:  0.6973, Adjusted R-squared:  0.691 </span></span>
-<span><span class="co">#&gt; F-statistic: 110.6 on 1 and 48 DF,  p-value: 4.761e-14</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; F-statistic: 110.6 on 1 and 48 DF,  p-value: 4.761e-14</span></span>
+<span></span>
 <span><span class="co">################################################################################################################</span></span>
 <span><span class="co">#Simulate errors </span></span>
 <span><span class="va">Z_X_error</span><span class="op">&lt;-</span><span class="fl">1</span> <span class="co">#Number of X traits with error</span></span>
@@ -268,7 +249,7 @@ Trees phylogeny</p>
 model this includes the half-life, Vy, optima, and beta. For the latter
 two parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -281,9 +262,9 @@ priors.</p>
 </h2>
 <p>At this point one would want to explore if the priors are appropriate
 - do the prior distributions look consistent with what we know about our
-system? See Grabowski (in revision) for more on setting priors.</p>
+system? See Grabowski (in press) for more on setting priors.</p>
 <p>Half-life Prior plot</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hl.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">rlnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">1000</span>,meanlog<span class="op">=</span><span class="va">hl.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,sdlog<span class="op">=</span><span class="va">hl.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"prior.hl.sims"</span></span>
 <span></span>
@@ -304,7 +285,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span><span class="va">hl.prior.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>Vy Prior Plot</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vy.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">1000</span>,rate<span class="op">=</span><span class="va">vy.prior</span><span class="op">)</span></span>
 <span><span class="va">vy.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">vy.sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vy.sims</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"prior.vy.sims"</span></span>
@@ -327,7 +308,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span><span class="va">vy.prior.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>Prior on how shared branch lengths correspond to covariance</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span>;</span>
 <span><span class="va">sigma2_y.sims</span><span class="op">&lt;-</span><span class="va">vy.sims</span><span class="op">*</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">)</span>;</span>
 <span></span>
@@ -336,18 +317,17 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="va">sigma2_y.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">/</span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="va">x</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> , add<span class="op">=</span><span class="cn">TRUE</span> , lwd<span class="op">=</span><span class="fl">4</span> , col<span class="op">=</span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/col.alpha.html" class="external-link">col.alpha</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0.15</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span>,<span class="fl">0.25</span>,<span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">covariance.prior.plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; null device </span></span>
-<span><span class="co">#&gt;           1</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">covariance.prior.plot</span></span></code></pre></div>
+<span><span class="co">#&gt;           1</span></span>
+<span><span class="va">covariance.prior.plot</span></span></code></pre></div>
 <p>Slope and intercept Prior Plot</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">optima.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -367,19 +347,19 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <p>We will use the helper function blouch.reg.direct.prep() to setup the
 dat file for Stan. Here “Z_direct” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Blouch prep code - Regimes + Direct Efffect model</span></span>
 <span><span class="co">#source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/R Setup Code/blouch.prep.R")</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.direct.prep.html">blouch.reg.direct.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="st">"X_with_error"</span>,<span class="st">"X_error"</span>,Z_direct<span class="op">=</span><span class="fl">1</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span><span class="op">)</span></span></code></pre></div>
 <p>Multi-optima Direct Effect Model with Varying Effects</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter <span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -393,15 +373,14 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; beta[1,1] 0.26       0 0.01 0.24 0.25 0.26 0.27  0.28  2404 1.00</span></span>
 <span><span class="co">#&gt; beta[2,1] 0.12       0 0.03 0.06 0.10 0.12 0.15  0.19  2360 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:41:44 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:12:30 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span><span class="op">)</span></span></code></pre></div>
 <p>Now lets look at the prior vs. posterior plots for the parameters
 Half-life plot</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hl.post</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">hl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">hl.post</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"post.hl.sims"</span></span>
 <span></span>
@@ -423,7 +402,7 @@ Half-life plot</p>
 <span><span class="va">hl.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Vy Prior vs. posterior plot</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vy.post</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">vy</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vy.post</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"post.vy.sims"</span></span>
 <span></span>
@@ -447,7 +426,7 @@ Half-life plot</p>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>Prior versus posterior on how shared branch lengths correspond to
 covariance</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span> <span class="cn">NULL</span> , xlim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span> , ylim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span> , xlab<span class="op">=</span><span class="st">"Time since MRCA"</span> , ylab<span class="op">=</span><span class="st">"Covariance"</span> ,cex.axis<span class="op">=</span><span class="fl">0.75</span>, mgp<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.25</span>,<span class="fl">0.25</span>,<span class="fl">0</span><span class="op">)</span>,tcl<span class="op">=</span><span class="op">-</span><span class="fl">0.25</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="va">sigma2_y.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">/</span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="va">x</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> , add<span class="op">=</span><span class="cn">TRUE</span> , lwd<span class="op">=</span><span class="fl">4</span> , col<span class="op">=</span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/col.alpha.html" class="external-link">col.alpha</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0.15</span><span class="op">)</span><span class="op">)</span></span>
@@ -457,17 +436,16 @@ covariance</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">sigma2_y</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">/</span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">post</span><span class="op">$</span><span class="va">a</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="va">post</span><span class="op">$</span><span class="va">a</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="va">x</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">post</span><span class="op">$</span><span class="va">a</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> , add<span class="op">=</span><span class="cn">TRUE</span> , lwd<span class="op">=</span><span class="fl">4</span> , col<span class="op">=</span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/col.alpha.html" class="external-link">col.alpha</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span>,<span class="fl">0.25</span>,<span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">covariance.plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; null device </span></span>
-<span><span class="co">#&gt;           1</span></span></code></pre></div>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">covariance.plot</span></span></code></pre></div>
+<span><span class="co">#&gt;           1</span></span>
+<span><span class="va">covariance.plot</span></span></code></pre></div>
 <p>Prior vs. Posterior Plot for Regression</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">optima.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -532,7 +510,7 @@ covariance</p>
 model this includes the half-life, Vy, optima, and beta. For the latter
 two parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -543,10 +521,10 @@ priors.</p>
 <p>We will use the helper function blouch.reg.direct.prep() to setup the
 dat file for Stan. Here “Z_direct” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.direct.mlm.prep.html">blouch.reg.direct.mlm.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="st">"X_with_error"</span>,<span class="st">"X_error"</span>,Z_direct<span class="op">=</span><span class="fl">1</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span>,<span class="va">sigma.prior</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.mlm.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_mlm_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
@@ -556,7 +534,7 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span>,<span class="st">"sigma"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_mlm_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -578,15 +556,14 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; beta[1,1]   0.26    0.00 0.01  0.24  0.25 0.26 0.27  0.28  1863 1.00</span></span>
 <span><span class="co">#&gt; beta[2,1]   0.13    0.00 0.03  0.07  0.11 0.13 0.15  0.20  1335 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:42:32 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:13:18 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve</span><span class="op">)</span></span></code></pre></div>
 <p>Multilevel Multi-optima Direct Effect Model with Varying Effects -
 Non centered</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.mlm.ve.nc</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_mlm_ve_nc</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
@@ -596,7 +573,7 @@ Non centered</p>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve.nc</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span>,<span class="st">"sigma"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_mlm_ve_nc.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -618,13 +595,12 @@ Non centered</p>
 <span><span class="co">#&gt; beta[1,1]  0.26    0.00 0.01  0.24  0.25 0.26 0.27  0.28  1906 1.00</span></span>
 <span><span class="co">#&gt; beta[2,1]  0.13    0.00 0.03  0.06  0.11 0.13 0.15  0.20  1487 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:46:59 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:17:52 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve.nc</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.mlm.ve.nc</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span>list<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -633,7 +609,7 @@ Multiple Predictors<a class="anchor" aria-label="anchor" href="#multlevel-multi-
 </h2>
 <p>Two regimes with two direct effect predictors and multiple slopes per
 optima but single alpha parameter</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Regimes model</span></span>
 <span><span class="co">############################################################################################################</span></span>
@@ -658,7 +634,7 @@ optima but single alpha parameter</p>
 <span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/nodelabels.html" class="external-link">nodelabels</a></span><span class="op">(</span>frame<span class="op">=</span><span class="st">"none"</span>,adj<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.1</span>,<span class="op">-</span><span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/nodelabels.html" class="external-link">tiplabels</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/Multi_optima_model_setup-1.png" width="700"></p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Paint Regimes on Tree</span></span>
 <span><span class="co">#source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/Simulation Code/Functions/set.converge.regimes.R") #Macbook Pro</span></span>
@@ -677,7 +653,7 @@ optima but single alpha parameter</p>
 <span><span class="co">#&gt; Levels: OU1 OU2</span></span>
 <span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/Multi_optima_model_setup-2.png" width="700"></p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Check if manual setting code worked</span></span>
 <span><span class="va">shifts.total</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span>,<span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">node.label</span><span class="op">)</span></span>
@@ -689,20 +665,18 @@ optima but single alpha parameter</p>
 <span><span class="co">#&gt; [58] OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2</span></span>
 <span><span class="co">#&gt; [77] OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; [96] OU1 OU1 OU1</span></span>
-<span><span class="co">#&gt; Levels: OU1 OU2</span></span></code></pre></div>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; Levels: OU1 OU2</span></span>
+<span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">reg_tips</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">reg.colors</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">reg.colors</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "#3B4992B2" "#EE0000B2"</span></span></code></pre></div>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "#3B4992B2" "#EE0000B2"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/Multi_optima_model_setup-3.png" width="700"></p>
 <p>Format tree</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Simulate data</span></span>
 <span><span class="va">n</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">tip.label</span><span class="op">)</span></span>
@@ -712,7 +686,7 @@ optima but single alpha parameter</p>
 <span><span class="va">anc_maps</span><span class="op">&lt;-</span><span class="st">"regimes"</span></span>
 <span><span class="va">lineages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="../reference/lineage.constructor.html">lineage.constructor</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>, <span class="va">e</span>, <span class="va">anc_maps</span>, <span class="va">regimes</span><span class="op">)</span><span class="op">)</span> <span class="co">#Trace lineage from tips (n) to root and determine regimes of each node or branch</span></span></code></pre></div>
 <p>Simulate two direct effect traits</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#########################</span></span>
 <span><span class="va">hl</span><span class="op">&lt;-</span><span class="fl">0.1</span> <span class="co">#0.1, 0.25, 0.75 - testing options</span></span>
 <span><span class="va">a</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl</span></span>
@@ -730,11 +704,11 @@ optima but single alpha parameter</p>
 <span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/phenogram.html" class="external-link">phenogram</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">Xs</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,spread.labels<span class="op">=</span><span class="cn">TRUE</span>,spread.cost<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co">#Plot X data</span></span>
 <span><span class="co">#&gt; Optimizing the positions of the tip labels...</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/phenogram.html" class="external-link">phenogram</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">Xs</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,spread.labels<span class="op">=</span><span class="cn">TRUE</span>,spread.cost<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co">#Plot X data</span></span>
 <span><span class="co">#&gt; Optimizing the positions of the tip labels...</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-24-2.png" width="700"></p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">dmX</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/weight.matrix.html">weight.matrix</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>, <span class="va">a</span>, <span class="va">lineages</span><span class="op">)</span> <span class="co">#Slouch approach</span></span>
 <span><span class="va">optima</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span></span>
@@ -770,9 +744,8 @@ optima but single alpha parameter</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard error: 0.2857 on 47 degrees of freedom</span></span>
 <span><span class="co">#&gt; Multiple R-squared:  0.7804, Adjusted R-squared:  0.771 </span></span>
-<span><span class="co">#&gt; F-statistic: 83.49 on 2 and 47 DF,  p-value: 3.389e-16</span></span></code></pre></div>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; F-statistic: 83.49 on 2 and 47 DF,  p-value: 3.389e-16</span></span>
+<span></span>
 <span><span class="co">################################################################################################################</span></span>
 <span></span>
 <span></span>
@@ -794,7 +767,7 @@ optima but single alpha parameter</p>
 model this includes the half-life, Vy, optima, and beta. For the latter
 two parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -804,18 +777,18 @@ priors.</p>
 <p>We will use the helper function blouch.reg.direct.prep() to setup the
 dat file for Stan. Here “Z_direct” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Test Blouch prep code - Regimes + Direct Efffect model</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.direct.prep.html">blouch.reg.direct.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X1"</span>,<span class="st">"X2"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X1_error"</span>,<span class="st">"X2_error"</span><span class="op">)</span>,Z_direct<span class="op">=</span><span class="fl">2</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span><span class="op">)</span></span></code></pre></div>
 <p>Multi-optima Direct Efect Model with Varying Effects</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter <span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span></code></pre></div>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -831,24 +804,23 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; beta[2,1] 0.17       0 0.08 0.00 0.12 0.17 0.23  0.33  2273    1</span></span>
 <span><span class="co">#&gt; beta[2,2] 0.24       0 0.07 0.10 0.20 0.24 0.29  0.38  1912    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:47:53 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:18:47 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","beta")))</span></span>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="co">#plot(rethinking::precis(fit.reg.direct.ve,depth=3,pars = c("hl","vy","optima","beta")))</span></span>
 <span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.ve</span><span class="op">)</span></span></code></pre></div>
 <p>From there the posteriors should be explored, compared to the priors,
 etc. One can also use the varying effects and multilevel models on
 multiple predictors in the same fashion as above.</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span>list<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="multlevel-multi-optima-adaptive-model-with-varying-effects---single-predictor">Multlevel Multi-optima Adaptive Model with Varying Effects - Single
 Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-adaptive-model-with-varying-effects---single-predictor"></a>
 </h2>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">########################################################################################################</span></span>
 <span><span class="co">#Two regimes with adaptive trait and multiple slopes per optima but single alpha parameter</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
@@ -867,7 +839,7 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/nodelabels.html" class="external-link">nodelabels</a></span><span class="op">(</span>frame<span class="op">=</span><span class="st">"none"</span>,adj<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.1</span>,<span class="op">-</span><span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/nodelabels.html" class="external-link">tiplabels</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-30-1.png" width="700"></p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Paint Regimes on Tree</span></span>
 <span><span class="va">shifts</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">84</span><span class="op">)</span> <span class="co">#Location of nodes with regime shifts</span></span>
@@ -884,7 +856,7 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="co">#&gt; Levels: OU1 OU2</span></span>
 <span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-30-2.png" width="700"></p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co">#Check if manual setting code worked</span></span>
@@ -898,11 +870,10 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="va">reg.colors</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">reg.colors</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "#3B4992B2" "#EE0000B2"</span></span></code></pre></div>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "#3B4992B2" "#EE0000B2"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-30-3.png" width="700"></p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Phylogeny info</span></span>
 <span><span class="va">n</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">tip.label</span><span class="op">)</span></span>
@@ -913,7 +884,7 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="va">anc_maps</span><span class="op">&lt;-</span><span class="st">"regimes"</span></span>
 <span><span class="va">lineages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="../reference/lineage.constructor.html">lineage.constructor</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>, <span class="va">e</span>, <span class="va">anc_maps</span>, <span class="va">regimes</span><span class="op">)</span><span class="op">)</span> <span class="co">#Trace lineage from tips (n) to root and determine regimes of each node or branch</span></span></code></pre></div>
 <p>Simulate X and Y data</p>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">###############################################################################################################################################################################</span></span>
 <span><span class="va">hl</span><span class="op">&lt;-</span><span class="fl">0.1</span> <span class="co">#0.1, 0.25, 0.75 - testing options</span></span>
 <span><span class="va">a</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl</span></span>
@@ -931,7 +902,7 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/phenogram.html" class="external-link">phenogram</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">X</span>,spread.labels<span class="op">=</span><span class="cn">TRUE</span>,spread.cost<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co">#Plot X data</span></span>
 <span><span class="co">#&gt; Optimizing the positions of the tip labels...</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">optima_matrix</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/weight.matrix.html">weight.matrix</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>, <span class="va">a</span>, <span class="va">lineages</span><span class="op">)</span> <span class="co">#Slouch approach</span></span>
 <span><span class="va">pred_X</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/calc_adaptive_dmX.html">calc_adaptive_dmX</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">a</span>,<span class="va">X</span><span class="op">)</span></span>
@@ -954,7 +925,7 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">df</span>,<span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X</span>,y<span class="op">=</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-31-2.png" width="700"></p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">Y</span><span class="op">~</span><span class="va">X</span>,<span class="va">df</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
@@ -973,9 +944,8 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard error: 0.4906 on 48 degrees of freedom</span></span>
 <span><span class="co">#&gt; Multiple R-squared:  0.1407, Adjusted R-squared:  0.1228 </span></span>
-<span><span class="co">#&gt; F-statistic: 7.858 on 1 and 48 DF,  p-value: 0.007278</span></span></code></pre></div>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; F-statistic: 7.858 on 1 and 48 DF,  p-value: 0.007278</span></span>
+<span></span>
 <span><span class="co">################################################################################################################</span></span>
 <span></span>
 <span><span class="co">################################################################################################################</span></span>
@@ -994,7 +964,7 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 model this includes the half-life, Vy, optima, and beta. For the latter
 two parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -1007,9 +977,9 @@ priors.</p>
 </h2>
 <p>At this point one would want to explore if the priors are appropriate
 - do the prior distributions look consistent with what we know about our
-system? See Grabowski (in revision) for more on setting priors.</p>
+system? See Grabowski (in press) for more on setting priors.</p>
 <p>Half-life Prior plot</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hl.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">rlnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">1000</span>,meanlog<span class="op">=</span><span class="va">hl.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,sdlog<span class="op">=</span><span class="va">hl.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"prior.hl.sims"</span></span>
 <span></span>
@@ -1030,7 +1000,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span><span class="va">hl.prior.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
 <p>Vy Prior Plot</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vy.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">1000</span>,rate<span class="op">=</span><span class="va">vy.prior</span><span class="op">)</span></span>
 <span><span class="va">vy.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">vy.sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vy.sims</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"prior.vy.sims"</span></span>
@@ -1053,7 +1023,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span><span class="va">vy.prior.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 <p>Prior on how shared branch lengths correspond to covariance</p>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span>;</span>
 <span><span class="va">sigma2_y.sims</span><span class="op">&lt;-</span><span class="va">vy.sims</span><span class="op">*</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">)</span>;</span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1063,10 +1033,10 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="../reference/calc_multiadaptive_cov_plot.html">calc_multiadaptive_cov_plot</a></span><span class="op">(</span><span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span>,<span class="va">sigma2_y.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span>,<span class="va">beta.sims</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="va">x</span><span class="op">)</span> , add<span class="op">=</span><span class="cn">TRUE</span> , lwd<span class="op">=</span><span class="fl">4</span> , col<span class="op">=</span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/col.alpha.html" class="external-link">col.alpha</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0.15</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-35-1.png" width="700"></p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span>,<span class="fl">0.25</span>,<span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Slope and intercept Prior Plot</p>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">optima.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1087,19 +1057,19 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <p>We will use the helper function blouch.reg.adapt.prep() to setup the
 dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Test Blouch prep code - Regimes + Direct Efffect model</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.adapt.prep.html">blouch.reg.adapt.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="st">"X_with_error"</span>,<span class="st">"X_error"</span>,Z_adaptive<span class="op">=</span><span class="fl">1</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span><span class="op">)</span></span></code></pre></div>
 <p>First we will run the Multi-optima Adaptive Model with Varying
 Effects</p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.adapt.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_adapt_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span></code></pre></div>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_adapt_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -1113,14 +1083,13 @@ Effects</p>
 <span><span class="co">#&gt; beta[1,1] 0.26       0 0.05  0.18 0.23 0.25 0.29  0.40   968    1</span></span>
 <span><span class="co">#&gt; beta[2,1] 0.16       0 0.13 -0.11 0.06 0.16 0.25  0.42  1335    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:49:12 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:20:09 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span><span class="op">)</span> <span class="co">#rstan::extract posterior distribution</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.ve</span><span class="op">)</span> <span class="co">#rstan::extract posterior distribution</span></span></code></pre></div>
 <p>Prior vs. posterior</p>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hl.post</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">hl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">hl.post</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"post.hl.sims"</span></span>
 <span></span>
@@ -1142,7 +1111,7 @@ Effects</p>
 <span><span class="va">hl.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-40-1.png" width="700"></p>
 <p>Prior vs. posterior plot</p>
-<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vy.post</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">vy</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vy.post</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"post.vy.sims"</span></span>
 <span></span>
@@ -1164,7 +1133,7 @@ Effects</p>
 <span><span class="va">vy.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-41-1.png" width="700"></p>
 <p>Adaptation model</p>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span>;</span>
 <span><span class="va">sigma2_y.sims</span><span class="op">&lt;-</span><span class="va">vy.sims</span><span class="op">*</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">)</span>;</span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1179,7 +1148,7 @@ Effects</p>
 <span>  <span class="co">#curve(calc_multiadaptive_cov(post$a[i],post$sigma2_y[i],beta,x,Z_adaptive,n_reg) , add=TRUE , lwd=4 , col=col.alpha(2,0.5))</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-42-1.png" width="700"></p>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#multiple traits</span></span>
 <span></span>
@@ -1188,14 +1157,13 @@ Effects</p>
 <span><span class="va">covariance.plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; null device </span></span>
-<span><span class="co">#&gt;           1</span></span></code></pre></div>
-<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt;           1</span></span>
+<span></span>
 <span><span class="co">#Vt = sigma2_y /( 2 * a) * ((1 - exp(-2 * a * ta)) .* exp(-a * tij)); //From Hansen (1997)</span></span>
 <span></span>
 <span><span class="va">covariance.plot</span></span></code></pre></div>
 <p>Priors + Posteriors</p>
-<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">optima.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -1266,7 +1234,7 @@ will set the priors for the estimated parameters - for this model this
 includes the half-life, Vy, optima, and beta. For the latter two
 parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -1277,13 +1245,13 @@ priors.</p>
 <p>We will use the helper function blouch.reg.adapt.prep() to setup the
 dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Test Blouch prep code - Regimes + Direct Efffect model</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.adapt.mlm.prep.html">blouch.reg.adapt.mlm.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="st">"X_with_error"</span>,<span class="st">"X_error"</span>,Z_adaptive<span class="op">=</span><span class="fl">1</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span>,<span class="va">sigma.prior</span><span class="op">)</span></span></code></pre></div>
 <p>Now we run the Multilevel Multi-optima Adaptive Model with Varying
 Effects, look at the results, and rstan::extract the posterior</p>
-<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.adapt.mlm.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_adapt_mlm_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
@@ -1293,7 +1261,7 @@ Effects, look at the results, and rstan::extract the posterior</p>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
-<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_adapt_mlm_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -1315,15 +1283,14 @@ Effects, look at the results, and rstan::extract the posterior</p>
 <span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
 <span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1682    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:51:15 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:22:20 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span><span class="op">)</span> <span class="co">#rstan::extract posterior distribution</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span><span class="op">)</span> <span class="co">#rstan::extract posterior distribution</span></span></code></pre></div>
 <p>Now we run the non-centered version of the Multilevel Multi-optima
 Adaptive Model with Varying Effects</p>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.adapt.mlm.ve.nc</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_adapt_mlm_ve_nc</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
@@ -1333,7 +1300,7 @@ Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_adapt_mlm_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -1355,15 +1322,14 @@ Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
 <span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1682    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:51:15 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:22:20 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span><span class="op">)</span> <span class="co">#rstan::extract posterior distribution</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span><span class="op">)</span> <span class="co">#rstan::extract posterior distribution</span></span></code></pre></div>
 <p>From there the posteriors should be explored, compared to the priors,
 etc. following the format above</p>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span>list<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -1372,7 +1338,7 @@ etc. following the format above</p>
 </h2>
 <p>Two regimes with 1 direct and 1 adaptive trait and two slopes per
 regime per trait</p>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">########################################################################################################</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span></span>
@@ -1391,7 +1357,7 @@ regime per trait</p>
 <span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/nodelabels.html" class="external-link">nodelabels</a></span><span class="op">(</span>frame<span class="op">=</span><span class="st">"none"</span>,adj<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.1</span>,<span class="op">-</span><span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">ape</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ape/man/nodelabels.html" class="external-link">tiplabels</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-51-1.png" width="700"></p>
-<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Paint Regimes on Tree</span></span>
 <span><span class="va">shifts</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">84</span><span class="op">)</span> <span class="co">#Location of nodes with regime shifts</span></span>
@@ -1408,7 +1374,7 @@ regime per trait</p>
 <span><span class="co">#&gt; Levels: OU1 OU2</span></span>
 <span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-51-2.png" width="700"></p>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Check if manual setting code worked</span></span>
 <span><span class="va">shifts.total</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span>,<span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">node.label</span><span class="op">)</span></span>
@@ -1420,19 +1386,17 @@ regime per trait</p>
 <span><span class="co">#&gt; [58] OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2</span></span>
 <span><span class="co">#&gt; [77] OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; [96] OU1 OU1 OU1</span></span>
-<span><span class="co">#&gt; Levels: OU1 OU2</span></span></code></pre></div>
-<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; Levels: OU1 OU2</span></span>
+<span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">reg_tips</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">reg.colors</span> <span class="op">&lt;-</span> <span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_aaas.html" class="external-link">pal_aaas</a></span><span class="op">(</span><span class="st">"default"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">reg.colors</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "#3B4992B2" "#EE0000B2"</span></span></code></pre></div>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "#3B4992B2" "#EE0000B2"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-51-3.png" width="700"></p>
-<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Phylogeny info</span></span>
 <span><span class="va">n</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">tip.label</span><span class="op">)</span></span>
@@ -1443,7 +1407,7 @@ regime per trait</p>
 <span><span class="va">anc_maps</span><span class="op">&lt;-</span><span class="st">"regimes"</span></span>
 <span><span class="va">lineages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="../reference/lineage.constructor.html">lineage.constructor</a></span><span class="op">(</span><span class="va">phy</span>, <span class="va">e</span>, <span class="va">anc_maps</span>, <span class="va">regimes</span><span class="op">)</span><span class="op">)</span> <span class="co">#Trace lineage from tips (n) to root and determine regimes of each node or branch</span></span></code></pre></div>
 <p>Simulate X and Y data using generative model</p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">################################################################################################################</span></span>
 <span><span class="va">hl</span><span class="op">&lt;-</span><span class="fl">0.1</span> <span class="co">#0.1, 0.25, 0.75 - testing options</span></span>
 <span><span class="va">a</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl</span></span>
@@ -1462,11 +1426,11 @@ regime per trait</p>
 <span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/phenogram.html" class="external-link">phenogram</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">Xd</span>,spread.labels<span class="op">=</span><span class="cn">TRUE</span>,spread.cost<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co">#Plot X data</span></span>
 <span><span class="co">#&gt; Optimizing the positions of the tip labels...</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-52-1.png" width="700"></p>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">phytools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/phytools/man/phenogram.html" class="external-link">phenogram</a></span><span class="op">(</span><span class="va">phy</span>,<span class="va">Xa</span>,spread.labels<span class="op">=</span><span class="cn">TRUE</span>,spread.cost<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="co">#Plot X data</span></span>
 <span><span class="co">#&gt; Optimizing the positions of the tip labels...</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-52-2.png" width="700"></p>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">Xs</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">Xd</span>,<span class="va">Xa</span><span class="op">)</span></span>
 <span></span>
@@ -1509,11 +1473,10 @@ regime per trait</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard error: 0.3719 on 47 degrees of freedom</span></span>
 <span><span class="co">#&gt; Multiple R-squared:  0.9352, Adjusted R-squared:  0.9324 </span></span>
-<span><span class="co">#&gt; F-statistic: 339.1 on 2 and 47 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt; F-statistic: 339.1 on 2 and 47 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
 <span><span class="co">################################################################################################################</span></span></code></pre></div>
-<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">###############################################################################################################</span></span>
 <span><span class="co">#Simulate errors - original Hansen setup</span></span>
 <span><span class="va">Z_X_error</span><span class="op">&lt;-</span><span class="fl">2</span> <span class="co">#Number of X traits with error</span></span>
@@ -1530,7 +1493,7 @@ regime per trait</p>
 <span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span>,<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">Y_with_error</span>,<span class="va">Y_error</span>,<span class="va">X_with_error</span>,<span class="va">X_error</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#names(trdata$dat)[6:7]&lt;-c("Xd_error","Xa_error")</span></span></code></pre></div>
 <p>Plot Data</p>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#Plot of data</span></span>
 <span><span class="va">df</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Y<span class="op">=</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">Y_with_error</span>,Xd<span class="op">=</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">Xd</span>,Xa<span class="op">=</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">Xa</span>,Regimes<span class="op">=</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span><span class="op">)</span></span>
 <span></span>
@@ -1554,7 +1517,7 @@ regime per trait</p>
 <span></span>
 <span><span class="va">slope.plot.1</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-54-1.png" width="700"></p>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#slope.prior.plot&lt;-ggplot(data=reg.trdata$dat,aes(y=Sim1,x=X))+</span></span>
 <span><span class="va">slope.plot.2</span><span class="op">&lt;-</span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>  </span>
@@ -1578,7 +1541,7 @@ regime per trait</p>
 model this includes the half-life, Vy, optima, and beta. For the latter
 two parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -1591,9 +1554,9 @@ priors.</p>
 </h2>
 <p>At this point one would want to explore if the priors are appropriate
 - do the prior distributions look consistent with what we know about our
-system? See Grabowski (in revision) for more on setting priors.</p>
+system? See Grabowski (in press) for more on setting priors.</p>
 <p>Half-life Prior plot</p>
-<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hl.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">rlnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">1000</span>,meanlog<span class="op">=</span><span class="va">hl.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,sdlog<span class="op">=</span><span class="va">hl.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"prior.hl.sims"</span></span>
 <span></span>
@@ -1614,7 +1577,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span><span class="va">hl.prior.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-56-1.png" width="700"></p>
 <p>Vy Prior Plot</p>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vy.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">1000</span>,rate<span class="op">=</span><span class="va">vy.prior</span><span class="op">)</span></span>
 <span><span class="va">vy.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">vy.sims</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vy.sims</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"prior.vy.sims"</span></span>
@@ -1637,7 +1600,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span><span class="va">vy.prior.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-57-1.png" width="700"></p>
 <p>Prior on how shared branch lengths correspond to covariance</p>
-<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span>;</span>
 <span><span class="va">sigma2_y.sims</span><span class="op">&lt;-</span><span class="va">vy.sims</span><span class="op">*</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">)</span>;</span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1647,10 +1610,10 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="../reference/calc_multiadaptive_cov_plot.html">calc_multiadaptive_cov_plot</a></span><span class="op">(</span><span class="va">a.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span>,<span class="va">sigma2_y.sims</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span>,<span class="va">beta.sims</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="va">x</span><span class="op">)</span> , add<span class="op">=</span><span class="cn">TRUE</span> , lwd<span class="op">=</span><span class="fl">4</span> , col<span class="op">=</span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/col.alpha.html" class="external-link">col.alpha</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0.15</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-58-1.png" width="700"></p>
-<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span>,<span class="fl">0.25</span>,<span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Slope and intercept Prior Plot</p>
-<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">optima.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">optima.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -1667,7 +1630,7 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <span></span>
 <span><span class="va">prior.slope.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-59-1.png" width="700"></p>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">prior.slope.plot</span><span class="op">&lt;-</span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>  </span>
 <span> <span class="fu">ggplot2</span><span class="fu">::</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">df</span>,<span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y<span class="op">=</span><span class="va">Y</span>,x<span class="op">=</span><span class="va">Xa</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
@@ -1685,19 +1648,19 @@ system? See Grabowski (in revision) for more on setting priors.</p>
 <p>We will use the helper function blouch.reg.adapt.prep() to setup the
 dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.direct.adapt.prep.html">blouch.reg.direct.adapt.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Xd"</span>,<span class="st">"Xa"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Xd_error"</span>,<span class="st">"Xa_error"</span><span class="op">)</span>,Z_direct<span class="op">=</span><span class="fl">1</span>,Z_adaptive<span class="op">=</span><span class="fl">1</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span><span class="op">)</span></span></code></pre></div>
 <p>First we run the Multi-optima Direct Effect Adaptive Model with
 Varying Effects</p>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.adapt.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_adapt_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span></code></pre></div>
 <p>Let’s look at the results</p>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_adapt_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -1713,17 +1676,16 @@ Varying Effects</p>
 <span><span class="co">#&gt; beta[2,1] 0.16       0 0.05  0.06 0.12 0.16 0.19  0.26  2772    1</span></span>
 <span><span class="co">#&gt; beta[2,2] 0.10       0 0.08 -0.06 0.04 0.10 0.15  0.25  3406    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 18:58:00 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:29:36 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.ve</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.ve</span><span class="op">)</span></span></code></pre></div>
 <p>Rember, the true values are optima&lt;-c(2,1)
 beta&lt;-data.frame(matrix(c(0.25,0.15,0.35,0.1),ncol=2,nrow=2)) Direct
 effect - column 1, Adaptive, column 2, rows - slopes for regimes</p>
 <p>Prior vs. posterior</p>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hl.post</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">hl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">hl.post</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"post.hl.sims"</span></span>
 <span></span>
@@ -1745,7 +1707,7 @@ effect - column 1, Adaptive, column 2, rows - slopes for regimes</p>
 <span><span class="va">hl.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-63-1.png" width="700"></p>
 <p>Prior vs. posterior plot</p>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vy.post</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">vy</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">vy.post</span><span class="op">)</span><span class="op">&lt;-</span><span class="st">"post.vy.sims"</span></span>
 <span></span>
@@ -1767,7 +1729,7 @@ effect - column 1, Adaptive, column 2, rows - slopes for regimes</p>
 <span><span class="va">vy.plot</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-64-1.png" width="700"></p>
 <p>Adaptation model</p>
-<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span>;</span>
 <span><span class="va">sigma2_y.sims</span><span class="op">&lt;-</span><span class="va">vy.sims</span><span class="op">*</span><span class="op">(</span><span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="va">hl.sims</span><span class="op">)</span><span class="op">)</span>;</span>
 <span><span class="va">beta.sims</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">100</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">beta.prior</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1784,7 +1746,7 @@ effect - column 1, Adaptive, column 2, rows - slopes for regimes</p>
 <span>  <span class="co">#curve(calc_multiadaptive_cov(post$a[i],post$sigma2_y[i],beta,x,Z_adaptive,n_reg) , add=TRUE , lwd=4 , col=col.alpha(2,0.5))</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-65-1.png" width="700"></p>
-<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#multiple traits</span></span>
 <span></span>
@@ -1793,14 +1755,13 @@ effect - column 1, Adaptive, column 2, rows - slopes for regimes</p>
 <span><span class="va">covariance.plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; null device </span></span>
-<span><span class="co">#&gt;           1</span></span></code></pre></div>
-<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="co">#&gt;           1</span></span>
+<span></span>
 <span><span class="co">#Vt = sigma2_y /( 2 * a) * ((1 - exp(-2 * a * ta)) .* exp(-a * tij)); //From Hansen (1997)</span></span>
 <span></span>
 <span><span class="va">covariance.plot</span></span></code></pre></div>
 <p>Now lets plot the prior vs. posterior plots</p>
-<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">optima.post</span><span class="op">&lt;-</span><span class="va">post</span><span class="op">$</span><span class="va">optima</span></span>
 <span><span class="va">beta.post.Xd</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">beta</span><span class="op">[</span>,,<span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">beta.post.Xa</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">beta</span><span class="op">[</span>,,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1858,7 +1819,7 @@ effect - column 1, Adaptive, column 2, rows - slopes for regimes</p>
 <span></span>
 <span><span class="va">slope.plot.1</span></span></code></pre></div>
 <p><img src="Varying_Effects_Models-Examples_files/figure-html/unnamed-chunk-66-1.png" width="700"></p>
-<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="va">mu.link.Xa1</span><span class="op">&lt;-</span><span class="kw">function</span><span class="op">(</span><span class="va">x.seq</span><span class="op">)</span><span class="op">{</span><span class="va">optima.post</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">+</span><span class="va">x.seq</span><span class="op">*</span><span class="va">beta.post.Xa</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">}</span></span>
@@ -1918,7 +1879,7 @@ posterior</p>
 model this includes the half-life, Vy, optima, and beta. For the latter
 two parameters we will use the results of the linear model to inform our
 priors.</p>
-<div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="co">#Set Priors</span></span>
 <span><span class="va">hl.prior</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.25</span><span class="op">)</span>,<span class="fl">0.75</span><span class="op">)</span></span>
@@ -1929,10 +1890,10 @@ priors.</p>
 <p>We will use the helper function blouch.reg.adapt.prep() to setup the
 dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 “regimes” is the name of the regime column in trdata$dat.</p>
-<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">############################################################################################################</span></span>
 <span><span class="va">dat</span><span class="op">&lt;-</span><span class="fu"><a href="../reference/blouch.reg.direct.adapt.mlm.prep.html">blouch.reg.direct.adapt.mlm.prep</a></span><span class="op">(</span><span class="va">trdata</span>,<span class="st">"Y_with_error"</span>,<span class="st">"Y_error"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Xd"</span>,<span class="st">"Xa"</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Xd_error"</span>,<span class="st">"Xa_error"</span><span class="op">)</span>,Z_direct<span class="op">=</span><span class="fl">1</span>,Z_adaptive<span class="op">=</span><span class="fl">1</span>,<span class="st">"regimes"</span>,<span class="va">hl.prior</span>,<span class="va">vy.prior</span>,<span class="va">optima.prior</span>,<span class="va">beta.prior</span>,<span class="va">sigma.prior</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.adapt.mlm.ve</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_adapt_mlm_ve</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
@@ -1948,7 +1909,7 @@ dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 <span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
 <span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span></code></pre></div>
-<div class="sourceCode" id="cb123"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"Rho"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_adapt_mlm_ve.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -1976,15 +1937,14 @@ dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 <span><span class="co">#&gt; Rho[3,2]  0.05    0.02 0.31 -0.55 -0.20 0.06 0.29  0.61   294 1.01</span></span>
 <span><span class="co">#&gt; Rho[3,3]  1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00   853 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 19:00:50 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:32:45 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span><span class="op">)</span></span></code></pre></div>
 <p>Now we run the non-centered version of the Multilevel Multi-optima
 Direct Effect Adaptive Model with Varying Effects</p>
-<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_adapt_mlm_ve_nc</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
@@ -2003,7 +1963,7 @@ Direct Effect Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
 <span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span></code></pre></div>
-<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"L_Rho"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_adapt_mlm_ve_nc.</span></span>
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
@@ -2031,16 +1991,15 @@ Direct Effect Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; L_Rho[3,2] 0.09    0.01 0.39 -0.70 -0.18 0.09 0.38  0.78  1142 1.00</span></span>
 <span><span class="co">#&gt; L_Rho[3,3] 0.80    0.01 0.17  0.40  0.70 0.84 0.94  0.99   185 1.01</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jun 20 19:07:17 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Thu Jul 11 23:39:16 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span></code></pre></div>
-<div class="sourceCode" id="cb127"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span><span class="op">)</span></span></code></pre></div>
 <p>From there the posteriors should be explored, compared to the priors,
 etc. following the methods above.</p>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -2051,15 +2010,15 @@ etc. following the methods above.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>
