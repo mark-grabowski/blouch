@@ -25,9 +25,9 @@ While the front-end component of *Blouch* is written in R (R Core Team, 2023), t
 ## Getting Started
 If you are just getting started with *Blouch* I recommend starting with the Empirical and Simulation Example articles available on the package website. The other articles are abbreviated versions of this example showing the various models implemented by *Blouch* - most of the steps of a preliminary analysis will be the same.
 
-*Blouch* is based on an article currently in review:
+*Blouch* is based on an article currently in press:
 
-+ Grabowski, M (in revision). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses
++ Grabowski, M (in press). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses
 
 ## Instalation Instructions
 To install the R and Stan functions associated with Blouch from github, first install the package devtools:
