@@ -151,7 +151,7 @@ beta.prior<-c(0.25,0.25) #Informed by linear model
 ```
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}
@@ -244,7 +244,7 @@ prior.slope.plot
 
 
 ## Not for the faint of heart
-And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in revision) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020)
+And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in press) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020)
 
 
 ```{r, eval=FALSE}
@@ -265,9 +265,9 @@ dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error"
 ```
 
 ## Running models
-We will run the direct effect model first. Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
+We will run the direct effect model first. Below are the priors used for this simulation. See Grabowski (in press) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
 
-For example, here are the four most important priors for the model below - these values are explored in Grabowski (in revision). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
+For example, here are the four most important priors for the model below - these values are explored in Grabowski (in press). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
 Now let's run the direct effect model blouchOU_direct.
 
 ```{r Run_direct_effect_model , results='hide'}
@@ -508,7 +508,7 @@ beta.prior<-c(0,0.25) #Informed by linear model
 ```
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}
@@ -604,9 +604,9 @@ dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",
 
 
 ## Running models
-Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
+Below are the priors used for this simulation. See Grabowski (in press) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
 
-For example, here are the four most important priors for the model below - these values are explored in Grabowski (in revision). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
+For example, here are the four most important priors for the model below - these values are explored in Grabowski (in press). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
 
 ```{r, eval=FALSE}
 ########################################################################################################
@@ -617,7 +617,7 @@ For example, here are the four most important priors for the model below - these
 #beta ~ normal(0.25,0.1); 
 ```
 
-And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in revision) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020).
+And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in press) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020).
 
 
 ```{r, eval=FALSE}
@@ -887,7 +887,7 @@ beta.prior<-c(0,0.25) #Informed by linear model
 ```
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}

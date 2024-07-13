@@ -1,10 +1,10 @@
 ---
-title: "Simulation Example from Grabowski (in revision) Walkthrough"
+title: "Simulation Example from Grabowski (in press) Walkthrough"
 author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Simulation Example from Grabowski (in revision) Walkthrough}
+  %\VignetteIndexEntry{Simulation Example from Grabowski (in press) Walkthrough}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-This is the Simulation Example from Grabowski (in revision). In this example, we will simulate 
+This is the Simulation Example from Grabowski (in press). In this example, we will simulate 
 data for a model where Y adapts to four different optima that are influenced by the predictor trait X, and each optima has a different scaling relationship with X. Below, data is simulated following the multi-optima adaptive generative model, and then *Blouch* uses the multilevel multi-optima adaptive model with varying effects (varying intercepts and varying slopes) and the non-multilevel version of the same model to estimate the known parameter values. 
 
 ## Setup
@@ -205,7 +205,7 @@ trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,
 
 First we will run the multilevel multi-optima adaptive model with varying effects. This will allow our intercepts (optima) and slopes to vary with the regimes. As a multilevel model, information can be shared across the regimes, which can produce more accurate parameter estimates.
 
-Below are the priors used for this simulation. See Grabowski (in revision) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_reg_adapt_mlm_ve, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth
+Below are the priors used for this simulation. See Grabowski (in press) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_reg_adapt_mlm_ve, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth
 ```{r}
 #Set Priors
 hl.prior<-c(log(0.25),0.75)
@@ -217,7 +217,7 @@ sigma.prior<-c(0,1)
 ```
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}
@@ -294,7 +294,7 @@ p
 
 
 ## Exploring Priors
-Lets check out our simulated data with reasonable values for the priors shown in light grey lines. These are the ".sims" values - the priors are based on the intercept and slope of the OLS regression above, with standard deviations set by visualizing the priors versus the data. See Grabowski (in revision) for more on setting these priors.
+Lets check out our simulated data with reasonable values for the priors shown in light grey lines. These are the ".sims" values - the priors are based on the intercept and slope of the OLS regression above, with standard deviations set by visualizing the priors versus the data. See Grabowski (in press) for more on setting these priors.
 ```{r Exploring_priors}
 optima.sims<-rnorm(100,optima.prior[1],optima.prior[2])
 beta.sims<-rnorm(n=100,beta.prior[1],beta.prior[2])

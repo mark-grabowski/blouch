@@ -1,10 +1,10 @@
 ---
-title: "Empirical Example from Grabowski (in revision) Walkthrough"
+title: "Empirical Example from Grabowski (in press) Walkthrough"
 author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Empirical Example from Grabowski (in revision) Walkthrough}
+  %\VignetteIndexEntry{Empirical Example from Grabowski (in press) Walkthrough}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 ```
 
 
-This example presents the basic and advanced options of *Blouch* and the code below is the complete analysis of the empirical example from Grabowski (in revision) on antler size and breeding group evolution.
+This example presents the basic and advanced options of *Blouch* and the code below is the complete analysis of the empirical example from Grabowski (in press) on antler size and breeding group evolution.
 
 ```{r}
 rm(list=ls())
@@ -204,7 +204,7 @@ ols.plot
 
 ```
 
-Below are the priors used for this first analysis. See Grabowski (in revision) for more on setting these priors, but here our optima (intercept) and slope are informed by the linar model.
+Below are the priors used for this first analysis. See Grabowski (in press) for more on setting these priors, but here our optima (intercept) and slope are informed by the linar model.
 
 ```{r}
 ############################################################################################################
@@ -341,7 +341,7 @@ Now let's run the model. Stan prints out a lot of info, so lets just look at the
 ```{r Reg_Direct_Model, results='hide'}
 #Combination of regime model with multiple traits direct effect model with measurement error and varying intercepts
 fit.reg.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct,data = dat,chains = 2,cores=2,iter =4000)
-#Fig S11 from Grabowski (in revision)
+#Fig S11 from Grabowski (in press)
 ```
 
 Results
@@ -349,7 +349,7 @@ Results
 ```{r}
 print(fit.reg.direct,pars = c("hl","vy","optima","beta"))
 post.basic<-rstan::extract(fit.reg.direct)
-#Table S7 from Grabowski (in revision)
+#Table S7 from Grabowski (in press)
 ```
 
 
@@ -541,7 +541,7 @@ Now lets run the multi-optima direct effect model with varying effects. This wil
 
 ```{r non_MLM_VE}
 fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =4000)
-#Fig S8 from Grabowski (in revision)
+#Fig S8 from Grabowski (in press)
 ```
 
 Results
@@ -741,10 +741,10 @@ fig
 
 ## Multilevel Models
 
-Now let's run the multilevel version of those two models. As a multilevel model, information can be shared across the regimes, which can produce more accurate parameter estimates. Below are the priors used for this simulation. Here we use the non-centered version to aid in ease of calculation. See Grabowski (in revision) for more on non-centered models. We will compare these all models in terms of their predictive performance at the end.
+Now let's run the multilevel version of those two models. As a multilevel model, information can be shared across the regimes, which can produce more accurate parameter estimates. Below are the priors used for this simulation. Here we use the non-centered version to aid in ease of calculation. See Grabowski (in press) for more on non-centered models. We will compare these all models in terms of their predictive performance at the end.
 
 
-Below are the priors used for this first analysis. See Grabowski (in revision) for more on setting these priors. The only new prior is on sigma
+Below are the priors used for this first analysis. See Grabowski (in press) for more on setting these priors. The only new prior is on sigma
 
 ```{r}
 ############################################################################################################
@@ -771,7 +771,7 @@ Fit the model
 ```{r Reg_direct_mlm}
 fit.reg.direct.mlm.vi.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi_nc,data = dat,chains = 2,cores=2,iter =4000,control = list(adapt_delta = 0.99))
 
-#Fig S10/Table S6 in Grabowski (in revision)
+#Fig S10/Table S6 in Grabowski (in press)
 
 ```
 
@@ -1156,7 +1156,7 @@ regression.plot<-ggplot2::ggplot()+
 
 regression.plot
 
-#Fig 3 in Grabowski (in Revision)
+#Fig 3 in Grabowski (in press)
 ```
 
 Let's combine all four plots into one plot

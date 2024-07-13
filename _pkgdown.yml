@@ -8,9 +8,9 @@ navbar:
     articles:
       text: Articles
       menu:
-      - text: Empirical Example from Grabowski (in revision)
+      - text: Empirical Example from Grabowski (in press)
         href: articles/Empirical-Example.html
-      - text: Simulation Example from Grabowski (in revision)
+      - text: Simulation Example from Grabowski (in press)
         href: articles/Simulation-Example.html
       - text: Basic Models
         href: articles/Basic_Models-Examples.html

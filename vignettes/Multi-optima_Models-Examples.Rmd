@@ -148,7 +148,7 @@ optima.prior<-c(0,1) #Informed by linear model
 ```
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}
@@ -516,7 +516,7 @@ beta.prior<-c(0.25,0.25) #Informed by linear model
 ```
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}
@@ -909,7 +909,7 @@ beta.prior<-c(0.25,0.25) #Informed by linear model
 
 
 ## Exploring Priors
-At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in revision) for more on setting priors.
+At this point one would want to explore if the priors are appropriate - do the prior distributions look consistent with what we know about our system? See Grabowski (in press) for more on setting priors.
 
 Half-life Prior plot
 ```{r}

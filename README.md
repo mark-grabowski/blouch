@@ -31,7 +31,7 @@ preliminary analysis will be the same.
 *Blouch* is based on an article:
 
 - Grabowski, M (in press). *Blouch*: Bayesian Linear
-  Ornstein-Uhlenbeck models for Comparative Hypotheses
+  Ornstein-Uhlenbeck models for Comparative Hypotheses. _Systematic Biology_.
 
 ## Instalation Instructions
 
