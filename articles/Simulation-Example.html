@@ -64,7 +64,7 @@
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-07-14</h4>
+            <h4 data-toc-skip class="date">2024-09-21</h4>
       
 
       <div class="d-none name"><code>Simulation-Example.Rmd</code></div>
@@ -182,14 +182,14 @@ sure we have done everything correctly.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">reg.colors</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF" "#00A087FF" "#3C5488FF"</span></span>
 <span><span class="co">#plot(trdata$phy,edge.color = reg.colors[edge.regimes], edge.width = 1,show.tip.label=FALSE)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>,show.tip.label<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#FigS1a.plot&lt;-recordPlot()</span></span>
-<span></span>
-<span><span class="co">#pdf("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS1a.pdf", width=5, height=7 )</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>,show.tip.label<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Simulation-Example_files/figure-html/Set_regimes-2.png" width="700"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#dev.off()</span></span>
+<code class="sourceCode R"><span><span class="co">#FigS1a.plot&lt;-recordPlot()</span></span>
+<span></span>
+<span><span class="co">#pdf("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/Blouch ms/R2/Figures/FigS1a.pdf", width=5, height=7 )</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>,show.tip.label<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#dev.off()</span></span>
 <span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span></span>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">reg_tips</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -532,7 +532,7 @@ fitting additional models, but I have done so previously.</p>
 <span><span class="co">#&gt; beta[3,1]    0.08    0.00 0.21 -0.36 -0.06  0.10  0.24  0.45  3623    1</span></span>
 <span><span class="co">#&gt; beta[4,1]    0.27    0.00 0.06  0.17  0.23  0.27  0.31  0.38  7314    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 22:44:34 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:26:02 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -573,7 +573,7 @@ values we set earlier.</p>
 <span><span class="co">#&gt; beta[3,1] 0.03       0 0.17 -0.29 -0.09 0.03 0.15  0.36  5635    1</span></span>
 <span><span class="co">#&gt; beta[4,1] 0.27       0 0.06  0.16  0.23 0.27 0.30  0.38  6881    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:01:12 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:42:52 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -849,11 +849,11 @@ the same package.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; All Pareto k estimates are good (k &lt; 0.7).</span></span>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span><span class="op">)</span> <span class="co">#4X6</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="co">#Label outliers</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span><span class="op">)</span> <span class="co">#4X6</span></span></code></pre></div>
 <p><img src="Simulation-Example_files/figure-html/Model_comparison_PSIS-2.png" width="700"></p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">loo_ve.plot</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="co">#Label outliers</span></span>
+<span><span class="va">loo_ve.plot</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">loo_mlm_ve</span>, <span class="va">loo_ve</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        elpd_diff se_diff</span></span>
@@ -1021,7 +1021,7 @@ WAIC for Bayesian models.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>

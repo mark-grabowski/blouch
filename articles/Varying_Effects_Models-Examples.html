@@ -64,7 +64,7 @@
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-07-14</h4>
+            <h4 data-toc-skip class="date">2024-09-21</h4>
       
 
       <div class="d-none name"><code>Varying_Effects_Models-Examples.Rmd</code></div>
@@ -143,8 +143,10 @@ Trees phylogeny</p>
 <span><span class="co">#&gt; [77] OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU2 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; [96] OU1 OU1 OU1</span></span>
 <span><span class="co">#&gt; Levels: OU1 OU2</span></span>
-<span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span>
-<span></span>
+<span><span class="co">#&gt; [1] "#E64B35FF" "#4DBBD5FF"</span></span></code></pre></div>
+<p><img src="Varying_Effects_Models-Examples_files/figure-html/MODEMVE_setup-2.png" width="700"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co">#Check if manual setting code worked</span></span>
 <span><span class="va">shifts.total</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">dat</span><span class="op">$</span><span class="va">regimes</span>,<span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">node.label</span><span class="op">)</span></span>
@@ -162,10 +164,8 @@ Trees phylogeny</p>
 <span><span class="va">reg_tips</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">reg_tips</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">reg.colors</span><span class="op">&lt;-</span><span class="fu">ggsci</span><span class="fu">::</span><span class="fu"><a href="https://nanx.me/ggsci/reference/pal_npg.html" class="external-link">pal_npg</a></span><span class="op">(</span>palette<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nrc"</span><span class="op">)</span>,alpha<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Varying_Effects_Models-Examples_files/figure-html/MODEMVE_setup-2.png" width="700"></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span>,edge.color <span class="op">=</span> <span class="va">reg.colors</span><span class="op">[</span><span class="va">edge.regimes</span><span class="op">]</span>, edge.width <span class="op">=</span> <span class="fl">1</span>, cex <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co">#Phylogeny info</span></span>
 <span><span class="va">n</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">trdata</span><span class="op">$</span><span class="va">phy</span><span class="op">$</span><span class="va">tip.label</span><span class="op">)</span></span>
 <span></span>
@@ -373,7 +373,7 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; beta[1,1] 0.26       0 0.01 0.24 0.25 0.26 0.27  0.28  2404 1.00</span></span>
 <span><span class="co">#&gt; beta[2,1] 0.12       0 0.03 0.06 0.10 0.12 0.15  0.19  2360 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:10:09 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:51:42 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -556,7 +556,7 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; beta[1,1]   0.26    0.00 0.01  0.24  0.25 0.26 0.27  0.28  1863 1.00</span></span>
 <span><span class="co">#&gt; beta[2,1]   0.13    0.00 0.03  0.07  0.11 0.13 0.15  0.20  1335 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:10:58 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:52:31 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -595,7 +595,7 @@ Non centered</p>
 <span><span class="co">#&gt; beta[1,1]  0.26    0.00 0.01  0.24  0.25 0.26 0.27  0.28  1906 1.00</span></span>
 <span><span class="co">#&gt; beta[2,1]  0.13    0.00 0.03  0.06  0.11 0.13 0.15  0.20  1487 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:15:29 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:57:13 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -804,7 +804,7 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; beta[2,1] 0.17       0 0.08 0.00 0.12 0.17 0.23  0.33  2273    1</span></span>
 <span><span class="co">#&gt; beta[2,2] 0.24       0 0.07 0.10 0.20 0.24 0.29  0.38  1912    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:16:25 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:58:07 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1083,7 +1083,7 @@ Effects</p>
 <span><span class="co">#&gt; beta[1,1] 0.26       0 0.05  0.18 0.23 0.25 0.29  0.40   968    1</span></span>
 <span><span class="co">#&gt; beta[2,1] 0.16       0 0.13 -0.11 0.06 0.16 0.25  0.42  1335    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:17:45 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 15:59:27 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1283,7 +1283,7 @@ Effects, look at the results, and rstan::extract the posterior</p>
 <span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
 <span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1682    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:19:56 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 16:01:39 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1322,7 +1322,7 @@ Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
 <span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1682    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:19:56 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 16:01:39 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1676,7 +1676,7 @@ Varying Effects</p>
 <span><span class="co">#&gt; beta[2,1] 0.16       0 0.05  0.06 0.12 0.16 0.19  0.26  2772    1</span></span>
 <span><span class="co">#&gt; beta[2,2] 0.10       0 0.08 -0.06 0.04 0.10 0.15  0.25  3406    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:27:13 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 16:08:57 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1937,7 +1937,7 @@ dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 <span><span class="co">#&gt; Rho[3,2]  0.05    0.02 0.31 -0.55 -0.20 0.06 0.29  0.61   294 1.01</span></span>
 <span><span class="co">#&gt; Rho[3,3]  1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00   853 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:30:18 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 16:11:59 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1991,7 +1991,7 @@ Direct Effect Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; L_Rho[3,2] 0.09    0.01 0.39 -0.70 -0.18 0.09 0.38  0.78  1142 1.00</span></span>
 <span><span class="co">#&gt; L_Rho[3,3] 0.80    0.01 0.17  0.40  0.70 0.84 0.94  0.99   185 1.01</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sun Jul 14 23:36:39 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Sep 21 16:18:00 2024.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -2010,7 +2010,7 @@ etc. following the methods above.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
