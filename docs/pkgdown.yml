@@ -1,4 +1,4 @@
-pandoc: 3.1.11
+pandoc: '3.2'
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
@@ -7,7 +7,7 @@ articles:
   Multi-optima_Models-Examples: Multi-optima_Models-Examples.html
   Simulation-Example: Simulation-Example.html
   Varying_Effects_Models-Examples: Varying_Effects_Models-Examples.html
-last_built: 2024-07-14T19:12Z
+last_built: 2024-10-07T15:56Z
 urls:
   reference: https://mark-grabowski.github.io/blouch/reference
   article: https://mark-grabowski.github.io/blouch/articles

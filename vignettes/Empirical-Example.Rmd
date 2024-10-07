@@ -1,5 +1,5 @@
 ---
-title: "Empirical Example from Grabowski (in press) Walkthrough"
+title: "Empirical Example from Grabowski (2024) Walkthrough"
 author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

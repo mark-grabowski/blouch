@@ -27,7 +27,7 @@ If you are just getting started with *Blouch* I recommend starting with the Empi
 
 *Blouch* is based on an article currently in press:
 
-+ Grabowski, M (in press). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses. Systematic Biology.
++ Grabowski, M (2024). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses. Systematic Biology.
 
 ## Instalation Instructions
 To install the R and Stan functions associated with Blouch from github, first install the package devtools:
