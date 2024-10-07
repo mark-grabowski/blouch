@@ -18,7 +18,7 @@ While the front-end component of *Blouch* is written in R (R Core Team,
 2023), the nuts and bolts are written in the language Stan (Carpenter et
 al., 2017), which allows estimation of Bayesian models using Markov
 chain Monte Carlo (MCMC) methods based on the Hamilton Monte Carlo
-sampler.
+sampler. 
 
 ## Getting Started
 
