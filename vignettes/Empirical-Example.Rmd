@@ -4,7 +4,7 @@ author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Empirical Example from Grabowski (in press) Walkthrough}
+  %\VignetteIndexEntry{Empirical Example from Grabowski (2024) Walkthrough}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
