@@ -1,0 +1,4055 @@
+---
+title: "Generative Model of Migration and Selection"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+########################################################################################################################
+Simple Regression Model - single optima, single beta, single M Matrix
+Non-hierarchical priors on all, but population-specific es, sd_theta, sd_e
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+
+######################################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Increasing population size to 60
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+n_pops <- 60
+alpha <- c(0.1)
+beta<-c(0.25)
+alpha_prior<-c(0,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+x_dat <- tibble(
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+Create Migration Matrix (M)
+```{r}
+# --- Identity Matrix ---
+I <- diag(n_pops) # Identity matrix
+
+max_M_rate <- 0.25 # Max migration rate component
+
+M <- matrix(0, n_pops, n_pops)
+current_max_rate <- max_M_rate
+for (i in 1:n_pops) {
+  # Simulate potential migration *to* i from j (off-diagonal in row i)
+  row_mig <- runif(n_pops - 1, 0, current_max_rate / (n_pops - 1)) # Distribute rate, average current_max_rate / 2.
+  M[i, -i] <- row_mig # Assign off-diagonal values for row i
+}
+
+  # Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:n_pops){
+   m_i = sum(M[i, -i]) # Total immigration rate into pop i
+   if (m_i > 1) { # Optional: cap immigration if rates are high
+      M[i,-i] <- M[i,-i] / m_i
+      m_i = 1
+   }
+   M[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+M_sim <- M # Get the single simulated M matrix
+print(paste("Max off-diagonal M value:", round(max(M_sim[row(M_sim)!=col(M_sim)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_sim)),4), "to", round(max(diag(M_sim)),4)))
+
+
+```
+
+One Adaptation Matrix (A)
+
+Info
+Hansen 2012 - The overall median of the estimates is close to eμ = 0.1%, mean- ing that the predicted per cent change in the trait mean per generation under unit selection is a tenth of a per cent. Hereford et al. (2004) has the median of mean-scaled selection gradients at 0.28
+
+To make βμ = 0.3, we would need sμ/Ne = 0.0707, and even if the population was as small as Ne = 100,
+we would need sμ ≈ 7, which would mean that the gradient would increase sevenfold for every percent the mean moves from the optimum
+
+A:This matrix helps describe how populations adapt to their local optima, considering the force of selection
+
+Non-hierarchical prior
+```{r}
+s_i <- 0.5   # Magnitude of local curvature (uniform)
+e_i <- 0.25 # Evolvability (uniform)
+es <- s_i * e_i # Uniform adaptation strength parameter
+print(paste("Uniform es value:", es))
+
+es_true_simulated_vector <- rtruncnorm(n_pops, a = 0, mean = 0.5, sd = 0.1)
+
+print(paste("Range of es values:", round(min(es_true_simulated_vector),4), "to", round(max(es_true_simulated_vector),4)))
+
+# Calculate m_ii from the corrected M
+m_ii_vec <- diag(M_sim) # Extract the diagonal elements of M (which are -m_i)
+
+# Calculate A correctly using the uniform es
+A <- matrix(0, n_pops, n_pops)
+for (i in 1:n_pops) {
+  # A[i, i] = -es * (1 + M[i,i]) = -es * (1 - m_i)
+  #A[i, i] <- -es * (1 + m_ii_vec[i])
+  A[i, i] <- -es_true_simulated_vector[i] * (1 + m_ii_vec[i]) #Population-specific es values
+}
+
+print(paste("Max off-diagonal A value:", round(max(A[row(A)!=col(A)]),4)))
+print(paste("Range of diagonal A values:", round(min(diag(A)),4), "to", round(max(diag(A)),4)))
+
+```
+
+One iteration Sima_theta and Sigma_e
+V_theta = Variance in optima/theta not explained by linear relationship with x - noise in the location of the optima themselves
+V_e = Variance of local deviations of population mean phenotypes (z) from their current optima (theta) - arise from ongoing evolutionary processes or randomness within those populations  - before accounting for migration
+Lowering these standard deviations to reduce z scatter
+# --- Define Variance Components (Sigma_theta and Sigma_e) ---
+
+Non-hierarchical priors on both
+```{r}
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+#diag_sd_theta <- diag(rep(sd_theta_val, n_pops)) #Single value across diagonal
+sd_theta_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_theta<-diag(sd_theta_true_simulated_vector) 
+Sigma_theta <- diag_sd_theta %*% cor_theta %*% diag_sd_theta # V_theta = Sigma_theta
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+#diag_sd_e <- diag(rep(sd_e_val, n_pops))
+sd_e_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_e<-diag(sd_e_true_simulated_vector)
+Sigma_e <- diag_sd_e %*% cor_e %*% diag_sd_e # V_e = Sigma_e
+
+print(paste("Range of diagonal V_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal V_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+```
+
+
+--- Simulate y, calculate z, simulate z_obs ---
+```{r}
+# --- Simulate z_true based on equilibrium mean and process covariance, then add error for z_obs ---
+# This block now directly simulates z_true according to the model
+# z_true ~ MVN(mu_eq, Sigma_process) where mu_eq = B^-1 * theta
+
+# Prerequisites calculated in previous blocks:
+# theta_true      (vector N, local optima)
+# Sigma_theta     (matrix N*N, V_theta)
+# Sigma_e         (matrix N*N, V_e)
+# M_sim           (matrix N*N, Migration matrix) - Used in AM_term calc
+# A               (matrix N*N, Adaptation matrix) - Used in AM_term calc
+
+# Calculate true optima theta
+#theta_true <- alpha + beta_global * x_true # Vector of true optima
+
+theta_true <- numeric(n_pops)
+#for (i in 1:n_pops) {
+#  theta_true[i] <- alpha[x_dat[i, "Regime"]] + x_dat[i, "x_true"] * beta_global
+#}
+
+theta_true <- alpha + x_dat$x_true * beta #Vectorized version
+
+
+# Calculate AM_term = (I + A^-1 * M)
+# Using M with the negative diagonal, matching Stan code analysis
+AM_term <- I + solve(A) %*% M_sim
+
+# Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+Sigma_z <- solve(AM_term) %*% Sigma_theta %*% t(solve(AM_term)) + Sigma_e
+# Optional: Keep the name Sigma_y_residuals if you prefer, it's the same matrix
+
+# Check positive definiteness (Good practice to keep this)
+eigen_values <- eigen(Sigma_z, symmetric = TRUE, only.values = TRUE)$values
+tolerance <- 1e-8
+if (all(eigen_values > tolerance)) {
+  print("Sigma_z is positive definite.")
+} else {
+  print("Sigma_z is NOT positive definite. Eigenvalues <= tolerance:")
+  print(eigen_values[eigen_values <= tolerance])
+  # Consider using Matrix::nearPD or adding a small diagonal nudge if this fails often
+  # Sigma_process <- as.matrix(Matrix::nearPD(Sigma_process)$mat)
+  # print("Applied nearPD correction.")
+  stop("Simulation stopped: Sigma_z not positive definite.")
+}
+
+# Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+mu_eq <- solve(AM_term) %*% theta_true
+print("Calculated equilibrium mean mu_eq (z_eq).")
+
+# Simulate z_true directly from MVN(mu_eq, Sigma_process)
+print("Simulating z_true directly...")
+z_true <- mvrnorm(n = 1, mu = mu_eq, Sigma = Sigma_z)
+# Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+z_true <- as.vector(z_true)
+print("Simulated z_true (latent trait mean).")
+# +++ END NEW METHOD +++
+
+
+# 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+# (This part remains the same)
+z_error_sd <- 0.01 # SD for measurement error in trait
+z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+print("Simulated z_obs (z_true + measurement error)")
+
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+x_obs <- x_dat$x_obs
+
+dat <- list(
+  N = n_pops,
+  z_obs = as.vector(z_obs), # Use the final observed values
+  x_obs = as.vector(x_obs),
+  z_error = rep(z_error_sd, n_pops),
+  x_error = rep(x_error_sd, n_pops),
+  M = M_sim,
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2
+)
+
+print("Stan data list 'dat' created with correctly simulated z_obs.")
+print("(Remember to update Stan 'data' block to expect 'z_obs' instead of 'y_obs')")
+print("True parameters used:")
+print(paste("alpha (intercept):", alpha))
+print(paste("beta:", beta))
+print(paste("z_error_sd (for z_obs):", z_error_sd))
+print(paste("x_error_sd:", x_error_sd))
+```
+
+
+Check out priors
+Prior Predictive Plot for alpha and beta
+```{r}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  # Layer 3: True generating line
+  geom_abline(
+    intercept = alpha, slope = beta,
+    linetype = "dashed", color = "black", linewidth = 0.7
+  ) +
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x_true)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+Prior predictive check plot for es - non-hierarchical plot
+```{r}
+# --- 1. Simulate draws from the PRIOR distribution ---
+n_draws <- 5000 # Use more draws for a smoother density plot
+#es_prior_sims <- rexp(n = n_draws, rate = es_prior) # Use rate = 5 as per Stan prior
+es_prior_sims <- rtruncnorm(n = n_draws,
+                            a = 0,          # Lower truncation bound
+                            b = Inf,        # Upper truncation bound (infinity)
+                            mean = es_prior[1],     # Mean of the *untruncated* normal
+                            sd = es_prior[2])       # SD of the *untruncated* normal
+
+
+
+
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(1)
+mypal[2]<-palette()[1]
+
+
+# Create a data frame for plotting
+prior_df <- tibble(es_prior = es_prior_sims)
+
+# --- 2. Create the Density Plot ---
+es_prior_density_plot <- ggplot(prior_df, aes(x = es_prior)) +
+  # Add density layer
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  
+  # Add vertical line for the true value
+  #geom_vline(xintercept = es_true, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_min, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_max, color = "black", linetype = "dashed", linewidth = 1) +
+  
+  # Labels and Theme
+  labs(
+    title = "Prior Distribution vs True Values for 'es'",
+    subtitle = paste0("Prior: Truncated Normal(mean = 0.5, sd = 0.1)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(es_prior_sims, 0.99))) # Zoom x-axis (optional)
+
+
+# --- 3. Display the plot ---
+print(es_prior_density_plot)
+```
+
+Compared to true values - es Rug Plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_es_df <- data.frame(true_value = es_true_simulated_vector)
+
+# Method 1: Rug Plot
+es_density_plot_with_rug <- es_prior_density_plot +
+  geom_rug(data = true_values_es_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(es_prior_density_plot$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated es[i] values)"))
+print(es_density_plot_with_rug)
+
+```
+
+
+SD Theta Prior Predictve Plot - Non-hierarchical Plot
+```{r}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+sd_theta_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.1), sdlog = 0.5)
+
+# Create a data frame for plotting
+prior_theta_df <- tibble(sd_prior = sd_theta_prior_sims)
+
+# --- Create the Density Plot ---
+sd_theta_prior_density_plot <- ggplot(prior_theta_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution vs True Values for 'sd_theta'",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(sd_theta_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_theta_prior_density_plot)
+```
+
+
+Compared to true sd_theta values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_theta_df <- data.frame(true_value = sd_theta_true_simulated_vector)
+
+# Method 1: Rug Plot
+sd_theta_prior_density_plot_w_rug <- sd_theta_prior_density_plot +
+  geom_rug(data = true_values_sd_theta_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(sd_theta_prior_density_plot$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_theta[i] values)"))
+print(sd_theta_prior_density_plot_w_rug)
+```
+
+
+sd_e prior plot - Non-hierarchical
+```{r}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000   # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+sd_e_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.1), sdlog = 0.5)
+
+# Create a data frame for plotting
+prior_e_df <- tibble(sd_prior = sd_e_prior_sims)
+
+# --- Create the Density Plot ---
+sd_e_prior_density_plot <- ggplot(prior_e_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_e_true, color = "black", linetype = "dashed", linewidth = 1) + # Changed color for variety
+  labs(
+    title = "Prior Distribution vs True Value for 'sd_e'",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    
+    x = "sd_e Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(sd_e_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_e_prior_density_plot)
+```
+
+
+Compared to true sd_e values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_e_df <- data.frame(true_value = sd_e_true_simulated_vector)
+
+# Method 1: Rug Plot
+p_sd_e_with_rug <- sd_e_prior_density_plot +
+  geom_rug(data = true_values_sd_e_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(sd_e_prior_density_plot$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_e[i] values)"))
+print(p_sd_e_with_rug)
+```
+
+
+Two chains
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_basic.stan')
+stan_file<-"blouchMigAdpt_basic.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+      # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    L_Omega_theta = diag(dat$N),
+    L_Omega_e = diag(dat$N),
+    # Latent variables (starting at observed values is common)
+    z_true = dat$z_obs,
+    x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.8), # Keep control parameters
+    init = init_list_multichain    # Pass the list of lists
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               "es[1]", "es[2]", "es[3]", 
+               "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "sd_e[1]","sd_e[2]","sd_e[3]",
+               "L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               "L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r}
+pairs(stan_fit, pars = c("alpha", "beta", 
+                         "es[1]", "es[2]", "es[3]", 
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+
+# Posterior Plots
+Alpha and beta = regression lines
+```{r}
+# --- 1. Prepare observed data
+df <- tibble(
+    z_obs = dat$z_obs,
+    x_obs = dat$x_obs,
+)
+
+# --- 2. Generate sequence of x values for prediction lines/ribbons ---
+x_obs_vals <- df$x_obs
+x_seq <- seq(from = min(x_obs_vals, na.rm=TRUE), to = max(x_obs_vals, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_true = x_seq) # Using x_true as predictor name matching model
+
+# --- 3. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines per regime
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate beta draws
+prior_beta <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alpha <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Combine into a tidy format with Regime info - needed for geom_abline
+prior_draws_df <- tibble(
+  alpha_sim = prior_alpha,
+  beta_sim = prior_beta,
+  .draw = 1:n_prior_draws) %>%
+  select(.draw, alpha_sim, beta_sim)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+posterior_params <- stan_fit %>%
+    spread_draws(alpha,beta) #Function in tidybayes package 
+
+# b. Predict
+posterior_predictions <- posterior_params %>%
+  crossing(x_grid) %>% #Creates new tibble with all alpha and beta values in posterior at all x_grid values
+  mutate(mu_pred = alpha + beta * x_true) #Calculates mu_pred for each of these sets
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(x_true) %>% #Bundles together all mu_pred values by x_true, all operations performed for each x_true value
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+# --- 5. Prepare True Lines Data ---
+# (Remains the same)
+true_line_df <- tibble(
+  alpha_true = alpha,
+  beta_true = beta
+)
+
+
+# --- 6. Create the ggplot ---
+posterior_regression_plot <- ggplot() +
+
+  # Layer 1: Prior predictive lines (MANY FAINT LINES)
+  # Use the unsummarized prior_draws_df
+  geom_abline(
+    data = prior_draws_df,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1 # Single faint color
+  ) +
+
+  # Layer 2: Posterior Credible Interval ribbons
+  geom_ribbon(
+    data = posterior_summary,
+    aes(x = x_true, ymin = .lower, ymax = .upper),
+    alpha = 0.2 # Slightly higher alpha for posterior ribbons now
+  ) +
+
+  # Layer 3: Posterior Mean/Median regression lines
+  geom_line(
+    data = posterior_summary,
+    aes(x = x_true, y = mu_pred),alpha=0.5,
+    linewidth = 0.5
+  ) +
+
+  # Layer 4: True generating lines
+  geom_abline(
+    data = true_line_df,
+    aes(intercept = alpha_true, slope = beta_true),alpha=0.5,
+    linetype = "dashed", linewidth = 0.5
+  ) +
+
+  # Layer 5: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs), alpha = 0.7, size = 1.5) +
+
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Prior Draws & Posterior Regression Lines (Median + 89% CI)", 
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x)"
+  )
+
+# --- 7. Display the plot ---
+print(posterior_regression_plot)
+```
+
+
+Prior vs. Posterior plot of Thetas
+```{r}
+
+# --- Prerequisites (Assume these are already in your R environment) ---
+# stan_fit   <- # Your Stan fit object
+# theta_true <- # The vector of true optima used in the simulation
+# x_true     <- # The vector of TRUE x values used in simulation
+# dat        <- # Your data list used for Stan (contains priors & reg_assign)
+# n_pops     <- # The number of populations (e.g., 60)
+
+
+
+# --- 1. Extract posterior draws for mu (estimated theta) ---
+posterior_mu <- stan_fit %>%
+  spread_draws(mu[population]) #Population is empty - this is a generic name telling spread_draws how to group the draws
+
+# --- 2. Calculate posterior summaries for mu for each population ---
+mu_summary <- posterior_mu %>%
+  group_by(population) %>%
+  median_qi(mu, .width = 0.89) # Using 89% interval
+
+# --- 3. Calculate PRIOR summaries for theta for each population ---
+# (This part remains unchanged as prior is the same regardless of regime)
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+prior_summary <- tibble(
+    population = 1:n_pops,
+    x_true = x_true, # Include x_true used for this population
+    prior_mean_theta = alpha_prior_mean + beta_prior_mean * x_true,
+    # Need variance if using different prior widths or non-normal priors
+    prior_var_theta = alpha_prior_sd^2 + beta_prior_sd^2 * x_true^2,
+    prior_sd_theta = sqrt(prior_var_theta)
+)
+
+z_score_89 <- qnorm(1 - (1 - 0.89)/2) # Z-score for 89% interval
+prior_summary <- prior_summary %>%
+    mutate(
+        prior_lower_89 = prior_mean_theta - z_score_89 * prior_sd_theta,
+        prior_upper_89 = prior_mean_theta + z_score_89 * prior_sd_theta
+    ) %>%
+    select(population, prior_lower_89, prior_upper_89) # Keep only needed columns
+
+
+# --- 4. Combine true values, posterior summaries, prior summaries, AND REGIME ---
+# Reshape posterior summaries
+posterior_summary_wide <- mu_summary %>%
+    select(population, posterior_median = mu, lower_89 = .lower, upper_89 = .upper)
+
+# Combine all data
+plot_data <- tibble(population = 1:n_pops, true_theta = theta_true) %>%
+    left_join(posterior_summary_wide, by = "population") %>%
+    left_join(prior_summary, by = "population")
+
+# Check for missing values after join
+if(any(is.na(plot_data))) {
+    warning("NA values introduced during data joining. Check population indices or Regime mapping.")
+}
+
+
+# --- 5. Create the ggplot (Points colored by Regime) ---
+recovery_plot_color_prior <- ggplot(plot_data, aes(x = true_theta)) +
+
+  # Layer 1: PRIOR 89% Interval ribbon (very light grey)
+  geom_ribbon(aes(ymin = prior_lower_89, ymax = prior_upper_89), fill = "grey90", alpha = 0.5) +
+
+  # Layer 2: POSTERIOR 89% Credible Interval ribbon (darker grey, no fill by regime)
+  geom_ribbon(aes(ymin = lower_89, ymax = upper_89), fill = "grey75", alpha = 0.7) +
+
+  # Layer 3: Points for the posterior median, COLORED BY REGIME
+  geom_point(aes(y = posterior_median), size = 2) + # Added color = Regime
+
+  # Layer 4: Add the 1:1 line (perfect recovery)
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "grey30") +
+
+  # Labels and Theme
+  labs(
+    title = "Prior (light) vs Posterior (dark) Recovery of True Optima (theta)",
+    x = "True Simulated Optimum (theta_true)",
+    y = "Estimated Optimum (mu / Prior Mean)"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "bottom" # Keep legend if desired
+   )
+
+# --- 6. Display the plot ---
+print(recovery_plot_color_prior)
+```
+
+Posterior vs. true values plot for es[i]
+```{r}
+
+posterior_medians_es <- apply(post$es, 2, median)
+es_lower_ci <- apply(post$es, 2, function(x) quantile(x, 0.055)) # For 89% CI (adjust probs for 95% if needed: 0.025, 0.975)
+es_upper_ci <- apply(post$es, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+# --- Create DataFrame for Plotting es Recovery ---
+recovery_df_es <- data.frame(
+  true_value = es_true_simulated_vector,
+  posterior_median = posterior_medians_es,
+  lower_ci = es_lower_ci,
+  upper_ci = es_upper_ci
+)
+
+# --- Generate the Plot for es ---
+
+p_es_recovery <- ggplot(recovery_df_es, aes(x = true_value, y = posterior_median)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+  geom_point(alpha = 0.7, color = "black") +
+  labs(title = "Recovery of Population-Specific es",
+       x = "True Simulated es[i] (from N(0.5, 0.1) T[0,])", # Updated label
+       y = "Posterior Median es[i] (with 89% CI)") +
+  theme_bw() +
+  #coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+              # Adjust xlim and ylim dynamically to fit all data points and CIs
+              #xlim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE),
+              #ylim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(p_es_recovery)
+
+# --- Optional: Print Mean/Median comparisons for es ---
+cat("\n--- es[i] Recovery Analysis (True values from N(0, 0.25) T[0,]) ---\n")
+cat("Mean of True Simulated es[i]:", mean(es_true_simulated_vector), "\n")
+cat("Median of True Simulated es[i]:", median(es_true_simulated_vector), "\n")
+cat("Mean of Posterior Medians for es[i]:", mean(posterior_medians_es), "\n")
+cat("Median of Posterior Medians for es[i]:", median(posterior_medians_es), "\n")
+
+```
+
+SD Theta Prior vs. Posterior Plot - Population-specific values
+```{r}
+# (posterior_medians_sd_theta from above)
+# (sd_theta_true_simulated_vector from your R simulation)
+# 1. Theoretical Prior Density
+# Assume 'sd_theta_true_simulated_vector' holds your N true simulated sd_theta values from R
+
+true_vals_df_sd_theta <- data.frame(value = sd_theta_true_simulated_vector, type = "True Simulated Values")
+
+posterior_medians_sd_theta <- apply(post$sd_theta, 2, median)
+post_medians_df_sd_theta <- data.frame(value = posterior_medians_sd_theta, type = "Posterior Medians")
+
+mean(sd_theta_true_simulated_vector)
+median(sd_theta_true_simulated_vector)
+mean(posterior_medians_sd_theta)
+median(posterior_medians_sd_theta)
+
+prior_meanlog <- log(0.1)
+prior_sdlog <- 0.5
+x_vals_prior <- seq(0.001, quantile(rlnorm(10000, prior_meanlog, prior_sdlog), 0.999), length.out = 300)
+prior_df <- data.frame(value = x_vals_prior, density = dlnorm(x_vals_prior, prior_meanlog, prior_sdlog), type = "Prior")
+
+# 2. Posterior samples for sd_theta
+sd_theta_samples <- as.data.frame(post$sd_theta)
+colnames(sd_theta_samples) <- paste0("sd_theta_", 1:n_pops)
+sd_theta_long <- sd_theta_samples %>%
+pivot_longer(cols = everything(), names_to = "parameter", values_to = "value")
+
+
+sd_theta_lower_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.055)) # For 89% CI
+sd_theta_upper_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+recovery_df_sd_theta <- data.frame(
+true_value = sd_theta_true_simulated_vector,
+posterior_median = posterior_medians_sd_theta,
+lower_ci = sd_theta_lower_ci,
+upper_ci = sd_theta_upper_ci
+)
+
+p4 <- ggplot(recovery_df_sd_theta, aes(x = true_value, y = posterior_median)) +
+geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3) +
+geom_point(alpha = 0.7) +
+labs(title = "Recovery of Population-Specific sd_theta",
+x = "True Simulated sd_theta[i]",
+y = "Posterior Median sd_theta[i] (with 89% CI)") +
+theme_bw() +
+coord_fixed(ratio = 1, xlim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T),
+ylim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T))
+print(p4)
+```
+
+SD e Prior vs. Posterior Plot - Population-specific values
+```{r}
+# Ensure 'post' (extracted Stan samples) and 'n_pops' are available in your environment
+
+# --- You MUST define this from your R simulation script ---
+# Example: If you simulated true sd_e values and stored them in a vector:
+# sd_e_true_simulated_vector <- your_vector_of_true_sd_e_values
+# Or, if they were on the diagonal of a matrix named 'diag_sd_e_matrix_simulated':
+
+
+# Check if sd_e_true_simulated_vector exists; if not, create a placeholder
+if (!exists("sd_e_true_simulated_vector")) {
+  warning("sd_e_true_simulated_vector was not found. Please define it from your R simulation. Using random placeholders for demonstration.")
+  # Placeholder: Replace this with your actual true simulated values
+  sd_e_true_simulated_vector <- rlnorm(ncol(post$sd_e), meanlog = log(0.1), sdlog = 0.5)
+}
+
+# --- Calculate Posterior Summaries for sd_e ---
+if ("sd_e" %in% names(post)) {
+  posterior_medians_sd_e <- apply(post$sd_e, 2, median)
+  sd_e_lower_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.055)) # For 89% CI
+  sd_e_upper_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+  # --- Create DataFrame for Plotting sd_e Recovery ---
+  recovery_df_sd_e <- data.frame(
+    true_value = sd_e_true_simulated_vector,
+    posterior_median = posterior_medians_sd_e,
+    lower_ci = sd_e_lower_ci,
+    upper_ci = sd_e_upper_ci
+  )
+
+  # --- Generate the Plot for sd_e ---
+  library(ggplot2)
+
+  p_sd_e_recovery <- ggplot(recovery_df_sd_e, aes(x = true_value, y = posterior_median)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+    geom_point(alpha = 0.7, color = "black") +
+    labs(title = "Recovery of Population-Specific sd_e",
+         x = "True Simulated sd_e[i]",
+         y = "Posterior Median sd_e[i] (with 89% CI)") +
+    theme_bw() +
+    coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+                xlim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE),
+                ylim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE)) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+  print(p_sd_e_recovery)
+
+  # --- Optional: Print Mean/Median comparisons for sd_e ---
+  cat("\n--- sd_e Analysis ---\n")
+  cat("Mean of True Simulated sd_e[i]:", mean(sd_e_true_simulated_vector), "\n")
+  cat("Median of True Simulated sd_e[i]:", median(sd_e_true_simulated_vector), "\n")
+  cat("Mean of Posterior Medians for sd_e[i]:", mean(posterior_medians_sd_e), "\n")
+  cat("Median of Posterior Medians for sd_e[i]:", median(posterior_medians_sd_e), "\n")
+
+} else {
+  warning("Parameter 'sd_e' not found in posterior samples. Cannot create sd_e recovery plot.")
+}
+```
+
+
+
+
+
+
+
+
+########################################################################################################################
+Multi optimum model - varying intercepts
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Increasing population size to 60
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+n_pops <- 60
+n_theta <- 3
+alpha <- c(0.1, 0.25, 0.5)
+beta<-0.25
+alpha_prior<-c(0,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+
+pops_per_regime <- n_pops / n_theta
+x_dat <- tibble(
+    Regime = rep(1:n_theta, each = pops_per_regime),
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+Create Migration Matrix (M)
+```{r}
+# --- Identity Matrix ---
+I <- diag(n_pops) # Identity matrix
+
+max_M_rate <- 0.25 # Max migration rate component
+
+M <- matrix(0, n_pops, n_pops)
+current_max_rate <- max_M_rate
+for (i in 1:n_pops) {
+  # Simulate potential migration *to* i from j (off-diagonal in row i)
+  row_mig <- runif(n_pops - 1, 0, current_max_rate / (n_pops - 1)) # Distribute rate, average current_max_rate / 2.
+  M[i, -i] <- row_mig # Assign off-diagonal values for row i
+}
+
+  # Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:n_pops){
+   m_i = sum(M[i, -i]) # Total immigration rate into pop i
+   if (m_i > 1) { # Optional: cap immigration if rates are high
+      M[i,-i] <- M[i,-i] / m_i
+      m_i = 1
+   }
+   M[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+M_sim <- M # Get the single simulated M matrix
+print(paste("Max off-diagonal M value:", round(max(M_sim[row(M_sim)!=col(M_sim)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_sim)),4), "to", round(max(diag(M_sim)),4)))
+
+
+```
+
+One Adaptation Matrix (A)
+
+Info
+Hansen 2012 - The overall median of the estimates is close to eμ = 0.1%, mean- ing that the predicted per cent change in the trait mean per generation under unit selection is a tenth of a per cent. Hereford et al. (2004) has the median of mean-scaled selection gradients at 0.28
+
+To make βμ = 0.3, we would need sμ/Ne = 0.0707, and even if the population was as small as Ne = 100,
+we would need sμ ≈ 7, which would mean that the gradient would increase sevenfold for every percent the mean moves from the optimum
+
+A:This matrix helps describe how populations adapt to their local optima, considering the force of selection
+
+Non-hierarchical prior
+```{r}
+s_i <- 0.5   # Magnitude of local curvature (uniform)
+e_i <- 0.25 # Evolvability (uniform)
+es <- s_i * e_i # Uniform adaptation strength parameter
+print(paste("Uniform es value:", es))
+
+es_true_simulated_vector <- rtruncnorm(n_pops, a = 0, mean = 0.5, sd = 0.1)
+
+print(paste("Range of es values:", round(min(es_true_simulated_vector),4), "to", round(max(es_true_simulated_vector),4)))
+
+# Calculate m_ii from the corrected M
+m_ii_vec <- diag(M_sim) # Extract the diagonal elements of M (which are -m_i)
+
+# Calculate A correctly using the uniform es
+A <- matrix(0, n_pops, n_pops)
+for (i in 1:n_pops) {
+  # A[i, i] = -es * (1 + M[i,i]) = -es * (1 - m_i)
+  #A[i, i] <- -es * (1 + m_ii_vec[i])
+  A[i, i] <- -es_true_simulated_vector[i] * (1 + m_ii_vec[i]) #Population-specific es values
+}
+
+print(paste("Max off-diagonal A value:", round(max(A[row(A)!=col(A)]),4)))
+print(paste("Range of diagonal A values:", round(min(diag(A)),4), "to", round(max(diag(A)),4)))
+
+```
+
+One iteration Sima_theta and Sigma_e
+V_theta = Variance in optima/theta not explained by linear relationship with x - noise in the location of the optima themselves
+V_e = Variance of local deviations of population mean phenotypes (z) from their current optima (theta) - arise from ongoing evolutionary processes or randomness within those populations  - before accounting for migration
+Lowering these standard deviations to reduce z scatter
+# --- Define Variance Components (Sigma_theta and Sigma_e) ---
+
+Non-hierarchical priors on both
+```{r}
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+#diag_sd_theta <- diag(rep(sd_theta_val, n_pops)) #Single value across diagonal
+sd_theta_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_theta<-diag(sd_theta_true_simulated_vector) 
+Sigma_theta <- diag_sd_theta %*% cor_theta %*% diag_sd_theta # V_theta = Sigma_theta
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+#diag_sd_e <- diag(rep(sd_e_val, n_pops))
+sd_e_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_e<-diag(sd_e_true_simulated_vector)
+Sigma_e <- diag_sd_e %*% cor_e %*% diag_sd_e # V_e = Sigma_e
+
+print(paste("Range of diagonal V_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal V_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+```
+
+--- Simulate y, calculate z, simulate z_obs ---
+```{r}
+theta_true <- numeric(n_pops)
+
+theta_true <- alpha[x_dat$Regime] + x_dat$x_true * beta #Vectorized version
+
+# Calculate AM_term = (I + A^-1 * M)
+AM_term <- I + solve(A) %*% M_sim
+
+# Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+Sigma_z <- solve(AM_term) %*% Sigma_theta %*% t(solve(AM_term)) + Sigma_e
+# Optional: Keep the name Sigma_y_residuals if you prefer, it's the same matrix
+
+# Check positive definiteness (Good practice to keep this)
+eigen_values <- eigen(Sigma_z, symmetric = TRUE, only.values = TRUE)$values
+tolerance <- 1e-8
+if (all(eigen_values > tolerance)) {
+  print("Sigma_z is positive definite.")
+} else {
+  print("Sigma_z is NOT positive definite. Eigenvalues <= tolerance:")
+  print(eigen_values[eigen_values <= tolerance])
+  # Consider using Matrix::nearPD or adding a small diagonal nudge if this fails often
+  # Sigma_process <- as.matrix(Matrix::nearPD(Sigma_process)$mat)
+  # print("Applied nearPD correction.")
+  stop("Simulation stopped: Sigma_z not positive definite.")
+}
+
+# Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+mu_eq <- solve(AM_term) %*% theta_true
+print("Calculated equilibrium mean mu_eq (z_eq).")
+
+# Simulate z_true directly from MVN(mu_eq, Sigma_process)
+print("Simulating z_true directly...")
+z_true <- mvrnorm(n = 1, mu = mu_eq, Sigma = Sigma_z)
+# Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+z_true <- as.vector(z_true)
+print("Simulated z_true (latent trait mean).")
+# +++ END NEW METHOD +++
+
+
+# 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+# (This part remains the same)
+z_error_sd <- 0.01 # SD for measurement error in trait
+z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+print("Simulated z_obs (z_true + measurement error)")
+
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+x_obs <- x_dat$x_obs
+
+dat <- list(
+  N = n_pops,
+  z_obs = as.vector(z_obs), # Use the final observed values
+  x_obs = as.vector(x_obs),
+  z_error = rep(z_error_sd, n_pops),
+  x_error = rep(x_error_sd, n_pops),
+  M = M_sim,
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2
+)
+
+print("Stan data list 'dat' created with correctly simulated z_obs.")
+print("(Remember to update Stan 'data' block to expect 'z_obs' instead of 'y_obs')")
+print("True parameters used:")
+print(paste("alpha (intercept):", alpha))
+print(paste("beta:", beta))
+print(paste("z_error_sd (for z_obs):", z_error_sd))
+print(paste("x_error_sd:", x_error_sd))
+
+# --- Setup for Stan ---
+x_obs<-x_dat$x_obs
+reg_assign<-x_dat$Regime
+
+dat <- list(
+  N = n_pops,
+  n_theta = n_theta,
+  z_obs = as.vector(z_obs), 
+  x_obs = as.vector(x_obs),
+  z_error = rep(z_error_sd, n_pops), # Stan model expects 'z_error' name based on basic code
+  x_error = rep(x_error_sd, n_pops),
+  M = M_sim, # Pass the M used in simulation (with negative diagonal)
+  alpha_prior = c(0.25, 0.2), # Stan model expects 'alpha_prior' name (unless changed in Stan)
+  beta_prior = c(0.25, 0.2), # Example prior for beta (slope)
+  es_prior = es_prior,
+  nu_cor = 2,                  # Example LKJ shape parameter
+  reg_assign=reg_assign
+)
+
+
+
+
+print("Stan data list 'dat' created with correctly simulated z_obs.")
+print("(Remember to update Stan 'data' block to expect 'z_obs' instead of 'y_obs')")
+print("True parameters used:")
+print(paste("alpha (intercept):", alpha))
+print(paste("beta:", beta))
+print(paste("z_error_sd (for z_obs):", z_error_sd))
+print(paste("x_error_sd:", x_error_sd))
+
+```
+
+
+Check out priors
+Prior predictive plot for alpha and beta
+```{r}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 100
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  # Layer 3: True generating line
+  geom_abline(
+    intercept = alpha, slope = beta,
+    linetype = "dashed", color = "black", linewidth = 0.7
+  ) +
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x_true)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+
+Prior predictive check plot for es - non-hierarchical plot
+```{r}
+# --- 1. Simulate draws from the PRIOR distribution ---
+n_draws <- 5000 # Use more draws for a smoother density plot
+#es_prior_sims <- rexp(n = n_draws, rate = es_prior) # Use rate = 5 as per Stan prior
+es_prior_sims <- rtruncnorm(n = n_draws,
+                            a = 0,          # Lower truncation bound
+                            b = Inf,        # Upper truncation bound (infinity)
+                            mean = es_prior[1],     # Mean of the *untruncated* normal
+                            sd = es_prior[2])       # SD of the *untruncated* normal
+
+
+
+
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(1)
+mypal[2]<-palette()[1]
+
+
+# Create a data frame for plotting
+prior_df <- tibble(es_prior = es_prior_sims)
+
+# --- 2. Create the Density Plot ---
+es_prior_density_plot <- ggplot(prior_df, aes(x = es_prior)) +
+  # Add density layer
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  
+  # Add vertical line for the true value
+  #geom_vline(xintercept = es_true, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_min, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_max, color = "black", linetype = "dashed", linewidth = 1) +
+  
+  # Labels and Theme
+  labs(
+    title = "Prior Distribution vs True Values for 'es'",
+    subtitle = paste0("Prior: Truncated Normal(mean = 0.5, sd = 0.1)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(es_prior_sims, 0.99))) # Zoom x-axis (optional)
+
+
+# --- 3. Display the plot ---
+print(es_prior_density_plot)
+```
+
+Compared to true values - es Rug Plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_es_df <- data.frame(true_value = es_true_simulated_vector)
+
+# Method 1: Rug Plot
+es_density_plot_with_rug <- es_prior_density_plot +
+  geom_rug(data = true_values_es_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(es_prior_density_plot$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated es[i] values)"))
+print(es_density_plot_with_rug)
+
+```
+
+
+SD Theta Prior Predictve Plot - Non-hierarchical Plot
+```{r}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+sd_theta_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.1), sdlog = 0.5)
+
+# Create a data frame for plotting
+prior_theta_df <- tibble(sd_prior = sd_theta_prior_sims)
+
+# --- Create the Density Plot ---
+sd_theta_prior_density_plot <- ggplot(prior_theta_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution vs True Values for 'sd_theta'",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(sd_theta_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_theta_prior_density_plot)
+```
+
+
+Compared to true sd_theta values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_theta_df <- data.frame(true_value = sd_theta_true_simulated_vector)
+
+# Method 1: Rug Plot
+sd_theta_prior_density_plot_w_rug <- sd_theta_prior_density_plot +
+  geom_rug(data = true_values_sd_theta_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(sd_theta_prior_density_plot$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_theta[i] values)"))
+print(sd_theta_prior_density_plot_w_rug)
+```
+
+
+sd_e prior plot - Non-hierarchical
+```{r}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000   # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+sd_e_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.1), sdlog = 0.5)
+
+# Create a data frame for plotting
+prior_e_df <- tibble(sd_prior = sd_e_prior_sims)
+
+# --- Create the Density Plot ---
+sd_e_prior_density_plot <- ggplot(prior_e_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_e_true, color = "black", linetype = "dashed", linewidth = 1) + # Changed color for variety
+  labs(
+    title = "Prior Distribution vs True Value for 'sd_e'",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    
+    x = "sd_e Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(sd_e_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_e_prior_density_plot)
+```
+
+
+Compared to true sd_e values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_e_df <- data.frame(true_value = sd_e_true_simulated_vector)
+
+# Method 1: Rug Plot
+p_sd_e_with_rug <- sd_e_prior_density_plot +
+  geom_rug(data = true_values_sd_e_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(sd_e_prior_density_plot$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_e[i] values)"))
+print(p_sd_e_with_rug)
+```
+
+
+Two chains
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_VI.stan')
+stan_file<-"blouchMigAdpt_VI.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(n_theta, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+      # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    L_Omega_theta = diag(dat$N),
+    L_Omega_e = diag(dat$N),
+    # Latent variables (starting at observed values is common)
+    z_true = dat$z_obs,
+    x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.8), # Keep control parameters
+    init = init_list_multichain    # Pass the list of lists
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+
+# Posteriors
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               "es[1]", "es[2]", "es[3]", 
+               "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "sd_e[1]","sd_e[2]","sd_e[3]",
+               "L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               "L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r}
+pairs(stan_fit, pars = c("alpha", "beta", 
+                         "es[1]", "es[2]", "es[3]", 
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+
+# Posterior Plots
+```{r}
+
+
+# --- 1. Prepare observed data with Regime factor ---
+df <- tibble(
+    z_obs = dat$z_obs,
+    x_obs = dat$x_obs,
+    Regime = factor(dat$reg_assign, levels = 1:n_theta, labels = paste("Regime", 1:n_theta))
+)
+
+# --- 2. Generate sequence of x values for prediction lines/ribbons ---
+x_obs_vals <- df$x_obs
+x_seq <- seq(from = min(x_obs_vals, na.rm=TRUE), to = max(x_obs_vals, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_true = x_seq) # Using x_true as predictor name matching model
+
+# --- 3. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines per regime
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate beta draws
+prior_beta <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- matrix(rnorm(n_prior_draws * n_theta, alpha_prior_mean, alpha_prior_sd),
+                       nrow = n_prior_draws, ncol = n_theta)
+colnames(prior_alphas) <- paste0("Regime", 1:n_theta)
+
+# Combine into a tidy format with Regime info - needed for geom_abline
+prior_draws_df <- as_tibble(prior_alphas) %>%
+   mutate(beta_sim = prior_beta, .draw = 1:n_prior_draws) %>%
+   # Pivot longer to get alpha_sim value and Regime column
+   pivot_longer(cols = starts_with("Regime"),
+                names_to = "Regime", # Temporarily character
+                values_to = "alpha_sim") %>%
+    # No need to factor Regime here, geom_abline doesn't use it for color
+
+    # We have n_prior_draws * n_theta rows here, each represents one line
+    select(.draw, Regime, alpha_sim, beta_sim) # Keep relevant columns
+
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+posterior_params <- stan_fit %>%
+    spread_draws(beta, alpha[Regime]) %>%
+    mutate(Regime = factor(Regime, levels = 1:n_theta, labels = paste("Regime", 1:n_theta)))
+
+# b. Predict
+posterior_predictions <- posterior_params %>%
+  crossing(x_grid) %>%
+  mutate(mu_pred = alpha + beta * x_true)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(Regime, x_true) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+# --- 5. Prepare True Lines Data ---
+# (Remains the same)
+true_lines_df <- tibble(
+  Regime = factor(1:n_theta, levels = 1:n_theta, labels = paste("Regime", 1:n_theta)),
+  alpha_true = alpha,
+  beta_true = beta
+)
+
+
+# --- 6. Create the ggplot ---
+multi_slope_plot_faint_prior <- ggplot() +
+
+  # Layer 1: Prior predictive lines (MANY FAINT LINES)
+  # Use the unsummarized prior_draws_df
+  geom_abline(
+    data = prior_draws_df,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1 # Single faint color
+  ) +
+
+  # Layer 2: Posterior Credible Interval ribbons, filled by Regime
+  geom_ribbon(
+    data = posterior_summary,
+    aes(x = x_true, ymin = .lower, ymax = .upper, fill = Regime),
+    alpha = 0.2 # Slightly higher alpha for posterior ribbons now
+  ) +
+
+  # Layer 3: Posterior Mean/Median regression lines, colored by Regime
+  geom_line(
+    data = posterior_summary,
+    aes(x = x_true, y = mu_pred, color = Regime),alpha=0.5,
+    linewidth = 0.5
+  ) +
+
+  # Layer 4: True generating lines, colored by Regime
+  geom_abline(
+    data = true_lines_df,
+    aes(intercept = alpha_true, slope = beta_true, color = Regime),alpha=0.5,
+    linetype = "dashed", linewidth = 0.5
+  ) +
+
+  # Layer 5: Observed data points, colored by Regime
+  geom_point(data = df, aes(y = z_obs, x = x_obs, color = Regime), alpha = 0.7, size = 1.5) +
+
+  # Apply ggsci color scales for Regime (used by points, true lines, posterior lines/ribbons)
+  ggsci::scale_color_aaas(name = "Regime") +
+  ggsci::scale_fill_aaas(name = "Regime") +
+
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Prior Draws & Posterior Regression Lines (Median + 89% CI) by Regime", # Updated title
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x)"
+  )
+
+# --- 7. Display the plot ---
+print(multi_slope_plot_faint_prior)
+```
+
+
+Prior vs. Posterior plot of Thetas
+```{r}
+
+# --- 1. Extract posterior draws for mu (estimated theta) ---
+posterior_mu <- stan_fit %>%
+  spread_draws(mu[population])
+
+# --- 2. Calculate posterior summaries for mu for each population ---
+mu_summary <- posterior_mu %>%
+  group_by(population) %>%
+  median_qi(mu, .width = 0.89) # Using 89% interval
+
+# --- 3. Calculate PRIOR summaries for theta for each population ---
+# (This part remains unchanged as prior is the same regardless of regime)
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+prior_summary <- tibble(
+    population = 1:n_pops,
+    x_true = x_true, # Include x_true used for this population
+    prior_mean_theta = alpha_prior_mean + beta_prior_mean * x_true,
+    # Need variance if using different prior widths or non-normal priors
+    prior_var_theta = alpha_prior_sd^2 + beta_prior_sd^2 * x_true^2,
+    prior_sd_theta = sqrt(prior_var_theta)
+)
+
+z_score_89 <- qnorm(1 - (1 - 0.89)/2) # Z-score for 89% interval
+prior_summary <- prior_summary %>%
+    mutate(
+        prior_lower_89 = prior_mean_theta - z_score_89 * prior_sd_theta,
+        prior_upper_89 = prior_mean_theta + z_score_89 * prior_sd_theta
+    ) %>%
+    select(population, prior_lower_89, prior_upper_89) # Keep only needed columns
+
+
+# --- 4. Combine true values, posterior summaries, prior summaries, AND REGIME ---
+# Reshape posterior summaries
+posterior_summary_wide <- mu_summary %>%
+    select(population, posterior_median = mu, lower_89 = .lower, upper_89 = .upper)
+
+# Create regime mapping
+regime_map <- tibble(
+    population = 1:n_pops,
+    Regime = factor(dat$reg_assign, levels = 1:n_theta, labels = paste("Regime", 1:n_theta))
+    )
+
+# Combine all data
+plot_data <- tibble(population = 1:n_pops, true_theta = theta_true) %>%
+    left_join(posterior_summary_wide, by = "population") %>%
+    left_join(prior_summary, by = "population") %>%
+    left_join(regime_map, by = "population") # <-- ADD REGIME HERE
+
+# Check for missing values after join
+if(any(is.na(plot_data))) {
+    warning("NA values introduced during data joining. Check population indices or Regime mapping.")
+}
+
+
+# --- 5. Create the ggplot (Points colored by Regime) ---
+recovery_plot_color_prior <- ggplot(plot_data, aes(x = true_theta)) +
+
+  # Layer 1: PRIOR 89% Interval ribbon (very light grey)
+  geom_ribbon(aes(ymin = prior_lower_89, ymax = prior_upper_89), fill = "grey90", alpha = 0.5) +
+
+  # Layer 2: POSTERIOR 89% Credible Interval ribbon (darker grey, no fill by regime)
+  geom_ribbon(aes(ymin = lower_89, ymax = upper_89), fill = "grey75", alpha = 0.7) +
+
+  # Layer 3: Points for the posterior median, COLORED BY REGIME
+  geom_point(aes(y = posterior_median, color = Regime), size = 2) + # Added color = Regime
+
+  # Layer 4: Add the 1:1 line (perfect recovery)
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "grey30") +
+
+  # Layer 5: Add the color scale
+  ggsci::scale_color_aaas(name = "Regime") + # Match the other plot
+
+  # Labels and Theme
+  labs(
+    title = "Prior (light) vs Posterior (dark) Recovery of True Optima (theta)",
+    subtitle = "Points (colored by Regime) are Posterior Medians, Ribbons are 89% Intervals", # Updated subtitle
+    x = "True Simulated Optimum (theta_true)",
+    y = "Estimated Optimum (mu / Prior Mean)"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "bottom" # Keep legend if desired
+   )
+
+# --- 6. Display the plot ---
+print(recovery_plot_color_prior)
+```
+
+
+
+Posterior vs. true values plot for es[i]
+```{r}
+posterior_medians_es <- apply(post$es, 2, median)
+es_lower_ci <- apply(post$es, 2, function(x) quantile(x, 0.055)) # For 89% CI (adjust probs for 95% if needed: 0.025, 0.975)
+es_upper_ci <- apply(post$es, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+# --- Create DataFrame for Plotting es Recovery ---
+recovery_df_es <- data.frame(
+  true_value = es_true_simulated_vector,
+  posterior_median = posterior_medians_es,
+  lower_ci = es_lower_ci,
+  upper_ci = es_upper_ci
+)
+
+# --- Generate the Plot for es ---
+
+p_es_recovery <- ggplot(recovery_df_es, aes(x = true_value, y = posterior_median)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+  geom_point(alpha = 0.7, color = "black") +
+  labs(title = "Recovery of Population-Specific es",
+       x = "True Simulated es[i] (from N(0.5, 0.1) T[0,])", # Updated label
+       y = "Posterior Median es[i] (with 89% CI)") +
+  theme_bw() +
+  #coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+              # Adjust xlim and ylim dynamically to fit all data points and CIs
+              #xlim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE),
+              #ylim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(p_es_recovery)
+
+# --- Optional: Print Mean/Median comparisons for es ---
+cat("\n--- es[i] Recovery Analysis (True values from N(0, 0.25) T[0,]) ---\n")
+cat("Mean of True Simulated es[i]:", mean(es_true_simulated_vector), "\n")
+cat("Median of True Simulated es[i]:", median(es_true_simulated_vector), "\n")
+cat("Mean of Posterior Medians for es[i]:", mean(posterior_medians_es), "\n")
+cat("Median of Posterior Medians for es[i]:", median(posterior_medians_es), "\n")
+
+```
+
+SD Theta Prior vs. Posterior Plot - Population-specific values
+```{r}
+
+
+true_vals_df_sd_theta <- data.frame(value = sd_theta_true_simulated_vector, type = "True Simulated Values")
+
+posterior_medians_sd_theta <- apply(post$sd_theta, 2, median)
+post_medians_df_sd_theta <- data.frame(value = posterior_medians_sd_theta, type = "Posterior Medians")
+
+mean(sd_theta_true_simulated_vector)
+median(sd_theta_true_simulated_vector)
+mean(posterior_medians_sd_theta)
+median(posterior_medians_sd_theta)
+
+prior_meanlog <- log(0.1)
+prior_sdlog <- 0.5
+x_vals_prior <- seq(0.001, quantile(rlnorm(10000, prior_meanlog, prior_sdlog), 0.999), length.out = 300)
+prior_df <- data.frame(value = x_vals_prior, density = dlnorm(x_vals_prior, prior_meanlog, prior_sdlog), type = "Prior")
+
+# 2. Posterior samples for sd_theta
+sd_theta_samples <- as.data.frame(post$sd_theta)
+colnames(sd_theta_samples) <- paste0("sd_theta_", 1:n_pops)
+sd_theta_long <- sd_theta_samples %>%
+pivot_longer(cols = everything(), names_to = "parameter", values_to = "value")
+
+
+sd_theta_lower_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.055)) # For 89% CI
+sd_theta_upper_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+recovery_df_sd_theta <- data.frame(
+true_value = sd_theta_true_simulated_vector,
+posterior_median = posterior_medians_sd_theta,
+lower_ci = sd_theta_lower_ci,
+upper_ci = sd_theta_upper_ci
+)
+
+p4 <- ggplot(recovery_df_sd_theta, aes(x = true_value, y = posterior_median)) +
+geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3) +
+geom_point(alpha = 0.7) +
+labs(title = "Recovery of Population-Specific sd_theta",
+x = "True Simulated sd_theta[i]",
+y = "Posterior Median sd_theta[i] (with 89% CI)") +
+theme_bw() +
+coord_fixed(ratio = 1, xlim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T),
+ylim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T))
+print(p4)
+```
+
+SD e Prior vs. Posterior Plot - Population-specific values
+```{r}
+
+# --- Calculate Posterior Summaries for sd_e ---
+if ("sd_e" %in% names(post)) {
+  posterior_medians_sd_e <- apply(post$sd_e, 2, median)
+  sd_e_lower_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.055)) # For 89% CI
+  sd_e_upper_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+  # --- Create DataFrame for Plotting sd_e Recovery ---
+  recovery_df_sd_e <- data.frame(
+    true_value = sd_e_true_simulated_vector,
+    posterior_median = posterior_medians_sd_e,
+    lower_ci = sd_e_lower_ci,
+    upper_ci = sd_e_upper_ci
+  )
+
+  # --- Generate the Plot for sd_e ---
+  library(ggplot2)
+
+  p_sd_e_recovery <- ggplot(recovery_df_sd_e, aes(x = true_value, y = posterior_median)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+    geom_point(alpha = 0.7, color = "black") +
+    labs(title = "Recovery of Population-Specific sd_e",
+         x = "True Simulated sd_e[i]",
+         y = "Posterior Median sd_e[i] (with 89% CI)") +
+    theme_bw() +
+    coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+                xlim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE),
+                ylim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE)) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+  print(p_sd_e_recovery)
+
+  # --- Optional: Print Mean/Median comparisons for sd_e ---
+  cat("\n--- sd_e Analysis ---\n")
+  cat("Mean of True Simulated sd_e[i]:", mean(sd_e_true_simulated_vector), "\n")
+  cat("Median of True Simulated sd_e[i]:", median(sd_e_true_simulated_vector), "\n")
+  cat("Mean of Posterior Medians for sd_e[i]:", mean(posterior_medians_sd_e), "\n")
+  cat("Median of Posterior Medians for sd_e[i]:", median(posterior_medians_sd_e), "\n")
+
+} else {
+  warning("Parameter 'sd_e' not found in posterior samples. Cannot create sd_e recovery plot.")
+}
+```
+
+
+
+
+
+
+
+########################################################################################################################
+Multi optima multiple slopes models - varying effects
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Increasing population size to 60
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+n_pops <- 60
+n_theta <- 3
+alpha <- c(0.1, 0.25, 0.5)
+beta<-c(0.1,0.25,0.5)
+#alpha_prior<-c(0,1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+#beta_prior<-c(0,1) # Example prior for beta (slope)
+alpha_prior<-c(0,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+
+#es_prior<-2 #exponential, mean=1/prior
+es_prior<-c(0.5,0.1) #Half-normal prior
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+
+pops_per_regime <- n_pops / n_theta
+x_dat <- tibble(
+    Regime = rep(1:n_theta, each = pops_per_regime),
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+
+Create Migration Matrix (M)
+```{r}
+# --- Identity Matrix ---
+I <- diag(n_pops) # Identity matrix
+
+max_M_rate <- 0.25 # Max migration rate component
+
+M <- matrix(0, n_pops, n_pops)
+current_max_rate <- max_M_rate
+for (i in 1:n_pops) {
+  # Simulate potential migration *to* i from j (off-diagonal in row i)
+  row_mig <- runif(n_pops - 1, 0, current_max_rate / (n_pops - 1)) # Distribute rate, average current_max_rate / 2.
+  M[i, -i] <- row_mig # Assign off-diagonal values for row i
+}
+
+  # Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:n_pops){
+   m_i = sum(M[i, -i]) # Total immigration rate into pop i
+   if (m_i > 1) { # Optional: cap immigration if rates are high
+      M[i,-i] <- M[i,-i] / m_i
+      m_i = 1
+   }
+   M[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+M_sim <- M # Get the single simulated M matrix
+print(paste("Max off-diagonal M value:", round(max(M_sim[row(M_sim)!=col(M_sim)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_sim)),4), "to", round(max(diag(M_sim)),4)))
+
+
+```
+
+One Adaptation Matrix (A)
+
+Info
+Hansen 2012 - The overall median of the estimates is close to eμ = 0.1%, mean- ing that the predicted per cent change in the trait mean per generation under unit selection is a tenth of a per cent. Hereford et al. (2004) has the median of mean-scaled selection gradients at 0.28
+
+To make βμ = 0.3, we would need sμ/Ne = 0.0707, and even if the population was as small as Ne = 100,
+we would need sμ ≈ 7, which would mean that the gradient would increase sevenfold for every percent the mean moves from the optimum
+
+A:This matrix helps describe how populations adapt to their local optima, considering the force of selection
+
+Hierarchical prior on es
+```{r}
+# --- R Code for Simulating Hierarchical es[i] ---
+# 1. Define "True" Hyperparameter Values for the Simulation
+# mu_log_es: The true mean of log(es[i]) values across populations.
+true_mu_log_es <- log(0.5) # True mean on the log scale for es
+
+# sigma_log_es: The true standard deviation of log(es[i]) values across populations.
+true_sigma_log_es <- 0.3
+
+# Print the chosen true hyperparameter values
+cat("--- True Hyperparameters for Simulating Hierarchical es[i] ---\n")
+cat("True mu_log_es (mean of log(es) values):", true_mu_log_es, "\n")
+cat("  -> Corresponds to a median es of:", exp(true_mu_log_es), "\n")
+cat("True sigma_log_es (SD of log(es) values):", true_sigma_log_es, "\n")
+
+# 2. Simulate the Non-Centered "Raw" Effects for Each Population
+# These are standard normal deviates (z-scores).
+true_log_es_raw <- rnorm(n_pops, mean = 0, sd = 1)
+
+# 3. Reconstruct the True log(es[i]) for Each Population
+# log_es[i] = mu_log_es + log_es_raw[i] * sigma_log_es
+true_log_es_vector <- true_mu_log_es + true_log_es_raw * true_sigma_log_es
+
+# 4. Transform to Get the True es[i] Values (on the original positive scale)
+# This is the vector you will use in your R simulation where es[i] is needed
+# (e.g., for constructing matrix A).
+es_true_hierarchical_simulated_vector <- exp(true_log_es_vector)
+
+# --- Display Summary of Simulated True es[i] Values ---
+cat("\n--- Summary of Simulated True Hierarchical es[i] Values ---\n")
+cat("Min es[i]:", min(es_true_hierarchical_simulated_vector), "\n")
+cat("Max es[i]:", max(es_true_hierarchical_simulated_vector), "\n")
+cat("Mean es[i]:", mean(es_true_hierarchical_simulated_vector), "\n")
+cat("Median es[i]:", median(es_true_hierarchical_simulated_vector), "\n")
+cat("SD of es[i]:", sd(es_true_hierarchical_simulated_vector), "\n")
+
+# You can also plot a histogram to see their distribution:
+# hist(es_true_hierarchical_simulated_vector, breaks = 20,
+#      main = "Histogram of Simulated True Hierarchical es[i]",
+#      xlab = "es[i] value")
+
+# Calculate m_ii from the corrected M
+m_ii_vec <- diag(M_sim) # Extract the diagonal elements of M (which are -m_i)
+
+# Calculate A correctly using the uniform es
+A <- matrix(0, n_pops, n_pops)
+for (i in 1:n_pops) {
+  A[i, i] <- -es_true_hierarchical_simulated_vector[i] * (1 + m_ii_vec[i]) #Population-specific es values
+}
+
+print(paste("Max off-diagonal A value:", round(max(A[row(A)!=col(A)]),4)))
+print(paste("Range of diagonal A values:", round(min(diag(A)),4), "to", round(max(diag(A)),4)))
+
+```
+
+One iteration Sima_theta and Sigma_e
+V_theta = Variance in optima/theta not explained by linear relationship with x - noise in the location of the optima themselves
+V_e = Variance of local deviations of population mean phenotypes (z) from their current optima (theta) - arise from ongoing evolutionary processes or randomness within those populations  - before accounting for migration
+Lowering these standard deviations to reduce z scatter
+# --- Define Variance Components (Sigma_theta and Sigma_e) ---
+
+Hierarchical sd_theta and sd_e
+```{r}
+#1. Define the "true" hyperparameter values for the simulation
+true_mu_log_sd_theta <- log(0.1)    #Example: matches your old fixed meanlog
+true_sigma_log_sd_theta <- 0.5      #Example: matches your old fixed sdlog
+true_mu_log_sd_e <- log(0.1)    #Example: matches your old fixed meanlog
+true_sigma_log_sd_e <- 0.5      #Example: matches your old fixed sdlog
+
+#2. Simulate the "raw" effects from N(0,1)
+true_log_sd_theta_raw <- rnorm(n_pops, 0, 1)
+true_log_sd_e_raw <- rnorm(n_pops, 0, 1)
+
+#3. Reconstruct the true log_sd_theta[i] for each population
+true_log_sd_theta <- true_mu_log_sd_theta + true_log_sd_theta_raw * true_sigma_log_sd_theta
+true_log_sd_e <- true_mu_log_sd_e + true_log_sd_e_raw * true_sigma_log_sd_e
+
+
+#4. Transform to get the true sd_theta[i]
+sd_theta_true_simulated_vector <- exp(true_log_sd_theta)
+sd_e_true_simulated_vector <- exp(true_log_sd_e)
+
+#5. Use these sd_theta_true_simulated_vector when constructing diag_sd_theta for Sigma_theta
+#    in your R simulation's data generation process.
+
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+Sigma_theta <- diag(sd_theta_true_simulated_vector) %*% cor_theta %*% diag(sd_theta_true_simulated_vector)
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+Sigma_e <- diag(sd_e_true_simulated_vector) %*% cor_e %*% diag(sd_e_true_simulated_vector)
+
+print(paste("Range of diagonal Sigma_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal Sigma_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+
+```
+
+--- Simulate y, calculate z, simulate z_obs ---
+```{r}
+
+theta_true <- numeric(n_pops)
+#for (i in 1:n_pops) {
+#  theta_true[i] <- alpha[x_dat[i, "Regime"]] + x_dat[i, "x_true"] * beta_global
+#}
+
+theta_true <- alpha[x_dat$Regime] + x_dat$x_true * beta[x_dat$Regime] #Vectorized version
+
+
+# Calculate AM_term = (I + A^-1 * M)
+# Using M with the negative diagonal, matching Stan code analysis
+AM_term <- I + solve(A) %*% M_sim
+
+# Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+Sigma_z <- solve(AM_term) %*% Sigma_theta %*% t(solve(AM_term)) + Sigma_e
+# Optional: Keep the name Sigma_y_residuals if you prefer, it's the same matrix
+
+# Check positive definiteness (Good practice to keep this)
+eigen_values <- eigen(Sigma_z, symmetric = TRUE, only.values = TRUE)$values
+tolerance <- 1e-8
+if (all(eigen_values > tolerance)) {
+  print("Sigma_z is positive definite.")
+} else {
+  print("Sigma_z is NOT positive definite. Eigenvalues <= tolerance:")
+  print(eigen_values[eigen_values <= tolerance])
+  # Consider using Matrix::nearPD or adding a small diagonal nudge if this fails often
+  # Sigma_process <- as.matrix(Matrix::nearPD(Sigma_process)$mat)
+  # print("Applied nearPD correction.")
+  stop("Simulation stopped: Sigma_z not positive definite.")
+}
+
+# Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+mu_eq <- solve(AM_term) %*% theta_true
+print("Calculated equilibrium mean mu_eq (z_eq).")
+
+# Simulate z_true directly from MVN(mu_eq, Sigma_process)
+print("Simulating z_true directly...")
+z_true <- mvrnorm(n = 1, mu = mu_eq, Sigma = Sigma_z)
+# Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+z_true <- as.vector(z_true)
+print("Simulated z_true (latent trait mean).")
+# +++ END NEW METHOD +++
+
+
+# 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+# (This part remains the same)
+z_error_sd <- 0.01 # SD for measurement error in trait
+z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+print("Simulated z_obs (z_true + measurement error)")
+
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+x_obs <- x_dat$x_obs
+reg_assign <- x_dat$Regime
+
+dat <- list(
+  N = n_pops,
+  n_theta = n_theta,
+  z_obs = as.vector(z_obs), # Use the final observed values
+  x_obs = as.vector(x_obs),
+  z_error = rep(z_error_sd, n_pops),
+  x_error = rep(x_error_sd, n_pops),
+  M = M_sim,
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2,
+  reg_assign = reg_assign
+)
+
+print("Stan data list 'dat' created with correctly simulated z_obs.")
+print("(Remember to update Stan 'data' block to expect 'z_obs' instead of 'y_obs')")
+print("True parameters used:")
+print(paste("alpha (intercept):", alpha))
+print(paste("beta:", beta))
+print(paste("z_error_sd (for z_obs):", z_error_sd))
+print(paste("x_error_sd:", x_error_sd))
+```
+
+
+Check out priors
+```{r}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  # Layer 3: True generating line
+  geom_abline(
+    intercept = alpha, slope = beta,
+    linetype = "dashed", color = "black", linewidth = 0.7
+  ) +
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x_true)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+Prior plot for es - Hierarchical populations-specific
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# --- Settings for es[i] Prior Predictive Plotting ---
+n_prior_samples_es <- 20000 # Number of samples to generate
+
+# --- Define YOUR hyperprior parameters for es[i] ---
+
+# Hyperpriors for mu_log_es ~ Normal(mean, sd)
+hp_es_mu_log_mean <- log(0.5)  # Example: If you expect median es around 0.5
+hp_es_mu_log_sd   <- 0.3       # Example: Uncertainty about this log-median
+
+# Hyperprior for sigma_log_es ~ half-normal(0,0.25)
+hp_es_sigma_log_hn_scale <- 0.25 # Define this new hyperprior parameter
+
+# --- Generate Prior Predictive Samples for es[i] (logic inlined) ---
+
+# 1. Draw hyperparameter samples for mu_log_es
+mu_log_es_samples <- rnorm(n_prior_samples_es, mean = hp_es_mu_log_mean, sd = hp_es_mu_log_sd)
+
+# 2. Draw hyperparameter samples for sigma_log_es
+sigma_log_es_samples <- abs(rnorm(n_prior_samples_es, mean = 0, sd = hp_es_sigma_log_hn_scale))
+
+# 3. Draw "raw" effects (representing individual deviations on a standard scale)
+log_es_raw_samples <- rnorm(n_prior_samples_es, mean = 0, sd = 1)
+
+# 4. Reconstruct log_es and then es on its original scale
+log_es_samples <- mu_log_es_samples + log_es_raw_samples * sigma_log_es_samples
+es_samples <- exp(log_es_samples)
+
+# Create a data frame for plotting
+prior_pred_es_df <- data.frame(value = es_samples,
+                               parameter_group = "es[i]") # 'parameter_group' is less crucial now but good for consistency
+
+# --- Plot the Prior Predictive Distribution for es[i] ---
+p_es_prior_pred <- ggplot(prior_pred_es_df, aes(x = value)) +
+  geom_density(fill = "salmon", alpha = 0.7, show.legend = FALSE) +
+  labs(title = "Prior Predictive Distribution for es[i]",
+       subtitle = paste0("Hyperpriors: mu_log_es ~ N(", round(hp_es_mu_log_mean,2), ", ", round(hp_es_mu_log_sd,2),
+                        "), sigma_log_es ~ Half-N(", round(hp_es_sigma_log_hn_scale,2), ")"), # Adjust subtitle if using HalfNormal for sigma
+       x = "es[i] value",
+       y = "Density") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, size = 9)) +
+  # Zoom in to a reasonable range to see the bulk of the distribution.
+  # Adjust these xlim values based on what you observe and expect.
+  coord_cartesian(xlim = c(0, quantile(prior_pred_es_df$value, 0.99))) # Show up to 99th percentile
+  # Or set a fixed sensible xlim, e.g., coord_cartesian(xlim = c(0, 2.0))
+
+print(p_es_prior_pred)
+
+# --- Output some summary statistics of the prior predictive distribution for es[i] ---
+cat("\n--- Summary of Prior Predictive Distribution for es[i] ---\n")
+cat(paste0("Hyperpriors used for mu_log_es: Normal(mean=", hp_es_mu_log_mean, ", sd=", hp_es_mu_log_sd, ")\n"))
+cat(paste0("Hyperprior used for sigma_log_es: Exponential(rate=", hp_es_sigma_log_hn_scale, ")\n")) # Adjust if HalfNormal
+cat("Quantiles for es[i]:\n")
+print(quantile(prior_pred_es_df$value, probs = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)))
+cat("Mean es[i]:", mean(prior_pred_es_df$value), "\n")
+```
+
+Compared to true values - es Rug Plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_es_df <- data.frame(true_value = es_true_hierarchical_simulated_vector)
+
+# Method 1: Rug Plot
+p_es_with_rug <- p_es_prior_pred +
+  geom_rug(data = true_values_es_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(p_es_prior_pred$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated es[i] values)"))
+print(p_es_with_rug)
+
+```
+
+
+Prior plot for sd_theta - hierarchical populations-specific
+```{r}
+# --- Settings for sd_theta[i] Prior Predictive Plotting ---
+n_prior_samples_sd_theta <- 20000 # Number of samples to generate
+
+# --- Define YOUR hyperprior parameters for sd_theta[i] ---
+
+# Hyperpriors for mu_log_es ~ Normal(mean, sd)
+hp_sd_theta_mu_log_mean <- log(0.1)  # Example: If you expect median es around 0.5 = log mu = -2.3
+hp_sd_theta_mu_log_sd   <- 0.5       # Example: Uncertainty about this log-median
+
+# Hyperprior for sigma_log_ ~ exp(2), mu = 1
+hp_sd_theta_sigma_log_scale <- 2 # Define this new hyperprior parameter
+
+# --- Generate Prior Predictive Samples for es[i] (logic inlined) ---
+
+# 1. Draw hyperparameter samples for mu_log_es
+mu_log_sd_theta_samples <- rnorm(n_prior_samples_sd_theta, mean = hp_sd_theta_mu_log_mean, sd = hp_sd_theta_mu_log_sd)
+
+# 2. Draw hyperparameter samples for sigma_log_es
+sigma_log_sd_theta_samples <- rexp(n_prior_samples_sd_theta, rate = hp_sd_theta_sigma_log_scale)
+
+# 3. Draw "raw" effects (representing individual deviations on a standard scale)
+log_sd_theta_raw_samples <- rnorm(n_prior_samples_sd_theta, mean = 0, sd = 1)
+
+# 4. Reconstruct log_es and then es on its original scale
+log_sd_theta_samples <- mu_log_sd_theta_samples + log_sd_theta_raw_samples * sigma_log_sd_theta_samples
+sd_theta_samples <- exp(log_sd_theta_samples)
+
+# Create a data frame for plotting
+prior_pred_sd_theta_df <- data.frame(value = sd_theta_samples,
+                               parameter_group = "sd_theta[i]") # 'parameter_group' is less crucial now but good for consistency
+
+# --- Plot the Prior Predictive Distribution for sd_theta[i] ---
+p_sd_theta_prior_pred <- ggplot(prior_pred_sd_theta_df, aes(x = value)) +
+  geom_density(fill = "salmon", alpha = 0.7, show.legend = FALSE) +
+  labs(title = "Prior Predictive Distribution for sd_theta[i]",
+       subtitle = paste0("Hyperpriors: mu_log_sd_theta ~ N(", round(hp_sd_theta_mu_log_mean,2), ", ", round(hp_sd_theta_mu_log_sd,2),
+                        "), sigma_log_sd_theta ~ Exp(", round(hp_sd_theta_sigma_log_scale,2), ")"), # Adjust subtitle if using HalfNormal for sigma
+       x = "sd_theta[i] value",
+       y = "Density") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, size = 9)) +
+  # Zoom in to a reasonable range to see the bulk of the distribution.
+  # Adjust these xlim values based on what you observe and expect.
+  coord_cartesian(xlim = c(0, quantile(prior_pred_sd_theta_df$value, 0.99))) # Show up to 99th percentile
+  # Or set a fixed sensible xlim, e.g., coord_cartesian(xlim = c(0, 2.0))
+
+print(p_sd_theta_prior_pred)
+
+# --- Output some summary statistics of the prior predictive distribution for sd_theta[i] ---
+cat("\n--- Summary of Prior Predictive Distribution for sd_theta[i] ---\n")
+cat(paste0("Hyperpriors used for mu_log_sd_theta: Normal(mean=", hp_sd_theta_mu_log_mean, ", sd=", hp_sd_theta_mu_log_sd, ")\n"))
+cat(paste0("Hyperprior used for sigma_log_sd_theta: Exponential(rate=", hp_sd_theta_sigma_log_scale, ")\n")) # Adjust if HalfNormal
+cat("Quantiles for sd_theta[i]:\n")
+print(quantile(prior_pred_sd_theta_df$value, probs = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)))
+cat("Mean sd_theta[i]:", mean(prior_pred_sd_theta_df$value), "\n")
+```
+
+Compared to true sd_theta values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_theta_df <- data.frame(true_value = sd_theta_true_simulated_vector)
+
+# Method 1: Rug Plot
+p_sd_theta_with_rug <- p_sd_theta_prior_pred +
+  geom_rug(data = true_values_sd_theta_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(p_sd_theta_prior_pred$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_theta[i] values)"))
+print(p_sd_theta_with_rug)
+```
+
+
+sd_e prior plot - Hierarchical values
+```{r}
+
+# --- Settings for sd_e[i] Prior Predictive Plotting ---
+n_prior_samples_sd_e <- 20000 # Number of samples to generate
+
+# --- Define YOUR hyperprior parameters for sd_e[i] ---
+
+# Hyperpriors for mu_log_es ~ Normal(mean, sd)
+hp_sd_e_mu_log_mean <- log(0.1)  # Example: If you expect median es around 0.5 = log mu = -2.3
+hp_sd_e_mu_log_sd   <- 0.5       # Example: Uncertainty about this log-median
+
+# Hyperprior for sigma_log_ ~ exp(1), mu = 1
+hp_sd_e_sigma_log_scale <- 2 # Define this new hyperprior parameter
+
+# --- Generate Prior Predictive Samples for es[i] (logic inlined) ---
+
+# 1. Draw hyperparameter samples for mu_log_es
+mu_log_sd_e_samples <- rnorm(n_prior_samples_sd_e, mean = hp_sd_e_mu_log_mean, sd = hp_sd_e_mu_log_sd)
+
+# 2. Draw hyperparameter samples for sigma_log_es
+sigma_log_sd_e_samples <- rexp(n_prior_samples_sd_e, rate = hp_sd_e_sigma_log_scale)
+
+# 3. Draw "raw" effects (representing individual deviations on a standard scale)
+log_sd_e_raw_samples <- rnorm(n_prior_samples_sd_e, mean = 0, sd = 1)
+
+# 4. Reconstruct log_es and then es on its original scale
+log_sd_e_samples <- mu_log_sd_e_samples + log_sd_e_raw_samples * sigma_log_sd_e_samples
+sd_e_samples <- exp(log_sd_e_samples)
+
+# Create a data frame for plotting
+prior_pred_sd_e_df <- data.frame(value = sd_e_samples,
+                                     parameter_group = "sd_e[i]") # 'parameter_group' is less crucial now but good for consistency
+
+# --- Plot the Prior Predictive Distribution for es[i] ---
+p_sd_e_prior_pred <- ggplot(prior_pred_sd_e_df, aes(x = value)) +
+  geom_density(fill = "salmon", alpha = 0.7, show.legend = FALSE) +
+  labs(title = "Prior Predictive Distribution for sd_e[i]",
+       subtitle = paste0("Hyperpriors: mu_log_sd_e ~ N(", round(hp_sd_e_mu_log_mean,2), ", ", round(hp_sd_e_mu_log_sd,2),
+                         "), sigma_log_sd_e ~ Exp(", round(hp_sd_e_sigma_log_scale,2), ")"), # Adjust subtitle if using HalfNormal for sigma
+       x = "sd_e[i] value",
+       y = "Density") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, size = 9)) +
+  # Zoom in to a reasonable range to see the bulk of the distribution.
+  # Adjust these xlim values based on what you observe and expect.
+  coord_cartesian(xlim = c(0, quantile(prior_pred_sd_e_df$value, 0.99))) # Show up to 99th percentile
+# Or set a fixed sensible xlim, e.g., coord_cartesian(xlim = c(0, 2.0))
+
+print(p_sd_e_prior_pred)
+
+# --- Output some summary statistics of the prior predictive distribution for es[i] ---
+cat("\n--- Summary of Prior Predictive Distribution for sd_e[i] ---\n")
+cat(paste0("Hyperpriors used for mu_log_sd_e: Normal(mean=", hp_sd_e_mu_log_mean, ", sd=", hp_sd_e_mu_log_sd, ")\n"))
+cat(paste0("Hyperprior used for sigma_log_sd_e: Exponential(rate=", hp_sd_e_sigma_log_scale, ")\n")) # Adjust if HalfNormal
+cat("Quantiles for sd_e[i]:\n")
+print(quantile(prior_pred_sd_e_df$value, probs = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)))
+cat("Mean sd_e[i]:", mean(prior_pred_sd_e_df$value), "\n")
+```
+
+Compared to true sd_e values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_e_df <- data.frame(true_value = sd_e_true_simulated_vector)
+
+# Method 1: Rug Plot
+p_sd_e_with_rug <- p_sd_e_prior_pred +
+  geom_rug(data = true_values_sd_e_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(p_sd_e_prior_pred$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_e[i] values)"))
+print(p_sd_e_with_rug)
+```
+
+Two chains
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_VE_MLM.stan')
+stan_file<-"blouchMigAdpt_VE_MLM.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(n_theta, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(n_theta, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+      # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    L_Omega_theta = diag(dat$N),
+    L_Omega_e = diag(dat$N),
+    # Latent variables (starting at observed values is common)
+    z_true = dat$z_obs,
+    x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.85), # Keep control parameters
+    init = init_list_multichain    # Pass the list of lists
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               "es[1]", "es[2]", "es[3]", 
+               "mu_log_es", "sigma_log_es",
+               
+               "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "mu_log_sd_theta", "sigma_log_sd_theta",
+               
+               "sd_e[1]","sd_e[2]","sd_e[3]",
+                "mu_log_sd_e", "sigma_log_sd_e",
+
+               "L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               "L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+#rstan::traceplot(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r}
+pairs(stan_fit, pars = c( "alpha[1]", "alpha[2]", "alpha[3]", "beta[1]", "beta[2]", "beta[3]","es[1]","es[2]", "sd_theta[1]", "sd_e[1]"))
+
+```
+
+
+# Posterior Plots
+Regression line prior vs. posterior plot
+```{r}
+
+
+
+# --- 1. Prepare observed data with Regime factor ---
+df <- tibble(
+    z_obs = dat$z_obs,
+    x_obs = dat$x_obs,
+    Regime = factor(dat$reg_assign, levels = 1:n_theta, labels = paste("Regime", 1:n_theta))
+)
+
+# --- 2. Generate sequence of x values for prediction lines/ribbons ---
+x_obs_vals <- df$x_obs
+x_seq <- seq(from = min(x_obs_vals, na.rm=TRUE), to = max(x_obs_vals, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_true = x_seq) # Using x_true as predictor name matching model
+
+# --- 3. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines per regime
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate beta draws
+prior_beta <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- matrix(rnorm(n_prior_draws * n_theta, alpha_prior_mean, alpha_prior_sd),
+                       nrow = n_prior_draws, ncol = n_theta)
+colnames(prior_alphas) <- paste0("Regime", 1:n_theta)
+
+# Combine into a tidy format with Regime info - needed for geom_abline
+prior_draws_df <- as_tibble(prior_alphas) %>%
+   mutate(beta_sim = prior_beta, .draw = 1:n_prior_draws) %>%
+   # Pivot longer to get alpha_sim value and Regime column
+   pivot_longer(cols = starts_with("Regime"),
+                names_to = "Regime", # Temporarily character
+                values_to = "alpha_sim") %>%
+    # No need to factor Regime here, geom_abline doesn't use it for color
+
+    # We have n_prior_draws * n_theta rows here, each represents one line
+    select(.draw, Regime, alpha_sim, beta_sim) # Keep relevant columns
+
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+posterior_params <- stan_fit %>%
+    spread_draws(beta[Regime], alpha[Regime]) %>%
+    mutate(Regime = factor(Regime, levels = 1:n_theta, labels = paste("Regime", 1:n_theta)))
+
+# b. Predict
+posterior_predictions <- posterior_params %>%
+  crossing(x_grid) %>%
+  mutate(mu_pred = alpha + beta * x_true)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(Regime, x_true) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+# --- 5. Prepare True Lines Data ---
+# (Remains the same)
+true_lines_df <- tibble(
+  Regime = factor(1:n_theta, levels = 1:n_theta, labels = paste("Regime", 1:n_theta)),
+  alpha_true = alpha,
+  beta_true = beta
+)
+
+
+# --- 6. Create the ggplot ---
+multi_slope_plot_faint_prior <- ggplot() +
+
+  # Layer 1: Prior predictive lines (MANY FAINT LINES)
+  # Use the unsummarized prior_draws_df
+  geom_abline(
+    data = prior_draws_df,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1 # Single faint color
+  ) +
+
+  # Layer 2: Posterior Credible Interval ribbons, filled by Regime
+  geom_ribbon(
+    data = posterior_summary,
+    aes(x = x_true, ymin = .lower, ymax = .upper, fill = Regime),
+    alpha = 0.2 # Slightly higher alpha for posterior ribbons now
+  ) +
+
+  # Layer 3: Posterior Mean/Median regression lines, colored by Regime
+  geom_line(
+    data = posterior_summary,
+    aes(x = x_true, y = mu_pred, color = Regime),alpha=0.5,
+    linewidth = 0.5
+  ) +
+
+  # Layer 4: True generating lines, colored by Regime
+  geom_abline(
+    data = true_lines_df,
+    aes(intercept = alpha_true, slope = beta_true, color = Regime),alpha=0.5,
+    linetype = "dashed", linewidth = 0.5
+  ) +
+
+  # Layer 5: Observed data points, colored by Regime
+  geom_point(data = df, aes(y = z_obs, x = x_obs, color = Regime), alpha = 0.7, size = 1.5) +
+
+  # Apply ggsci color scales for Regime (used by points, true lines, posterior lines/ribbons)
+  ggsci::scale_color_aaas(name = "Regime") +
+  ggsci::scale_fill_aaas(name = "Regime") +
+
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Prior Draws & Posterior Regression Lines (Median + 89% CI) by Regime", # Updated title
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x)"
+  )
+
+# --- 7. Display the plot ---
+print(multi_slope_plot_faint_prior)
+```
+
+
+Prior vs. Posterior plot of Thetas
+```{r}
+# --- 1. Extract posterior draws for mu (estimated theta) ---
+posterior_mu <- stan_fit %>%
+  spread_draws(mu[population])
+
+# --- 2. Calculate posterior summaries for mu for each population ---
+mu_summary <- posterior_mu %>%
+  group_by(population) %>%
+  median_qi(mu, .width = 0.89) # Using 89% interval
+
+# --- 3. Calculate PRIOR summaries for theta for each population ---
+# (This part remains unchanged as prior is the same regardless of regime)
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+prior_summary <- tibble(
+    population = 1:n_pops,
+    x_true = x_true, # Include x_true used for this population
+    prior_mean_theta = alpha_prior_mean + beta_prior_mean * x_true,
+    # Need variance if using different prior widths or non-normal priors
+    prior_var_theta = alpha_prior_sd^2 + beta_prior_sd^2 * x_true^2,
+    prior_sd_theta = sqrt(prior_var_theta)
+)
+
+z_score_89 <- qnorm(1 - (1 - 0.89)/2) # Z-score for 89% interval
+prior_summary <- prior_summary %>%
+    mutate(
+        prior_lower_89 = prior_mean_theta - z_score_89 * prior_sd_theta,
+        prior_upper_89 = prior_mean_theta + z_score_89 * prior_sd_theta
+    ) %>%
+    select(population, prior_lower_89, prior_upper_89) # Keep only needed columns
+
+
+# --- 4. Combine true values, posterior summaries, prior summaries, AND REGIME ---
+# Reshape posterior summaries
+posterior_summary_wide <- mu_summary %>%
+    select(population, posterior_median = mu, lower_89 = .lower, upper_89 = .upper)
+
+# Create regime mapping
+regime_map <- tibble(
+    population = 1:n_pops,
+    Regime = factor(dat$reg_assign, levels = 1:n_theta, labels = paste("Regime", 1:n_theta))
+    )
+
+# Combine all data
+plot_data <- tibble(population = 1:n_pops, true_theta = theta_true) %>%
+    left_join(posterior_summary_wide, by = "population") %>%
+    left_join(prior_summary, by = "population") %>%
+    left_join(regime_map, by = "population") # <-- ADD REGIME HERE
+
+# Check for missing values after join
+if(any(is.na(plot_data))) {
+    warning("NA values introduced during data joining. Check population indices or Regime mapping.")
+}
+
+
+# --- 5. Create the ggplot (Points colored by Regime) ---
+recovery_plot_color_prior <- ggplot(plot_data, aes(x = true_theta)) +
+
+  # Layer 1: PRIOR 89% Interval ribbon (very light grey)
+  geom_ribbon(aes(ymin = prior_lower_89, ymax = prior_upper_89), fill = "grey90", alpha = 0.5) +
+
+  # Layer 2: POSTERIOR 89% Credible Interval ribbon (darker grey, no fill by regime)
+  geom_ribbon(aes(ymin = lower_89, ymax = upper_89), fill = "grey75", alpha = 0.7) +
+
+  # Layer 3: Points for the posterior median, COLORED BY REGIME
+  geom_point(aes(y = posterior_median, color = Regime), size = 2) + # Added color = Regime
+
+  # Layer 4: Add the 1:1 line (perfect recovery)
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "grey30") +
+
+  # Layer 5: Add the color scale
+  ggsci::scale_color_aaas(name = "Regime") + # Match the other plot
+
+  # Labels and Theme
+  labs(
+    title = "Prior (light) vs Posterior (dark) Recovery of True Optima (theta)",
+    subtitle = "Points (colored by Regime) are Posterior Medians, Ribbons are 89% Intervals", # Updated subtitle
+    x = "True Simulated Optimum (theta_true)",
+    y = "Estimated Optimum (mu / Prior Mean)"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "bottom" # Keep legend if desired
+   )
+
+# --- 6. Display the plot ---
+print(recovery_plot_color_prior)
+```
+
+Posterior vs. true values plot for es[i]
+```{r}
+
+
+posterior_medians_es <- apply(post$es, 2, median)
+es_lower_ci <- apply(post$es, 2, function(x) quantile(x, 0.055)) # For 89% CI (adjust probs for 95% if needed: 0.025, 0.975)
+es_upper_ci <- apply(post$es, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+# --- Create DataFrame for Plotting es Recovery ---
+recovery_df_es <- data.frame(
+  true_value = es_true_hierarchical_simulated_vector,
+  posterior_median = posterior_medians_es,
+  lower_ci = es_lower_ci,
+  upper_ci = es_upper_ci
+)
+
+# --- Generate the Plot for es ---
+
+p_es_recovery <- ggplot(recovery_df_es, aes(x = true_value, y = posterior_median)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+  geom_point(alpha = 0.7, color = "black") +
+  labs(title = "Recovery of Population-Specific es",
+       x = "True Simulated es[i] (from N(0.5, 0.1) T[0,])", # Updated label
+       y = "Posterior Median es[i] (with 89% CI)") +
+  theme_bw() +
+  #coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+              # Adjust xlim and ylim dynamically to fit all data points and CIs
+              #xlim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE),
+              #ylim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(p_es_recovery)
+
+# --- Optional: Print Mean/Median comparisons for es ---
+cat("\n--- es[i] Recovery Analysis (True values from N(0, 0.25) T[0,]) ---\n")
+cat("Mean of True Simulated es[i]:", mean(es_true_hierarchical_simulated_vector), "\n")
+cat("Median of True Simulated es[i]:", median(es_true_hierarchical_simulated_vector), "\n")
+cat("Mean of Posterior Medians for es[i]:", mean(posterior_medians_es), "\n")
+cat("Median of Posterior Medians for es[i]:", median(posterior_medians_es), "\n")
+
+
+```
+
+
+
+SD Theta Prior vs. Posterior Plot - Population-specific values
+```{r}
+true_vals_df_sd_theta <- data.frame(value = sd_theta_true_simulated_vector, type = "True Simulated Values")
+
+posterior_medians_sd_theta <- apply(post$sd_theta, 2, median)
+post_medians_df_sd_theta <- data.frame(value = posterior_medians_sd_theta, type = "Posterior Medians")
+
+mean(sd_theta_true_simulated_vector)
+median(sd_theta_true_simulated_vector)
+mean(posterior_medians_sd_theta)
+median(posterior_medians_sd_theta)
+
+prior_meanlog <- log(0.1)
+prior_sdlog <- 0.5
+x_vals_prior <- seq(0.001, quantile(rlnorm(10000, prior_meanlog, prior_sdlog), 0.999), length.out = 300)
+prior_df <- data.frame(value = x_vals_prior, density = dlnorm(x_vals_prior, prior_meanlog, prior_sdlog), type = "Prior")
+
+# 2. Posterior samples for sd_theta
+sd_theta_samples <- as.data.frame(post$sd_theta)
+colnames(sd_theta_samples) <- paste0("sd_theta_", 1:n_pops)
+sd_theta_long <- sd_theta_samples %>%
+pivot_longer(cols = everything(), names_to = "parameter", values_to = "value")
+
+
+sd_theta_lower_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.055)) # For 89% CI
+sd_theta_upper_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+recovery_df_sd_theta <- data.frame(
+true_value = sd_theta_true_simulated_vector,
+posterior_median = posterior_medians_sd_theta,
+lower_ci = sd_theta_lower_ci,
+upper_ci = sd_theta_upper_ci
+)
+
+p4 <- ggplot(recovery_df_sd_theta, aes(x = true_value, y = posterior_median)) +
+geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3) +
+geom_point(alpha = 0.7) +
+labs(title = "Recovery of Population-Specific sd_theta",
+x = "True Simulated sd_theta[i]",
+y = "Posterior Median sd_theta[i] (with 89% CI)") +
+theme_bw() +
+coord_fixed(ratio = 1, xlim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T),
+ylim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T))
+print(p4)
+```
+
+
+SD e Prior vs. Posterior Plot - Population-specific values
+```{r}
+# Ensure 'post' (extracted Stan samples) and 'n_pops' are available in your environment
+
+# --- You MUST define this from your R simulation script ---
+# Example: If you simulated true sd_e values and stored them in a vector:
+# sd_e_true_simulated_vector <- your_vector_of_true_sd_e_values
+# Or, if they were on the diagonal of a matrix named 'diag_sd_e_matrix_simulated':
+
+
+# Check if sd_e_true_simulated_vector exists; if not, create a placeholder
+if (!exists("sd_e_true_simulated_vector")) {
+  warning("sd_e_true_simulated_vector was not found. Please define it from your R simulation. Using random placeholders for demonstration.")
+  # Placeholder: Replace this with your actual true simulated values
+  sd_e_true_simulated_vector <- rlnorm(ncol(post$sd_e), meanlog = log(0.1), sdlog = 0.5)
+}
+
+# --- Calculate Posterior Summaries for sd_e ---
+if ("sd_e" %in% names(post)) {
+  posterior_medians_sd_e <- apply(post$sd_e, 2, median)
+  sd_e_lower_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.055)) # For 89% CI
+  sd_e_upper_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+  # --- Create DataFrame for Plotting sd_e Recovery ---
+  recovery_df_sd_e <- data.frame(
+    true_value = sd_e_true_simulated_vector,
+    posterior_median = posterior_medians_sd_e,
+    lower_ci = sd_e_lower_ci,
+    upper_ci = sd_e_upper_ci
+  )
+
+  # --- Generate the Plot for sd_e ---
+  library(ggplot2)
+
+  p_sd_e_recovery <- ggplot(recovery_df_sd_e, aes(x = true_value, y = posterior_median)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+    geom_point(alpha = 0.7, color = "black") +
+    labs(title = "Recovery of Population-Specific sd_e",
+         x = "True Simulated sd_e[i]",
+         y = "Posterior Median sd_e[i] (with 89% CI)") +
+    theme_bw() +
+    coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+                xlim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE),
+                ylim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE)) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+  print(p_sd_e_recovery)
+
+  # --- Optional: Print Mean/Median comparisons for sd_e ---
+  cat("\n--- sd_e Analysis ---\n")
+  cat("Mean of True Simulated sd_e[i]:", mean(sd_e_true_simulated_vector), "\n")
+  cat("Median of True Simulated sd_e[i]:", median(sd_e_true_simulated_vector), "\n")
+  cat("Mean of Posterior Medians for sd_e[i]:", mean(posterior_medians_sd_e), "\n")
+  cat("Median of Posterior Medians for sd_e[i]:", median(posterior_medians_sd_e), "\n")
+
+} else {
+  warning("Parameter 'sd_e' not found in posterior samples. Cannot create sd_e recovery plot.")
+}
+```
+
+
+
+
+
+
+########################################################################################################################
+Multi optima multiple slopes models with unknown optima - varying optima model
+
+
+########################################################################################################################
+Multi optima multiple slopes models - varying effects
+
+```{r}
+rm(list=ls())
+library(MASS)
+
+
+library(rstan)
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Increasing population size to 60
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+n_pops <- 60
+n_theta <- 3
+max_n_theta<-3
+
+alpha <- c(0.1, 0.5, 1)
+beta<-c(0.1,0.5,1)
+#alpha_prior<-c(0,1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+#beta_prior<-c(0,1) # Example prior for beta (slope)
+alpha_prior<-c(0.25,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.25,0.5) # Example prior for beta (slope)
+
+#es_prior<-2 #exponential, mean=1/prior
+es_prior<-c(0.5,0.1) #Half-normal prior
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+
+pops_per_regime <- n_pops / n_theta
+x_dat <- tibble(
+    Regime = rep(1:n_theta, each = pops_per_regime),
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+
+Create Migration Matrix (M)
+```{r}
+# --- Identity Matrix ---
+I <- diag(n_pops) # Identity matrix
+
+max_M_rate <- 0.25 # Max migration rate component
+
+M <- matrix(0, n_pops, n_pops)
+current_max_rate <- max_M_rate
+for (i in 1:n_pops) {
+  # Simulate potential migration *to* i from j (off-diagonal in row i)
+  row_mig <- runif(n_pops - 1, 0, current_max_rate / (n_pops - 1)) # Distribute rate, average current_max_rate / 2.
+  M[i, -i] <- row_mig # Assign off-diagonal values for row i
+}
+
+  # Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:n_pops){
+   m_i = sum(M[i, -i]) # Total immigration rate into pop i
+   if (m_i > 1) { # Optional: cap immigration if rates are high
+      M[i,-i] <- M[i,-i] / m_i
+      m_i = 1
+   }
+   M[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+M_sim <- M # Get the single simulated M matrix
+print(paste("Max off-diagonal M value:", round(max(M_sim[row(M_sim)!=col(M_sim)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_sim)),4), "to", round(max(diag(M_sim)),4)))
+
+
+```
+
+One Adaptation Matrix (A)
+
+Info
+Hansen 2012 - The overall median of the estimates is close to eμ = 0.1%, mean- ing that the predicted per cent change in the trait mean per generation under unit selection is a tenth of a per cent. Hereford et al. (2004) has the median of mean-scaled selection gradients at 0.28
+
+To make βμ = 0.3, we would need sμ/Ne = 0.0707, and even if the population was as small as Ne = 100,
+we would need sμ ≈ 7, which would mean that the gradient would increase sevenfold for every percent the mean moves from the optimum
+
+A:This matrix helps describe how populations adapt to their local optima, considering the force of selection
+
+Hierarchical prior on es
+```{r}
+# --- R Code for Simulating Hierarchical es[i] ---
+# 1. Define "True" Hyperparameter Values for the Simulation
+# mu_log_es: The true mean of log(es[i]) values across populations.
+true_mu_log_es <- log(0.5) # True mean on the log scale for es
+
+# sigma_log_es: The true standard deviation of log(es[i]) values across populations.
+true_sigma_log_es <- 0.3
+
+# Print the chosen true hyperparameter values
+cat("--- True Hyperparameters for Simulating Hierarchical es[i] ---\n")
+cat("True mu_log_es (mean of log(es) values):", true_mu_log_es, "\n")
+cat("  -> Corresponds to a median es of:", exp(true_mu_log_es), "\n")
+cat("True sigma_log_es (SD of log(es) values):", true_sigma_log_es, "\n")
+
+# 2. Simulate the Non-Centered "Raw" Effects for Each Population
+# These are standard normal deviates (z-scores).
+true_log_es_raw <- rnorm(n_pops, mean = 0, sd = 1)
+
+# 3. Reconstruct the True log(es[i]) for Each Population
+# log_es[i] = mu_log_es + log_es_raw[i] * sigma_log_es
+true_log_es_vector <- true_mu_log_es + true_log_es_raw * true_sigma_log_es
+
+# 4. Transform to Get the True es[i] Values (on the original positive scale)
+# This is the vector you will use in your R simulation where es[i] is needed
+# (e.g., for constructing matrix A).
+es_true_hierarchical_simulated_vector <- exp(true_log_es_vector)
+
+# --- Display Summary of Simulated True es[i] Values ---
+cat("\n--- Summary of Simulated True Hierarchical es[i] Values ---\n")
+cat("Min es[i]:", min(es_true_hierarchical_simulated_vector), "\n")
+cat("Max es[i]:", max(es_true_hierarchical_simulated_vector), "\n")
+cat("Mean es[i]:", mean(es_true_hierarchical_simulated_vector), "\n")
+cat("Median es[i]:", median(es_true_hierarchical_simulated_vector), "\n")
+cat("SD of es[i]:", sd(es_true_hierarchical_simulated_vector), "\n")
+
+# You can also plot a histogram to see their distribution:
+# hist(es_true_hierarchical_simulated_vector, breaks = 20,
+#      main = "Histogram of Simulated True Hierarchical es[i]",
+#      xlab = "es[i] value")
+
+# Calculate m_ii from the corrected M
+m_ii_vec <- diag(M_sim) # Extract the diagonal elements of M (which are -m_i)
+
+# Calculate A correctly using the uniform es
+A <- matrix(0, n_pops, n_pops)
+for (i in 1:n_pops) {
+  # A[i, i] = -es * (1 + M[i,i]) = -es * (1 - m_i)
+  #A[i, i] <- -es * (1 + m_ii_vec[i])
+  A[i, i] <- -es_true_hierarchical_simulated_vector[i] * (1 + m_ii_vec[i]) #Population-specific es values
+}
+
+print(paste("Max off-diagonal A value:", round(max(A[row(A)!=col(A)]),4)))
+print(paste("Range of diagonal A values:", round(min(diag(A)),4), "to", round(max(diag(A)),4)))
+
+```
+
+One iteration Sima_theta and Sigma_e
+V_theta = Variance in optima/theta not explained by linear relationship with x - noise in the location of the optima themselves
+V_e = Variance of local deviations of population mean phenotypes (z) from their current optima (theta) - arise from ongoing evolutionary processes or randomness within those populations  - before accounting for migration
+Lowering these standard deviations to reduce z scatter
+# --- Define Variance Components (Sigma_theta and Sigma_e) ---
+
+Hierarchical sd_theta and sd_e
+```{r}
+#1. Define the "true" hyperparameter values for the simulation
+true_mu_log_sd_theta <- log(0.1)    #Example: matches your old fixed meanlog
+true_sigma_log_sd_theta <- 0.5      #Example: matches your old fixed sdlog
+true_mu_log_sd_e <- log(0.1)    #Example: matches your old fixed meanlog
+true_sigma_log_sd_e <- 0.5      #Example: matches your old fixed sdlog
+
+#2. Simulate the "raw" effects from N(0,1)
+true_log_sd_theta_raw <- rnorm(n_pops, 0, 1)
+true_log_sd_e_raw <- rnorm(n_pops, 0, 1)
+
+#3. Reconstruct the true log_sd_theta[i] for each population
+true_log_sd_theta <- true_mu_log_sd_theta + true_log_sd_theta_raw * true_sigma_log_sd_theta
+true_log_sd_e <- true_mu_log_sd_e + true_log_sd_e_raw * true_sigma_log_sd_e
+
+
+#4. Transform to get the true sd_theta[i]
+sd_theta_true_simulated_vector <- exp(true_log_sd_theta)
+sd_e_true_simulated_vector <- exp(true_log_sd_e)
+
+#5. Use these sd_theta_true_simulated_vector when constructing diag_sd_theta for Sigma_theta
+#    in your R simulation's data generation process.
+
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+Sigma_theta <- diag(sd_theta_true_simulated_vector) %*% cor_theta %*% diag(sd_theta_true_simulated_vector)
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+Sigma_e <- diag(sd_e_true_simulated_vector) %*% cor_e %*% diag(sd_e_true_simulated_vector)
+
+print(paste("Range of diagonal Sigma_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal Sigma_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+
+```
+
+
+--- Simulate y, calculate z, simulate z_obs ---
+```{r}
+
+theta_true <- numeric(n_pops)
+#for (i in 1:n_pops) {
+#  theta_true[i] <- alpha[x_dat[i, "Regime"]] + x_dat[i, "x_true"] * beta_global
+#}
+
+theta_true <- alpha[x_dat$Regime] + x_dat$x_true * beta[x_dat$Regime] #Vectorized version
+
+
+# Calculate AM_term = (I + A^-1 * M)
+# Using M with the negative diagonal, matching Stan code analysis
+AM_term <- I + solve(A) %*% M_sim
+
+# Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+Sigma_z <- solve(AM_term) %*% Sigma_theta %*% t(solve(AM_term)) + Sigma_e
+# Optional: Keep the name Sigma_y_residuals if you prefer, it's the same matrix
+
+# Check positive definiteness (Good practice to keep this)
+eigen_values <- eigen(Sigma_z, symmetric = TRUE, only.values = TRUE)$values
+tolerance <- 1e-8
+if (all(eigen_values > tolerance)) {
+  print("Sigma_z is positive definite.")
+} else {
+  print("Sigma_z is NOT positive definite. Eigenvalues <= tolerance:")
+  print(eigen_values[eigen_values <= tolerance])
+  # Consider using Matrix::nearPD or adding a small diagonal nudge if this fails often
+  # Sigma_process <- as.matrix(Matrix::nearPD(Sigma_process)$mat)
+  # print("Applied nearPD correction.")
+  stop("Simulation stopped: Sigma_z not positive definite.")
+}
+
+# Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+mu_eq <- solve(AM_term) %*% theta_true
+print("Calculated equilibrium mean mu_eq (z_eq).")
+
+# Simulate z_true directly from MVN(mu_eq, Sigma_process)
+print("Simulating z_true directly...")
+z_true <- mvrnorm(n = 1, mu = mu_eq, Sigma = Sigma_z)
+# Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+z_true <- as.vector(z_true)
+print("Simulated z_true (latent trait mean).")
+# +++ END NEW METHOD +++
+
+
+# 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+# (This part remains the same)
+z_error_sd <- 0.01 # SD for measurement error in trait
+z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+print("Simulated z_obs (z_true + measurement error)")
+
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+x_obs <- x_dat$x_obs
+reg_assign <- x_dat$Regime
+
+#x_obs<-x_obs-mean(x_obs)
+
+dat <- list(
+  N = n_pops,
+  z_obs = as.vector(z_obs), # Use the final observed values
+  x_obs = as.vector(x_obs),
+  z_error = rep(z_error_sd, n_pops),
+  x_error = rep(x_error_sd, n_pops),
+  M = M_sim,
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  nu_cor = 2,
+  max_n_theta = max_n_theta,
+  reg_prior = rep(1,max_n_theta)
+
+)
+
+print("Stan data list 'dat' created with correctly simulated z_obs.")
+print("(Remember to update Stan 'data' block to expect 'z_obs' instead of 'y_obs')")
+print("True parameters used:")
+print(paste("alpha (intercept):", alpha))
+print(paste("beta:", beta))
+print(paste("z_error_sd (for z_obs):", z_error_sd))
+print(paste("x_error_sd:", x_error_sd))
+```
+
+
+Check out priors
+```{r}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  # Layer 3: True generating line
+  geom_abline(
+    intercept = alpha, slope = beta,
+    linetype = "dashed", color = "black", linewidth = 0.7
+  ) +
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x_true)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+Prior plot for es - Hierarchical populations-specific
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# --- Settings for es[i] Prior Predictive Plotting ---
+n_prior_samples_es <- 20000 # Number of samples to generate
+
+# --- Define YOUR hyperprior parameters for es[i] ---
+
+# Hyperpriors for mu_log_es ~ Normal(mean, sd)
+hp_es_mu_log_mean <- log(0.5)  # Example: If you expect median es around 0.5
+hp_es_mu_log_sd   <- 0.3       # Example: Uncertainty about this log-median
+
+# Hyperprior for sigma_log_es ~ half-normal(0,0.25)
+hp_es_sigma_log_hn_scale <- 0.25 # Define this new hyperprior parameter
+
+# --- Generate Prior Predictive Samples for es[i] (logic inlined) ---
+
+# 1. Draw hyperparameter samples for mu_log_es
+mu_log_es_samples <- rnorm(n_prior_samples_es, mean = hp_es_mu_log_mean, sd = hp_es_mu_log_sd)
+
+# 2. Draw hyperparameter samples for sigma_log_es
+sigma_log_es_samples <- abs(rnorm(n_prior_samples_es, mean = 0, sd = hp_es_sigma_log_hn_scale))
+
+# 3. Draw "raw" effects (representing individual deviations on a standard scale)
+log_es_raw_samples <- rnorm(n_prior_samples_es, mean = 0, sd = 1)
+
+# 4. Reconstruct log_es and then es on its original scale
+log_es_samples <- mu_log_es_samples + log_es_raw_samples * sigma_log_es_samples
+es_samples <- exp(log_es_samples)
+
+# Create a data frame for plotting
+prior_pred_es_df <- data.frame(value = es_samples,
+                               parameter_group = "es[i]") # 'parameter_group' is less crucial now but good for consistency
+
+# --- Plot the Prior Predictive Distribution for es[i] ---
+p_es_prior_pred <- ggplot(prior_pred_es_df, aes(x = value)) +
+  geom_density(fill = "salmon", alpha = 0.7, show.legend = FALSE) +
+  labs(title = "Prior Predictive Distribution for es[i]",
+       subtitle = paste0("Hyperpriors: mu_log_es ~ N(", round(hp_es_mu_log_mean,2), ", ", round(hp_es_mu_log_sd,2),
+                        "), sigma_log_es ~ Half-N(", round(hp_es_sigma_log_hn_scale,2), ")"), # Adjust subtitle if using HalfNormal for sigma
+       x = "es[i] value",
+       y = "Density") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, size = 9)) +
+  # Zoom in to a reasonable range to see the bulk of the distribution.
+  # Adjust these xlim values based on what you observe and expect.
+  coord_cartesian(xlim = c(0, quantile(prior_pred_es_df$value, 0.99))) # Show up to 99th percentile
+  # Or set a fixed sensible xlim, e.g., coord_cartesian(xlim = c(0, 2.0))
+
+print(p_es_prior_pred)
+
+# --- Output some summary statistics of the prior predictive distribution for es[i] ---
+cat("\n--- Summary of Prior Predictive Distribution for es[i] ---\n")
+cat(paste0("Hyperpriors used for mu_log_es: Normal(mean=", hp_es_mu_log_mean, ", sd=", hp_es_mu_log_sd, ")\n"))
+cat(paste0("Hyperprior used for sigma_log_es: Exponential(rate=", hp_es_sigma_log_hn_scale, ")\n")) # Adjust if HalfNormal
+cat("Quantiles for es[i]:\n")
+print(quantile(prior_pred_es_df$value, probs = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)))
+cat("Mean es[i]:", mean(prior_pred_es_df$value), "\n")
+```
+
+Compared to true values - es Rug Plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_es_df <- data.frame(true_value = es_true_hierarchical_simulated_vector)
+
+# Method 1: Rug Plot
+p_es_with_rug <- p_es_prior_pred +
+  geom_rug(data = true_values_es_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(p_es_prior_pred$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated es[i] values)"))
+print(p_es_with_rug)
+
+```
+
+
+Prior plot for sd_theta - hierarchical populations-specific
+```{r}
+# --- Settings for sd_theta[i] Prior Predictive Plotting ---
+n_prior_samples_sd_theta <- 20000 # Number of samples to generate
+
+# --- Define YOUR hyperprior parameters for sd_theta[i] ---
+
+# Hyperpriors for mu_log_es ~ Normal(mean, sd)
+hp_sd_theta_mu_log_mean <- log(0.1)  # Example: If you expect median es around 0.5 = log mu = -2.3
+hp_sd_theta_mu_log_sd   <- 0.5       # Example: Uncertainty about this log-median
+
+# Hyperprior for sigma_log_ ~ exp(2), mu = 1
+hp_sd_theta_sigma_log_scale <- 2 # Define this new hyperprior parameter
+
+# --- Generate Prior Predictive Samples for es[i] (logic inlined) ---
+
+# 1. Draw hyperparameter samples for mu_log_es
+mu_log_sd_theta_samples <- rnorm(n_prior_samples_sd_theta, mean = hp_sd_theta_mu_log_mean, sd = hp_sd_theta_mu_log_sd)
+
+# 2. Draw hyperparameter samples for sigma_log_es
+sigma_log_sd_theta_samples <- rexp(n_prior_samples_sd_theta, rate = hp_sd_theta_sigma_log_scale)
+
+# 3. Draw "raw" effects (representing individual deviations on a standard scale)
+log_sd_theta_raw_samples <- rnorm(n_prior_samples_sd_theta, mean = 0, sd = 1)
+
+# 4. Reconstruct log_es and then es on its original scale
+log_sd_theta_samples <- mu_log_sd_theta_samples + log_sd_theta_raw_samples * sigma_log_sd_theta_samples
+sd_theta_samples <- exp(log_sd_theta_samples)
+
+# Create a data frame for plotting
+prior_pred_sd_theta_df <- data.frame(value = sd_theta_samples,
+                               parameter_group = "sd_theta[i]") # 'parameter_group' is less crucial now but good for consistency
+
+# --- Plot the Prior Predictive Distribution for sd_theta[i] ---
+p_sd_theta_prior_pred <- ggplot(prior_pred_sd_theta_df, aes(x = value)) +
+  geom_density(fill = "salmon", alpha = 0.7, show.legend = FALSE) +
+  labs(title = "Prior Predictive Distribution for sd_theta[i]",
+       subtitle = paste0("Hyperpriors: mu_log_sd_theta ~ N(", round(hp_sd_theta_mu_log_mean,2), ", ", round(hp_sd_theta_mu_log_sd,2),
+                        "), sigma_log_sd_theta ~ Exp(", round(hp_sd_theta_sigma_log_scale,2), ")"), # Adjust subtitle if using HalfNormal for sigma
+       x = "sd_theta[i] value",
+       y = "Density") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, size = 9)) +
+  # Zoom in to a reasonable range to see the bulk of the distribution.
+  # Adjust these xlim values based on what you observe and expect.
+  coord_cartesian(xlim = c(0, quantile(prior_pred_sd_theta_df$value, 0.99))) # Show up to 99th percentile
+  # Or set a fixed sensible xlim, e.g., coord_cartesian(xlim = c(0, 2.0))
+
+print(p_sd_theta_prior_pred)
+
+# --- Output some summary statistics of the prior predictive distribution for sd_theta[i] ---
+cat("\n--- Summary of Prior Predictive Distribution for sd_theta[i] ---\n")
+cat(paste0("Hyperpriors used for mu_log_sd_theta: Normal(mean=", hp_sd_theta_mu_log_mean, ", sd=", hp_sd_theta_mu_log_sd, ")\n"))
+cat(paste0("Hyperprior used for sigma_log_sd_theta: Exponential(rate=", hp_sd_theta_sigma_log_scale, ")\n")) # Adjust if HalfNormal
+cat("Quantiles for sd_theta[i]:\n")
+print(quantile(prior_pred_sd_theta_df$value, probs = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)))
+cat("Mean sd_theta[i]:", mean(prior_pred_sd_theta_df$value), "\n")
+```
+
+Compared to true sd_theta values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_theta_df <- data.frame(true_value = sd_theta_true_simulated_vector)
+
+# Method 1: Rug Plot
+p_sd_theta_with_rug <- p_sd_theta_prior_pred +
+  geom_rug(data = true_values_sd_theta_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(p_sd_theta_prior_pred$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_theta[i] values)"))
+print(p_sd_theta_with_rug)
+```
+
+
+sd_e prior plot - Hierarchical values
+```{r}
+
+# --- Settings for sd_e[i] Prior Predictive Plotting ---
+n_prior_samples_sd_e <- 20000 # Number of samples to generate
+
+# --- Define YOUR hyperprior parameters for sd_e[i] ---
+
+# Hyperpriors for mu_log_es ~ Normal(mean, sd)
+hp_sd_e_mu_log_mean <- log(0.1)  # Example: If you expect median es around 0.5 = log mu = -2.3
+hp_sd_e_mu_log_sd   <- 0.5       # Example: Uncertainty about this log-median
+
+# Hyperprior for sigma_log_ ~ exp(1), mu = 1
+hp_sd_e_sigma_log_scale <- 2 # Define this new hyperprior parameter
+
+# --- Generate Prior Predictive Samples for es[i] (logic inlined) ---
+
+# 1. Draw hyperparameter samples for mu_log_es
+mu_log_sd_e_samples <- rnorm(n_prior_samples_sd_e, mean = hp_sd_e_mu_log_mean, sd = hp_sd_e_mu_log_sd)
+
+# 2. Draw hyperparameter samples for sigma_log_es
+sigma_log_sd_e_samples <- rexp(n_prior_samples_sd_e, rate = hp_sd_e_sigma_log_scale)
+
+# 3. Draw "raw" effects (representing individual deviations on a standard scale)
+log_sd_e_raw_samples <- rnorm(n_prior_samples_sd_e, mean = 0, sd = 1)
+
+# 4. Reconstruct log_es and then es on its original scale
+log_sd_e_samples <- mu_log_sd_e_samples + log_sd_e_raw_samples * sigma_log_sd_e_samples
+sd_e_samples <- exp(log_sd_e_samples)
+
+# Create a data frame for plotting
+prior_pred_sd_e_df <- data.frame(value = sd_e_samples,
+                                     parameter_group = "sd_e[i]") # 'parameter_group' is less crucial now but good for consistency
+
+# --- Plot the Prior Predictive Distribution for es[i] ---
+p_sd_e_prior_pred <- ggplot(prior_pred_sd_e_df, aes(x = value)) +
+  geom_density(fill = "salmon", alpha = 0.7, show.legend = FALSE) +
+  labs(title = "Prior Predictive Distribution for sd_e[i]",
+       subtitle = paste0("Hyperpriors: mu_log_sd_e ~ N(", round(hp_sd_e_mu_log_mean,2), ", ", round(hp_sd_e_mu_log_sd,2),
+                         "), sigma_log_sd_e ~ Exp(", round(hp_sd_e_sigma_log_scale,2), ")"), # Adjust subtitle if using HalfNormal for sigma
+       x = "sd_e[i] value",
+       y = "Density") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, size = 9)) +
+  # Zoom in to a reasonable range to see the bulk of the distribution.
+  # Adjust these xlim values based on what you observe and expect.
+  coord_cartesian(xlim = c(0, quantile(prior_pred_sd_e_df$value, 0.99))) # Show up to 99th percentile
+# Or set a fixed sensible xlim, e.g., coord_cartesian(xlim = c(0, 2.0))
+
+print(p_sd_e_prior_pred)
+
+# --- Output some summary statistics of the prior predictive distribution for es[i] ---
+cat("\n--- Summary of Prior Predictive Distribution for sd_e[i] ---\n")
+cat(paste0("Hyperpriors used for mu_log_sd_e: Normal(mean=", hp_sd_e_mu_log_mean, ", sd=", hp_sd_e_mu_log_sd, ")\n"))
+cat(paste0("Hyperprior used for sigma_log_sd_e: Exponential(rate=", hp_sd_e_sigma_log_scale, ")\n")) # Adjust if HalfNormal
+cat("Quantiles for sd_e[i]:\n")
+print(quantile(prior_pred_sd_e_df$value, probs = c(0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99)))
+cat("Mean sd_e[i]:", mean(prior_pred_sd_e_df$value), "\n")
+```
+
+Compared to true sd_e values- Rug plot
+```{r}
+# Convert true_values to a data frame for ggplot
+true_values_sd_e_df <- data.frame(true_value = sd_e_true_simulated_vector)
+
+# Method 1: Rug Plot
+p_sd_e_with_rug <- p_sd_e_prior_pred +
+  geom_rug(data = true_values_sd_e_df, aes(x = true_value, y = 0), sides = "b", alpha = 0.5, color = "blue", length = unit(0.05, "npc")) +
+  labs(subtitle = paste(attributes(p_sd_e_prior_pred$labels$subtitle)$text, # Keep original subtitle
+                        "\n(Blue ticks indicate true simulated sd_e[i] values)"))
+print(p_sd_e_with_rug)
+```
+
+
+
+
+
+
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_VO_MLM.stan')
+stan_file<-"blouchMigAdpt_VO_MLM.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain for the HIERARCHICAL model
+generate_inits_hierarchical <- function(chain_id = 1) { # chain_id can be used for slight per-chain variation
+  # Assumes 'dat' list and 'max_n_theta' are available in the global environment
+  # or passed as arguments if this function is moved.
+
+  # Helper to generate small random jitter to make inits slightly different per chain if desired
+  jitter_val <- (chain_id - 1) * 0.01
+
+  # Values derived from your priors (used for centering initial draws)
+  # For es: mu_log_es ~ N(log(0.5), 0.3); sigma_log_es ~ HalfN(0, 0.25)
+  init_mu_log_es_mean <- log(0.5)
+  init_sigma_log_es_mean_ish <- 0.20 # Approx mean of HalfNormal(0, 0.25)
+
+  # For sd_theta & sd_e: mu_log_sd ~ N(log(0.1), 0.5); sigma_log_sd ~ Exp(2)
+  init_mu_log_sd_mean <- log(0.1)
+  init_sigma_log_sd_mean <- 0.5 # Mean of Exp(2)
+
+  inits <- list(
+    # --- Regime-specific parameters (mixture components) ---
+    # Initialize raw_alpha and raw_beta by drawing from their priors,
+    # or provide distinct starting points if helpful for mixtures.
+    # Using priors directly is a good start.
+    raw_alpha = rnorm(max_n_theta, dat$alpha_prior[1], dat$alpha_prior[2] * 0.8), # Slightly tighter than prior
+    raw_beta = rnorm(max_n_theta, dat$beta_prior[1], dat$beta_prior[2] * 0.8),  # Slightly tighter than prior
+
+    # --- Hierarchical parameters for es ---
+    mu_log_es = rnorm(1, init_mu_log_es_mean, 0.1 + jitter_val),          # Centered, small SD
+    sigma_log_es = abs(rnorm(1, init_sigma_log_es_mean_ish, 0.05 + jitter_val)) + 1e-4, # Ensure positive, near expected mean
+    log_es_raw = rnorm(dat$N, 0, 0.1), # Start raw effects near 0 to keep initial es close to exp(mu_log_es)
+
+    # --- Hierarchical parameters for sd_theta ---
+    mu_log_sd_theta = rnorm(1, init_mu_log_sd_mean, 0.1 + jitter_val),
+    sigma_log_sd_theta = abs(rnorm(1, init_sigma_log_sd_mean, 0.1 + jitter_val)) + 1e-4, # Ensure positive
+    log_sd_theta_raw = rnorm(dat$N, 0, 0.1),
+
+    # --- Hierarchical parameters for sd_e ---
+    mu_log_sd_e = rnorm(1, init_mu_log_sd_mean, 0.1 + jitter_val),
+    sigma_log_sd_e = abs(rnorm(1, init_sigma_log_sd_mean, 0.1 + jitter_val)) + 1e-4, # Ensure positive
+    log_sd_e_raw = rnorm(dat$N, 0, 0.1),
+
+    # --- Cholesky factors for correlation matrices ---
+    # Initialize to Cholesky of identity matrix (no correlation)
+    # For L_Omega_theta (and L_Omega_e), Stan expects the lower triangular Cholesky factor.
+    # For a correlation matrix, diag(N) is a valid (though not necessarily efficient for LKJ) init.
+    # A more robust way for LKJ is often to let Stan initialize it, or provide a near-identity
+    # structure if N is small. For large N, diag(N) is okay.
+    L_Omega_theta = diag(dat$N), # Stan will ensure it's a Cholesky factor of a corr matrix
+    L_Omega_e = diag(dat$N),
+
+    # --- Latent true values (measurement error model) ---
+    # Initialize true values to observed values as a reasonable starting point
+    z_true = dat$z_obs,
+    x_true = dat$x_obs,
+
+    # --- Probabilities for regime assignment (mixture model) ---
+    # Initialize to be roughly symmetric, or slightly perturbed symmetric
+    # prob_reg is an array of simplexes: array[N] simplex[max_n_theta]
+    # Each simplex needs to sum to 1.
+    prob_reg = array(dim = c(dat$N, max_n_theta)) # Pre-allocate
+  )
+  for (i in 1:dat$N) {
+    # Generate dirichlet-like random numbers that sum to 1
+    # A simple symmetric start:
+    # init_probs <- rep(1.0 / max_n_theta, max_n_theta)
+    # Add small random perturbation to break perfect symmetry if desired, then normalize
+    raw_probs <- abs(rnorm(max_n_theta, 1.0/max_n_theta, 0.01 + jitter_val*0.1)) + 1e-6
+    inits$prob_reg[i,] <- raw_probs / sum(raw_probs)
+  }
+
+  return(inits)
+}
+
+# Specify the number of chains
+n_chains <- 2 # Or your desired number
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits_hierarchical() for each chain
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits_hierarchical(chain_id = id))
+
+# When running Stan:
+# stan_model_fit <- rstan::sampling(stan_model_object,
+#                                   data = dat,
+#                                   init = init_list_multichain, # Use this list
+#                                   chains = n_chains, ...)
+
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.8), # Keep control parameters
+    init = init_list_multichain    # Pass the list of lists
+    )
+
+# You now have results from 2 chains in stan_fit
+
+```
+
+
+# Posteriors
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               "es[1]", "es[2]", "es[3]", 
+               "mu_log_es", "sigma_log_es",
+               
+               "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "mu_log_sd_theta", "sigma_log_sd_theta",
+               
+               "sd_e[1]","sd_e[2]","sd_e[3]",
+                "mu_log_sd_e", "sigma_log_sd_e",
+
+               "L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               "L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]",
+               "estimated_opt_assign"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+#rstan::traceplot(fit.reg.direct.ve,pars = c("hl","vy","optima","beta"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r}
+pairs(stan_fit, pars = c( "alpha[1]", "alpha[2]", "alpha[3]", "beta[1]", "beta[2]", "beta[3]","es[1]","es[2]", "sd_theta[1]", "sd_e[1]"))
+
+```
+
+
+# Posterior Plots
+Regression line prior vs. posterior plot
+```{r}
+# --- 1. Prepare observed data with Regime factor ---
+df <- tibble(
+    z_obs = dat$z_obs,
+    x_obs = dat$x_obs,
+    Regime = factor(dat$reg_assign, levels = 1:n_theta, labels = paste("Regime", 1:n_theta))
+)
+
+# --- 2. Generate sequence of x values for prediction lines/ribbons ---
+x_obs_vals <- df$x_obs
+x_seq <- seq(from = min(x_obs_vals, na.rm=TRUE), to = max(x_obs_vals, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_true = x_seq) # Using x_true as predictor name matching model
+
+# --- 3. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines per regime
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate beta draws
+prior_beta <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- matrix(rnorm(n_prior_draws * n_theta, alpha_prior_mean, alpha_prior_sd),
+                       nrow = n_prior_draws, ncol = n_theta)
+colnames(prior_alphas) <- paste0("Regime", 1:n_theta)
+
+# Combine into a tidy format with Regime info - needed for geom_abline
+prior_draws_df <- as_tibble(prior_alphas) %>%
+   mutate(beta_sim = prior_beta, .draw = 1:n_prior_draws) %>%
+   # Pivot longer to get alpha_sim value and Regime column
+   pivot_longer(cols = starts_with("Regime"),
+                names_to = "Regime", # Temporarily character
+                values_to = "alpha_sim") %>%
+    # No need to factor Regime here, geom_abline doesn't use it for color
+
+    # We have n_prior_draws * n_theta rows here, each represents one line
+    select(.draw, Regime, alpha_sim, beta_sim) # Keep relevant columns
+
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+posterior_params <- stan_fit %>%
+    spread_draws(beta[Regime], alpha[Regime]) %>%
+    mutate(Regime = factor(Regime, levels = 1:n_theta, labels = paste("Regime", 1:n_theta)))
+
+# b. Predict
+posterior_predictions <- posterior_params %>%
+  crossing(x_grid) %>%
+  mutate(mu_pred = alpha + beta * x_true)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(Regime, x_true) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+# --- 5. Prepare True Lines Data ---
+# (Remains the same)
+true_lines_df <- tibble(
+  Regime = factor(1:n_theta, levels = 1:n_theta, labels = paste("Regime", 1:n_theta)),
+  alpha_true = alpha,
+  beta_true = beta
+)
+
+
+# --- 6. Create the ggplot ---
+multi_slope_plot_faint_prior <- ggplot() +
+
+  # Layer 1: Prior predictive lines (MANY FAINT LINES)
+  # Use the unsummarized prior_draws_df
+  geom_abline(
+    data = prior_draws_df,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1 # Single faint color
+  ) +
+
+  # Layer 2: Posterior Credible Interval ribbons, filled by Regime
+  geom_ribbon(
+    data = posterior_summary,
+    aes(x = x_true, ymin = .lower, ymax = .upper, fill = Regime),
+    alpha = 0.2 # Slightly higher alpha for posterior ribbons now
+  ) +
+
+  # Layer 3: Posterior Mean/Median regression lines, colored by Regime
+  geom_line(
+    data = posterior_summary,
+    aes(x = x_true, y = mu_pred, color = Regime),alpha=0.5,
+    linewidth = 0.5
+  ) +
+
+  # Layer 4: True generating lines, colored by Regime
+  geom_abline(
+    data = true_lines_df,
+    aes(intercept = alpha_true, slope = beta_true, color = Regime),alpha=0.5,
+    linetype = "dashed", linewidth = 0.5
+  ) +
+
+  # Layer 5: Observed data points, colored by Regime
+  geom_point(data = df, aes(y = z_obs, x = x_obs, color = Regime), alpha = 0.7, size = 1.5) +
+
+  # Apply ggsci color scales for Regime (used by points, true lines, posterior lines/ribbons)
+  ggsci::scale_color_aaas(name = "Regime") +
+  ggsci::scale_fill_aaas(name = "Regime") +
+
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Prior Draws & Posterior Regression Lines (Median + 89% CI) by Regime", # Updated title
+    y = "Trait Value (z)",
+    x = "Environmental Predictor (x)"
+  )
+
+# --- 7. Display the plot ---
+print(multi_slope_plot_faint_prior)
+```
+
+
+Prior vs. Posterior plot of Thetas
+```{r}
+# --- 1. Extract posterior draws for mu (estimated theta) ---
+posterior_mu <- stan_fit %>%
+  spread_draws(mu[population])
+
+# --- 2. Calculate posterior summaries for mu for each population ---
+mu_summary <- posterior_mu %>%
+  group_by(population) %>%
+  median_qi(mu, .width = 0.89) # Using 89% interval
+
+# --- 3. Calculate PRIOR summaries for theta for each population ---
+# (This part remains unchanged as prior is the same regardless of regime)
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+prior_summary <- tibble(
+    population = 1:n_pops,
+    x_true = x_true, # Include x_true used for this population
+    prior_mean_theta = alpha_prior_mean + beta_prior_mean * x_true,
+    # Need variance if using different prior widths or non-normal priors
+    prior_var_theta = alpha_prior_sd^2 + beta_prior_sd^2 * x_true^2,
+    prior_sd_theta = sqrt(prior_var_theta)
+)
+
+z_score_89 <- qnorm(1 - (1 - 0.89)/2) # Z-score for 89% interval
+prior_summary <- prior_summary %>%
+    mutate(
+        prior_lower_89 = prior_mean_theta - z_score_89 * prior_sd_theta,
+        prior_upper_89 = prior_mean_theta + z_score_89 * prior_sd_theta
+    ) %>%
+    select(population, prior_lower_89, prior_upper_89) # Keep only needed columns
+
+
+# --- 4. Combine true values, posterior summaries, prior summaries, AND REGIME ---
+# Reshape posterior summaries
+posterior_summary_wide <- mu_summary %>%
+    select(population, posterior_median = mu, lower_89 = .lower, upper_89 = .upper)
+
+# Create regime mapping
+regime_map <- tibble(
+    population = 1:n_pops,
+    Regime = factor(dat$reg_assign, levels = 1:n_theta, labels = paste("Regime", 1:n_theta))
+    )
+
+# Combine all data
+plot_data <- tibble(population = 1:n_pops, true_theta = theta_true) %>%
+    left_join(posterior_summary_wide, by = "population") %>%
+    left_join(prior_summary, by = "population") %>%
+    left_join(regime_map, by = "population") # <-- ADD REGIME HERE
+
+# Check for missing values after join
+if(any(is.na(plot_data))) {
+    warning("NA values introduced during data joining. Check population indices or Regime mapping.")
+}
+
+
+# --- 5. Create the ggplot (Points colored by Regime) ---
+recovery_plot_color_prior <- ggplot(plot_data, aes(x = true_theta)) +
+
+  # Layer 1: PRIOR 89% Interval ribbon (very light grey)
+  geom_ribbon(aes(ymin = prior_lower_89, ymax = prior_upper_89), fill = "grey90", alpha = 0.5) +
+
+  # Layer 2: POSTERIOR 89% Credible Interval ribbon (darker grey, no fill by regime)
+  geom_ribbon(aes(ymin = lower_89, ymax = upper_89), fill = "grey75", alpha = 0.7) +
+
+  # Layer 3: Points for the posterior median, COLORED BY REGIME
+  geom_point(aes(y = posterior_median, color = Regime), size = 2) + # Added color = Regime
+
+  # Layer 4: Add the 1:1 line (perfect recovery)
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "grey30") +
+
+  # Layer 5: Add the color scale
+  ggsci::scale_color_aaas(name = "Regime") + # Match the other plot
+
+  # Labels and Theme
+  labs(
+    title = "Prior (light) vs Posterior (dark) Recovery of True Optima (theta)",
+    subtitle = "Points (colored by Regime) are Posterior Medians, Ribbons are 89% Intervals", # Updated subtitle
+    x = "True Simulated Optimum (theta_true)",
+    y = "Estimated Optimum (mu / Prior Mean)"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "bottom" # Keep legend if desired
+   )
+
+# --- 6. Display the plot ---
+print(recovery_plot_color_prior)
+```
+
+Posterior vs. true values plot for es[i]
+```{r}
+
+
+posterior_medians_es <- apply(post$es, 2, median)
+es_lower_ci <- apply(post$es, 2, function(x) quantile(x, 0.055)) # For 89% CI (adjust probs for 95% if needed: 0.025, 0.975)
+es_upper_ci <- apply(post$es, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+# --- Create DataFrame for Plotting es Recovery ---
+recovery_df_es <- data.frame(
+  true_value = es_true_hierarchical_simulated_vector,
+  posterior_median = posterior_medians_es,
+  lower_ci = es_lower_ci,
+  upper_ci = es_upper_ci
+)
+
+# --- Generate the Plot for es ---
+
+p_es_recovery <- ggplot(recovery_df_es, aes(x = true_value, y = posterior_median)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+  geom_point(alpha = 0.7, color = "black") +
+  labs(title = "Recovery of Population-Specific es",
+       x = "True Simulated es[i] (from N(0.5, 0.1) T[0,])", # Updated label
+       y = "Posterior Median es[i] (with 89% CI)") +
+  theme_bw() +
+  #coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+              # Adjust xlim and ylim dynamically to fit all data points and CIs
+              #xlim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE),
+              #ylim = range(c(0, recovery_df_es$true_value, recovery_df_es$lower_ci, recovery_df_es$upper_ci), na.rm = TRUE)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+print(p_es_recovery)
+
+# --- Optional: Print Mean/Median comparisons for es ---
+cat("\n--- es[i] Recovery Analysis (True values from N(0, 0.25) T[0,]) ---\n")
+cat("Mean of True Simulated es[i]:", mean(es_true_hierarchical_simulated_vector), "\n")
+cat("Median of True Simulated es[i]:", median(es_true_hierarchical_simulated_vector), "\n")
+cat("Mean of Posterior Medians for es[i]:", mean(posterior_medians_es), "\n")
+cat("Median of Posterior Medians for es[i]:", median(posterior_medians_es), "\n")
+
+
+```
+
+
+
+SD Theta Prior vs. Posterior Plot - Population-specific values
+```{r}
+true_vals_df_sd_theta <- data.frame(value = sd_theta_true_simulated_vector, type = "True Simulated Values")
+
+posterior_medians_sd_theta <- apply(post$sd_theta, 2, median)
+post_medians_df_sd_theta <- data.frame(value = posterior_medians_sd_theta, type = "Posterior Medians")
+
+mean(sd_theta_true_simulated_vector)
+median(sd_theta_true_simulated_vector)
+mean(posterior_medians_sd_theta)
+median(posterior_medians_sd_theta)
+
+prior_meanlog <- log(0.1)
+prior_sdlog <- 0.5
+x_vals_prior <- seq(0.001, quantile(rlnorm(10000, prior_meanlog, prior_sdlog), 0.999), length.out = 300)
+prior_df <- data.frame(value = x_vals_prior, density = dlnorm(x_vals_prior, prior_meanlog, prior_sdlog), type = "Prior")
+
+# 2. Posterior samples for sd_theta
+sd_theta_samples <- as.data.frame(post$sd_theta)
+colnames(sd_theta_samples) <- paste0("sd_theta_", 1:n_pops)
+sd_theta_long <- sd_theta_samples %>%
+pivot_longer(cols = everything(), names_to = "parameter", values_to = "value")
+
+
+sd_theta_lower_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.055)) # For 89% CI
+sd_theta_upper_ci <- apply(post$sd_theta, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+recovery_df_sd_theta <- data.frame(
+true_value = sd_theta_true_simulated_vector,
+posterior_median = posterior_medians_sd_theta,
+lower_ci = sd_theta_lower_ci,
+upper_ci = sd_theta_upper_ci
+)
+
+p4 <- ggplot(recovery_df_sd_theta, aes(x = true_value, y = posterior_median)) +
+geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3) +
+geom_point(alpha = 0.7) +
+labs(title = "Recovery of Population-Specific sd_theta",
+x = "True Simulated sd_theta[i]",
+y = "Posterior Median sd_theta[i] (with 89% CI)") +
+theme_bw() +
+coord_fixed(ratio = 1, xlim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T),
+ylim = range(recovery_df_sd_theta$true_value, recovery_df_sd_theta$lower_ci, recovery_df_sd_theta$upper_ci, na.rm=T))
+print(p4)
+```
+
+
+SD e Prior vs. Posterior Plot - Population-specific values
+```{r}
+# Ensure 'post' (extracted Stan samples) and 'n_pops' are available in your environment
+
+# --- You MUST define this from your R simulation script ---
+# Example: If you simulated true sd_e values and stored them in a vector:
+# sd_e_true_simulated_vector <- your_vector_of_true_sd_e_values
+# Or, if they were on the diagonal of a matrix named 'diag_sd_e_matrix_simulated':
+
+
+# Check if sd_e_true_simulated_vector exists; if not, create a placeholder
+if (!exists("sd_e_true_simulated_vector")) {
+  warning("sd_e_true_simulated_vector was not found. Please define it from your R simulation. Using random placeholders for demonstration.")
+  # Placeholder: Replace this with your actual true simulated values
+  sd_e_true_simulated_vector <- rlnorm(ncol(post$sd_e), meanlog = log(0.1), sdlog = 0.5)
+}
+
+# --- Calculate Posterior Summaries for sd_e ---
+if ("sd_e" %in% names(post)) {
+  posterior_medians_sd_e <- apply(post$sd_e, 2, median)
+  sd_e_lower_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.055)) # For 89% CI
+  sd_e_upper_ci <- apply(post$sd_e, 2, function(x) quantile(x, 0.945)) # For 89% CI
+
+  # --- Create DataFrame for Plotting sd_e Recovery ---
+  recovery_df_sd_e <- data.frame(
+    true_value = sd_e_true_simulated_vector,
+    posterior_median = posterior_medians_sd_e,
+    lower_ci = sd_e_lower_ci,
+    upper_ci = sd_e_upper_ci
+  )
+
+  # --- Generate the Plot for sd_e ---
+  library(ggplot2)
+
+  p_sd_e_recovery <- ggplot(recovery_df_sd_e, aes(x = true_value, y = posterior_median)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0, alpha = 0.3, color = "grey50") +
+    geom_point(alpha = 0.7, color = "black") +
+    labs(title = "Recovery of Population-Specific sd_e",
+         x = "True Simulated sd_e[i]",
+         y = "Posterior Median sd_e[i] (with 89% CI)") +
+    theme_bw() +
+    coord_fixed(ratio = 1, # Ensures 1:1 aspect ratio for the axes
+                xlim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE),
+                ylim = range(c(recovery_df_sd_e$true_value, recovery_df_sd_e$lower_ci, recovery_df_sd_e$upper_ci), na.rm = TRUE)) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+
+  print(p_sd_e_recovery)
+
+  # --- Optional: Print Mean/Median comparisons for sd_e ---
+  cat("\n--- sd_e Analysis ---\n")
+  cat("Mean of True Simulated sd_e[i]:", mean(sd_e_true_simulated_vector), "\n")
+  cat("Median of True Simulated sd_e[i]:", median(sd_e_true_simulated_vector), "\n")
+  cat("Mean of Posterior Medians for sd_e[i]:", mean(posterior_medians_sd_e), "\n")
+  cat("Median of Posterior Medians for sd_e[i]:", median(posterior_medians_sd_e), "\n")
+
+} else {
+  warning("Parameter 'sd_e' not found in posterior samples. Cannot create sd_e recovery plot.")
+}
+```
+

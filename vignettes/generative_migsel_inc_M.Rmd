@@ -1,0 +1,1616 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+
+########################################################################################################################
+Simple Regression Model - single optima, single beta, single M Matrix
+Non-hierarchical priors on all, but population-specific es, sd_theta, sd_e
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+library(purrr)     # For map_dfr
+
+######################################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+iter<-20
+n_pops <- 60
+alpha <- c(0.1)
+beta<-c(0.25)
+alpha_prior<-c(0,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+x_dat <- tibble(
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+
+```{r}
+I <- diag(n_pops) # Identity matrix
+
+# --- 2. Generate List of Migration Matrices (M_list) ---
+max_M_rate <- 0.25 # Max migration rate component
+
+M_list <- vector("list", iter)
+print(paste("Generating", iter, "M matrices..."))
+for (k in 1:iter) {
+  current_max_rate <- (k / iter) * max_M_rate
+  M <- matrix(0, n_pops, n_pops)
+  if (n_pops == 1) { M[1, 1] <- 0; M_list[[k]] <- M; next }
+  for (i in 1:n_pops) {
+    max_individual_rate <- if (current_max_rate > 0) { current_max_rate / (n_pops - 1) } else { 0 }
+    row_mig <- runif(n_pops - 1, 0, max_individual_rate)
+    M[i, -i] <- row_mig
+    m_i = sum(M[i, -i])
+    if (m_i > 1) { M[i,-i] <- M[i,-i] / m_i; m_i = 1 }
+    M[i, i] <- -m_i
+  }
+  M_list[[k]] <- M
+}
+print("Generated M_list.")
+
+```
+
+```{r}
+
+es_true_simulated_vector <- rtruncnorm(n_pops, a = 0, mean = 0.5, sd = 0.1)
+print(paste("Range of es values:", round(min(es_true_simulated_vector),4), "to", round(max(es_true_simulated_vector),4)))
+
+# --- 3. Generate List of Adaptation Matrices (A_list) ---
+A_list <- vector("list", iter)
+print("Generating corresponding A matrices...")
+for (k in 1:iter) {
+  A <- matrix(0, n_pops, n_pops)
+  m_ii_vec <- diag(M_list[[k]])
+  if (n_pops == 1) { A[1,1] <- -es_true_simulated_vector[i] * (1+m_ii_vec[1]) } # Handle N=1 case
+  else {
+    for (i in 1:n_pops) { A[i, i] <- -es_true_simulated_vector[i] * (1 + m_ii_vec[i]) }
+  }
+  A_list[[k]] <- A
+}
+print("Generated A_list.")
+
+```
+
+Non-hierarchical priors on both
+```{r}
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+#diag_sd_theta <- diag(rep(sd_theta_val, n_pops)) #Single value across diagonal
+sd_theta_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_theta<-diag(sd_theta_true_simulated_vector) 
+Sigma_theta <- diag_sd_theta %*% cor_theta %*% diag_sd_theta # V_theta = Sigma_theta
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+#diag_sd_e <- diag(rep(sd_e_val, n_pops))
+sd_e_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_e<-diag(sd_e_true_simulated_vector)
+Sigma_e <- diag_sd_e %*% cor_e %*% diag_sd_e # V_e = Sigma_e
+
+print(paste("Range of diagonal V_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal V_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+```
+
+Prior Predictive Plot for alpha and beta
+```{r}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+prior_reg_plot<-function(dat){
+  n_prior_draws <- 500
+  alpha_prior_mean <- dat$alpha_prior[1]
+  alpha_prior_sd <- dat$alpha_prior[2]
+  beta_prior_mean <- dat$beta_prior[1]
+  beta_prior_sd <- dat$beta_prior[2]
+  
+  prior_draws <- tibble(
+    draw = 1:n_prior_draws,
+    alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+    beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+  )
+  
+  # --- 2. Prepare observed data for plotting ---
+  # (Same as before, using z_obs if that's the name you used)
+  df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+  
+  
+  # --- 5. Create the ggplot ---
+  # (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+  slope_plot_manual <- ggplot() +
+    # Layer 1: Observed data points
+    geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+  
+    # Layer 2: Prior predictive lines
+    geom_abline(
+      data = prior_draws,
+      aes(intercept = alpha_sim, slope = beta_sim),
+      color = "grey70", alpha = 0.1
+    ) +
+  
+    # Layer 3: True generating line
+    geom_abline(
+      intercept = alpha, slope = beta,
+      linetype = "dashed", color = "black", linewidth = 0.7
+    ) +
+    
+    # Theme and Labels
+    theme_bw() +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    ) +
+    labs(
+      title = "Prior Regression Lines",
+      y = "Trait Value (z)",
+      x = "Environmental Predictor (x_true)" # Label x-axis appropriately
+    ) +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # --- 6. Display the plot ---
+  print(slope_plot_manual)
+}
+```
+
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_basic.stan')
+stan_file<-"blouchMigAdpt_basic.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+if(is.null(stan_model)) warning("Stan model not compiled. Replace placeholder.")
+print("Stan model compiled (or placeholder used).")
+
+# --- 5. Loop Through Iterations: Simulate Data & Run Stan ---
+stan_fit_list <- vector("list", iter) # Initialize list to store results
+names(stan_fit_list) <- paste0("mig_level_", 1:iter) # Optional names
+
+print(paste("Starting", iter, "Stan runs..."))
+
+for (k in 1:iter) {
+  print(paste("--- Running Migration Level", k, "of", iter, "---"))
+
+  # Get M and A for this iteration
+  M_k <- M_list[[k]]
+  A_k <- A_list[[k]]
+
+  # --- Simulate data specifically for this M_k / A_k ---
+  # print("Simulating data...") # Optional verbose output
+  AM_term_k <- tryCatch({
+    I + solve(A_k) %*% M_k # solve(A_k) works as A is diagonal
+  }, error = function(e) {
+    warning(paste("Error calculating AM_term for k=", k, ":", e$message))
+    return(NULL) # Return NULL if solve(A_k) fails (e.g., if A is singular)
+  })
+
+  if (is.null(AM_term_k)) {
+    warning(paste("Skipping Stan run for k=", k, "due to AM_term error."))
+    stan_fit_list[[k]] <- NA # Mark as failed/skipped
+    next # Skip to next iteration
+  }
+##
+
+  theta_true <- numeric(n_pops)
+  theta_true <- alpha + x_dat$x_true * beta #Vectorized version
+
+  # Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+  Sigma_z_k <- solve(AM_term_k) %*% Sigma_theta %*% t(solve(AM_term_k)) + Sigma_e
+  print("Calculated Sigma_z_k")
+
+  
+  # Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+  mu_eq_k <- solve(AM_term_k) %*% theta_true
+  cat("Calculated equilibrium mean mu_eq_k (z_eq_k).",mu_eq_k)
+
+  z_true <- mvrnorm(n = 1, mu = mu_eq_k, Sigma = Sigma_z_k)
+  # Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+  z_true <- as.vector(z_true)
+  cat("Simulated z_true (latent trait mean).",z_true)
+
+  # 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+  # (This part remains the same)
+  z_error_sd <- 0.01 # SD for measurement error in trait
+  z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+  cat("Simulated z_obs (z_true + measurement error)",z_obs)
+
+  # Check positive definiteness
+  eigen_values <- eigen(Sigma_z_k, symmetric = TRUE, only.values = TRUE)$values
+  tolerance <- 1e-8
+  if (!all(eigen_values > tolerance)) {
+    warning(paste("Sigma_z_k not positive definite for k=", k, ". Smallest eigenvalue:", min(eigen_values), ". Skipping Stan run."))
+    stan_fit_list[[k]] <- NA # Mark as failed/skipped
+    next # Skip to next iteration
+  }
+
+  
+  # --- Prepare data list for Stan ---
+  dat_k <- list(
+    N = n_pops,
+    z_obs = as.vector(z_obs),
+    x_obs = as.vector(x_obs),
+    z_error = rep(z_error_sd, n_pops), # Ensure Stan uses 'z_error'
+    x_error = rep(x_error_sd, n_pops),
+    M = M_k,
+    alpha_prior = alpha_prior,
+    beta_prior = beta_prior,
+    es_prior = es_prior,
+    nu_cor = 2
+  )
+  #prior_reg_plot(dat)
+  # --- Run Stan ---
+  print("Sampling...")
+    # Remember to handle potential errors during sampling
+  current_fit <- tryCatch({
+    init_fun <- function() {
+      list(
+        alpha = rnorm(1, dat_k$alpha_prior[1], dat_k$alpha_prior[2]),
+        beta = rnorm(1, dat_k$beta_prior[1], dat_k$beta_prior[2]),
+        es = abs(rnorm(dat_k$N, dat_k$es_prior[1], dat_k$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+        sd_theta = abs(rnorm(dat_k$N, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+        sd_e = abs(rnorm(dat_k$N, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+        L_Omega_theta = diag(dat_k$N),
+        L_Omega_e = diag(dat_k$N),
+        y_true = dat_k$y_obs,
+        x_true = dat_k$x_obs
+      )
+    }
+
+    stan_fit <- rstan::sampling(
+      object = stan_model,
+      data = dat_k,
+      cores = 1,
+      chains = 1,
+      iter = 2000,
+      control = list(adapt_delta = 0.8),
+      init = init_fun
+    )
+
+
+
+  }, error = function(e) {
+    warning(paste("Stan sampling failed for k=", k, ":", e$message))
+    return(NA) # Return NA or NULL on error
+  })
+
+  # --- Store result ---
+  stan_fit_list[[k]] <- current_fit
+  print(paste("--- Completed Migration Level", k, "---"))
+
+} # End loop over k
+
+print("All Stan runs complete (or attempted). Results stored in 'stan_fit_list'.")
+
+```
+
+
+Plot Results
+```{r}
+
+# Create a vector representing the migration level for each iteration k
+# Using the target max incoming rate budget: (k / iter) * max_M_rate
+migration_levels <- (1:iter) / iter * max_M_rate
+
+# Create a data frame mapping iteration index to migration level
+migration_key <- data.frame(
+  iteration = 1:iter,
+  migration_level = migration_levels
+)
+
+# You can print migration_key to check it was created
+# print(migration_key)
+
+# --- Prerequisites ---
+# Assume 'stan_fit_list' is your list of 20 stanfit objects
+# Assume 'migration_key' data frame exists from step 1
+# Assume 'alpha' (true alpha) and 'beta_global' (true beta) exist
+alpha_true <- alpha       # Make sure true values have clear names
+beta_true  <- beta
+
+# Check if stan_fit_list exists and is a list
+if (!exists("stan_fit_list") || !is.list(stan_fit_list) || length(stan_fit_list) != iter) {
+  stop("Ensure 'stan_fit_list' is a list of length 'iter' containing Stan fit objects.")
+}
+
+# --- Extract summaries for alpha and beta across all iterations ---
+# Use map_dfr to loop through the list, extract/summarize, and row-bind results
+summary_df <- map_dfr(
+  .x = seq_along(stan_fit_list), # Loop through indices 1 to 20
+  .f = function(k) {
+    fit <- stan_fit_list[[k]]
+
+    # Skip if the fit failed (might be NA or NULL depending on error handling)
+    if (is.null(fit) || inherits(fit, "logical") || !inherits(fit, c("stanfit", "CmdStanMCMC"))) {
+        warning(paste("Skipping invalid fit object at iteration", k))
+        return(NULL) # Return NULL for failed fits
+    }
+
+
+    # Extract draws for alpha and beta using tidybayes
+    # Using 'c()' inside allows extracting multiple scalars easily
+    tidy_draws <- tryCatch({
+        gather_draws(fit, alpha, beta) # Extracts into .variable, .value columns
+    }, error = function(e) {
+        warning(paste("Could not extract alpha/beta for iteration", k, ":", e$message))
+        return(NULL)
+    })
+
+    if(is.null(tidy_draws)) return(NULL)
+
+    # Calculate median and 50%/95% CIs for each parameter
+    summaries <- tidy_draws %>%
+      group_by(.variable) %>% # Group by parameter name ("alpha" or "beta")
+      median_qi(.value, .width = c(0.50, 0.95)) # Summarize the '.value' column
+
+    # Add the iteration number
+    summaries$iteration = k
+    return(summaries)
+  }
+)
+
+# Check if summary_df is empty (all runs failed?)
+if(nrow(summary_df) == 0) {
+    stop("No valid summaries could be extracted from stan_fit_list.")
+}
+
+
+# --- Join with migration level ---
+summary_df <- summary_df %>%
+  left_join(migration_key, by = "iteration")
+
+# --- Add true values for plotting ---
+true_values_df <- data.frame(
+    .variable = c("alpha", "beta"),
+    true_value = c(alpha_true, beta_true)
+)
+
+# --- 3. Create the Plot ---
+param_vs_migration_plot <- ggplot(summary_df, aes(x = migration_level)) +
+
+  # Add horizontal lines for TRUE values
+  geom_hline(data = true_values_df, aes(yintercept = true_value),
+             linetype = "dashed", color = "red") +
+
+  # Ribbons for CIs (plot wider 95% first, then narrower 50% on top)
+  # Need to handle the two interval widths generated by median_qi
+  geom_ribbon(aes(ymin = .lower, ymax = .upper, group = .width), # Group helps if plotting lines
+              fill = "grey70", alpha = 0.5) + # Using a single grey ribbon for now
+
+  # Line connecting the medians (optional, helps see trend)
+  geom_line(aes(y = .value), linewidth = 0.75) +
+
+  # Points for the medians
+  geom_point(aes(y = .value), size = 2) +
+
+  # Facet by parameter
+  facet_wrap(~ .variable, scales = "free_y") + # Free y-axis for alpha vs beta scale
+
+  # Labels and Theme
+  labs(
+    title = "Parameter Estimates vs. Migration Level",
+    x = "Migration Level (Target Max Incoming Rate)",
+    y = "Posterior Median & 89% Credible Interval" # Adjust CI if changed
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    strip.background = element_blank() # Clean facet labels
+  )
+
+# --- 4. Display the Plot ---
+print(param_vs_migration_plot)
+```
+
+Including theta
+```{r}
+# --- Load libraries ---
+library(dplyr)
+library(purrr)     # For map_dfr
+library(tidybayes) # For median_qi (gather_draws no longer needed here)
+library(ggplot2)
+library(rstan)     # For extract
+
+# --- Prerequisites ---
+# Assume 'stan_fit_list' is your list of 20 stanfit objects
+# Assume 'migration_key' data frame exists from previous steps
+# Assume 'alpha' (true alpha), 'beta_global' (true beta), and 'x_true' exist
+alpha_true <- alpha
+beta_true  <- beta_global
+
+# Check if stan_fit_list exists and is a list
+if (!exists("stan_fit_list") || !is.list(stan_fit_list) || length(stan_fit_list) != iter) {
+  stop("Ensure 'stan_fit_list' is a list of length 'iter' containing Stan fit objects.")
+}
+# Check if x_true exists
+if (!exists("x_true")) {
+    stop("Need 'x_true' vector to calculate true mean theta.")
+}
+
+
+# --- Extract summaries for alpha, beta, AND mean(mu) across all iterations ---
+summary_df <- map_dfr(
+  .x = seq_along(stan_fit_list), # Loop through indices 1 to 20
+  .f = function(k) {
+    fit <- stan_fit_list[[k]]
+
+    # Skip if the fit failed
+    if (is.null(fit) || inherits(fit, "logical") || !inherits(fit, c("stanfit", "CmdStanMCMC"))) {
+        warning(paste("Skipping invalid fit object at iteration", k))
+        return(NULL)
+    }
+
+    # Extract draws for alpha, beta, and mu
+    # Use error handling for extraction
+    post_k <- tryCatch({
+        rstan::extract(fit, pars = c("alpha", "beta", "mu"))
+    }, error = function(e) {
+        warning(paste("Could not extract parameters for iteration", k, ":", e$message))
+        return(NULL)
+    })
+
+    if(is.null(post_k)) return(NULL)
+
+    # Check if expected parameters are present (mu might be missing if model changed)
+    if(!("mu" %in% names(post_k)) || !("alpha" %in% names(post_k)) || !("beta" %in% names(post_k))) {
+        warning(paste("Missing alpha, beta, or mu in extracted draws for iteration", k))
+        return(NULL)
+    }
+
+    # Calculate mean(mu) across populations for each draw
+    mean_mu_draws <- rowMeans(post_k$mu)
+
+    # Create a tidy data frame of draws for the parameters of interest
+    # Use pivot_longer to get .variable and .value columns needed for median_qi
+    draws_k_df <- tibble(
+        alpha = post_k$alpha,
+        beta = post_k$beta,
+        mean_mu = mean_mu_draws # Include the calculated mean mu
+        # Optional: Add .draw index if needed for other plots: .draw = 1:length(alpha)
+    ) %>%
+    tidyr::pivot_longer( # Load tidyr if not already loaded via tidyverse
+        cols = c(alpha, beta, mean_mu),
+        names_to = ".variable", # Column for parameter name
+        values_to = ".value"    # Column for the draw value
+    )
+
+    # Calculate median and 50%/95% CIs for each parameter
+    summaries <- draws_k_df %>%
+      group_by(.variable) %>%
+      median_qi(.value, .width = c(0.50, 0.95)) # Summarize the '.value' column
+
+    # Add the iteration number
+    summaries$iteration = k
+    return(summaries)
+  }
+)
+
+# Check if summary_df is empty
+if(nrow(summary_df) == 0) {
+    stop("No valid summaries could be extracted from stan_fit_list.")
+}
+
+
+# --- Join with migration level ---
+summary_df <- summary_df %>%
+  left_join(migration_key, by = "iteration") %>%
+  # Optional: Factor the variable for specific panel order if needed
+  mutate(.variable = factor(.variable, levels = c("alpha", "beta", "mean_mu")))
+
+
+# --- Add true values for plotting ---
+# Calculate the true mean optimum based on true parameters and x_true
+true_mean_mu <- mean(alpha_true + beta_true * x_true)
+
+true_values_df <- data.frame(
+    .variable = factor(c("alpha", "beta", "mean_mu"), # Ensure factor levels match
+                       levels = c("alpha", "beta", "mean_mu")),
+    true_value = c(alpha_true, beta_true, true_mean_mu) # Add true mean mu
+)
+
+# --- Create the Plot (Now with 3 Facets) ---
+param_vs_migration_plot <- ggplot(summary_df, aes(x = migration_level)) +
+
+  geom_hline(data = true_values_df, aes(yintercept = true_value),
+             linetype = "dashed", color = "red") +
+  geom_ribbon(aes(ymin = .lower, ymax = .upper, group = .width),
+              fill = "grey70", alpha = 0.5) +
+  geom_line(aes(y = .value), linewidth = 0.75) +
+  geom_point(aes(y = .value), size = 2) +
+
+  # Facet by parameter - will now create 3 panels
+  facet_wrap(~ .variable, scales = "free_y") +
+
+  labs(
+    title = "Parameter Estimates vs. Migration Level",
+    x = "Migration Level (Target Max Incoming Rate)",
+    y = "Posterior Median & Credible Intervals" # Label generic now
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    strip.background = element_blank()
+  )
+
+# --- Display the Plot ---
+print(param_vs_migration_plot)
+
+```
+
+Separate theta plot
+```{r}
+# --- Load libraries ---
+library(dplyr)
+library(purrr)     # For map_dfr
+library(tidybayes) # For spread_draws, median_qi
+library(ggplot2)
+library(rstan)     # For extract (can be alternative)
+library(tidyr)     # For unnesting if needed
+
+# --- Prerequisites ---
+# Assume 'stan_fit_list' exists (list of 20 stanfit objects)
+# Assume 'theta_true' exists (vector of N true optima)
+# Assume 'iter' = 20
+# Assume 'n_pops' = 30 (or your actual N)
+
+# --- Select representative iterations ---
+k_low <- 1
+k_med <- floor(iter / 2) # Iteration 10
+k_high <- iter          # Iteration 20
+k_selected <- c(k_low, k_med, k_high)
+
+# Create labels for the levels
+level_labels <- c("Low", "Medium", "High")
+selected_levels_key <- data.frame(
+  iteration = k_selected,
+  migration_level = factor(level_labels, levels = level_labels) # Factor for ordering
+)
+
+# --- Extract mu summaries for selected iterations and all populations ---
+theta_summary_df <- map_dfr(
+  .x = k_selected, # Loop through 1, 10, 20
+  .f = function(k) {
+    fit <- stan_fit_list[[k]]
+    if (is.null(fit) || inherits(fit, "logical") || !inherits(fit, c("stanfit", "CmdStanMCMC"))) {
+        warning(paste("Skipping invalid fit object at iteration", k))
+        return(NULL)
+    }
+
+    # Extract mu[population] draws using tidybayes::spread_draws
+    mu_draws_tidy <- tryCatch({
+        spread_draws(fit, mu[population]) # Creates columns: population, mu, .draw etc.
+    }, error = function(e) {
+        warning(paste("Could not extract mu for iteration", k, ":", e$message))
+        return(NULL)
+    })
+
+    if(is.null(mu_draws_tidy)) return(NULL)
+
+    # Calculate median and 89% CI for EACH population
+    summaries <- mu_draws_tidy %>%
+      group_by(population) %>%
+      median_qi(mu, .width = 0.89) # Summarize 'mu' column
+
+    # Add the iteration number
+    summaries$iteration = k
+    return(summaries)
+  }
+)
+
+# Check if summary df is empty
+if(nrow(theta_summary_df) == 0) {
+    stop("No valid mu summaries could be extracted from selected stan_fit_list elements.")
+}
+
+# --- Join with migration level labels ---
+theta_summary_df <- theta_summary_df %>%
+  left_join(selected_levels_key, by = "iteration")
+
+# --- Add true theta values ---
+# Ensure theta_true is in a data frame format with population index
+true_theta_df <- tibble(
+    population = 1:n_pops,
+    true_theta = theta_true
+)
+
+plot_data_theta <- theta_summary_df %>%
+  left_join(true_theta_df, by = "population")
+
+# --- Calculate Estimation Error ---
+plot_data_theta <- plot_data_theta %>%
+  mutate(
+    error = mu - true_theta,             # Error = Posterior Median - True Theta
+    lower_error = .lower - true_theta,   # Lower bound of error CI
+    upper_error = .upper - true_theta    # Upper bound of error CI
+  ) %>%
+  # Ensure population is treated as a factor for distinct y-axis plotting
+  mutate(population_fct = factor(population))
+
+# Check final data structure (optional)
+ print(head(plot_data_theta))
+ 
+ 
+ # --- Create the Plot ---
+theta_error_plot <- ggplot(plot_data_theta, aes(y = population_fct)) +
+
+  # Add vertical line at zero error (perfect estimation)
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
+
+  # Add horizontal error bars showing the 89% CI of the error
+  geom_errorbarh(aes(xmin = lower_error, xmax = upper_error),
+                 height = 0.3, # Adjust height of error bars
+                 alpha = 0.6) +
+
+  # Add points for the median error
+  geom_point(aes(x = error), size = 1.5) +
+
+  # Facet by migration level
+  facet_wrap(~ migration_level) +
+
+  # Labels and Theme
+  labs(
+    title = "Theta Estimation Error across Populations and Migration Levels",
+    subtitle = "Error = Posterior Median Estimate (mu) - True Theta\nBars show 89% Credible Intervals",
+    x = "Estimation Error (Posterior Median - True Value)",
+    y = "Population Index"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major.y = element_line(linetype = "dotted", color="grey85"), # Optional faint y grid
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    strip.background = element_blank()
+  ) # Consider scale_y_discrete(breaks = ...) if axis gets too crowded
+
+# --- Display the Plot ---
+print(theta_error_plot)
+```
+
+
+
+
+
+########################################################################################################################
+Multi optimum model - varying intercepts
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Increasing population size to 60
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+iter<-20
+
+n_pops <- 60
+n_theta <- 3
+alpha <- c(0.1, 0.25, 0.5)
+beta<-0.25
+alpha_prior<-c(0,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+
+pops_per_regime <- n_pops / n_theta
+x_dat <- tibble(
+    Regime = rep(1:n_theta, each = pops_per_regime),
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+
+
+```{r}
+I <- diag(n_pops) # Identity matrix
+
+# --- 2. Generate List of Migration Matrices (M_list) ---
+max_M_rate <- 0.25 # Max migration rate component
+
+M_list <- vector("list", iter)
+print(paste("Generating", iter, "M matrices..."))
+for (k in 1:iter) {
+  current_max_rate <- (k / iter) * max_M_rate
+  M <- matrix(0, n_pops, n_pops)
+  if (n_pops == 1) { M[1, 1] <- 0; M_list[[k]] <- M; next }
+  for (i in 1:n_pops) {
+    max_individual_rate <- if (current_max_rate > 0) { current_max_rate / (n_pops - 1) } else { 0 }
+    row_mig <- runif(n_pops - 1, 0, max_individual_rate)
+    M[i, -i] <- row_mig
+    m_i = sum(M[i, -i])
+    if (m_i > 1) { M[i,-i] <- M[i,-i] / m_i; m_i = 1 }
+    M[i, i] <- -m_i
+  }
+  M_list[[k]] <- M
+}
+print("Generated M_list.")
+
+```
+
+```{r}
+
+es_true_simulated_vector <- rtruncnorm(n_pops, a = 0, mean = 0.5, sd = 0.1)
+print(paste("Range of es values:", round(min(es_true_simulated_vector),4), "to", round(max(es_true_simulated_vector),4)))
+
+# --- 3. Generate List of Adaptation Matrices (A_list) ---
+A_list <- vector("list", iter)
+print("Generating corresponding A matrices...")
+for (k in 1:iter) {
+  A <- matrix(0, n_pops, n_pops)
+  m_ii_vec <- diag(M_list[[k]])
+  if (n_pops == 1) { A[1,1] <- -es_true_simulated_vector[i] * (1+m_ii_vec[1]) } # Handle N=1 case
+  else {
+    for (i in 1:n_pops) { A[i, i] <- -es_true_simulated_vector[i] * (1 + m_ii_vec[i]) }
+  }
+  A_list[[k]] <- A
+}
+print("Generated A_list.")
+
+```
+
+
+One iteration Sima_theta and Sigma_e
+V_theta = Variance in optima/theta not explained by linear relationship with x - noise in the location of the optima themselves
+V_e = Variance of local deviations of population mean phenotypes (z) from their current optima (theta) - arise from ongoing evolutionary processes or randomness within those populations  - before accounting for migration
+Lowering these standard deviations to reduce z scatter
+# --- Define Variance Components (Sigma_theta and Sigma_e) ---
+
+Non-hierarchical priors on both
+```{r}
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+#diag_sd_theta <- diag(rep(sd_theta_val, n_pops)) #Single value across diagonal
+sd_theta_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_theta<-diag(sd_theta_true_simulated_vector) 
+Sigma_theta <- diag_sd_theta %*% cor_theta %*% diag_sd_theta # V_theta = Sigma_theta
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+#diag_sd_e <- diag(rep(sd_e_val, n_pops))
+sd_e_true_simulated_vector<-rlnorm(n_pops,log(0.1), 0.5) #Pull random values from the prior for population specific values of theta
+diag_sd_e<-diag(sd_e_true_simulated_vector)
+Sigma_e <- diag_sd_e %*% cor_e %*% diag_sd_e # V_e = Sigma_e
+
+print(paste("Range of diagonal V_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal V_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+```
+
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_VI.stan')
+stan_file<-"blouchMigAdpt_VI.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+if(is.null(stan_model)) warning("Stan model not compiled. Replace placeholder.")
+print("Stan model compiled (or placeholder used).")
+
+# --- 5. Loop Through Iterations: Simulate Data & Run Stan ---
+stan_fit_list <- vector("list", iter) # Initialize list to store results
+names(stan_fit_list) <- paste0("mig_level_", 1:iter) # Optional names
+
+print(paste("Starting", iter, "Stan runs..."))
+
+for (k in 1:iter) {
+  print(paste("--- Running Migration Level", k, "of", iter, "---"))
+
+  # Get M and A for this iteration
+  M_k <- M_list[[k]]
+  A_k <- A_list[[k]]
+
+  # --- Simulate data specifically for this M_k / A_k ---
+  # print("Simulating data...") # Optional verbose output
+  AM_term_k <- tryCatch({
+    I + solve(A_k) %*% M_k # solve(A_k) works as A is diagonal
+  }, error = function(e) {
+    warning(paste("Error calculating AM_term for k=", k, ":", e$message))
+    return(NULL) # Return NULL if solve(A_k) fails (e.g., if A is singular)
+  })
+
+  if (is.null(AM_term_k)) {
+    warning(paste("Skipping Stan run for k=", k, "due to AM_term error."))
+    stan_fit_list[[k]] <- NA # Mark as failed/skipped
+    next # Skip to next iteration
+  }
+##
+
+  theta_true <- numeric(n_pops)
+  theta_true <- alpha[x_dat$Regime] + x_dat$x_true * beta #Vectorized version
+
+  # Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+  Sigma_z_k <- solve(AM_term_k) %*% Sigma_theta %*% t(solve(AM_term_k)) + Sigma_e
+  print("Calculated Sigma_z_k")
+
+  
+  # Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+  mu_eq_k <- solve(AM_term_k) %*% theta_true
+  cat("Calculated equilibrium mean mu_eq_k (z_eq_k).",mu_eq_k)
+
+  z_true <- mvrnorm(n = 1, mu = mu_eq_k, Sigma = Sigma_z_k)
+  # Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+  z_true <- as.vector(z_true)
+  cat("Simulated z_true (latent trait mean).",z_true)
+
+  # 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+  # (This part remains the same)
+  z_error_sd <- 0.01 # SD for measurement error in trait
+  z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+  cat("Simulated z_obs (z_true + measurement error)",z_obs)
+
+  # Check positive definiteness
+  eigen_values <- eigen(Sigma_z_k, symmetric = TRUE, only.values = TRUE)$values
+  tolerance <- 1e-8
+  if (!all(eigen_values > tolerance)) {
+    warning(paste("Sigma_z_k not positive definite for k=", k, ". Smallest eigenvalue:", min(eigen_values), ". Skipping Stan run."))
+    stan_fit_list[[k]] <- NA # Mark as failed/skipped
+    next # Skip to next iteration
+  }
+
+  
+  # --- Prepare data list for Stan ---
+  x_obs<-x_dat$x_obs
+  reg_assign<-x_dat$Regime
+
+  dat_k <- list(
+    N = n_pops,
+    n_theta = n_theta,
+    z_obs = as.vector(z_obs), 
+    x_obs = as.vector(x_obs),
+    z_error = rep(z_error_sd, n_pops), # Stan model expects 'z_error' name based on basic code
+    x_error = rep(x_error_sd, n_pops),
+    M = M_k, # Pass the M used in simulation (with negative diagonal)
+    alpha_prior = c(0.25, 0.2), # Stan model expects 'alpha_prior' name (unless changed in Stan)
+    beta_prior = c(0.25, 0.2), # Example prior for beta (slope)
+    es_prior = es_prior,
+    nu_cor = 2,                  # Example LKJ shape parameter
+    reg_assign=reg_assign
+  )
+  # --- Setup for Stan ---
+
+  #prior_reg_plot(dat)
+  # --- Run Stan ---
+  print("Sampling...")
+    # Remember to handle potential errors during sampling
+  current_fit <- tryCatch({
+    init_fun <- function() {
+      list(
+        alpha = rnorm(n_theta, dat_k$alpha_prior[1], dat_k$alpha_prior[2]),
+        beta = rnorm(1, dat_k$beta_prior[1], dat_k$beta_prior[2]),
+        es = abs(rnorm(dat_k$N, dat_k$es_prior[1], dat_k$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+        sd_theta = abs(rnorm(dat_k$N, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+        sd_e = abs(rnorm(dat_k$N, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+        L_Omega_theta = diag(dat_k$N),
+        L_Omega_e = diag(dat_k$N),
+        y_true = dat_k$y_obs,
+        x_true = dat_k$x_obs
+      )
+    }
+
+    stan_fit <- rstan::sampling(
+      object = stan_model,
+      data = dat_k,
+      cores = 1,
+      chains = 1,
+      iter = 2000,
+      control = list(adapt_delta = 0.8),
+      init = init_fun
+    )
+
+
+
+  }, error = function(e) {
+    warning(paste("Stan sampling failed for k=", k, ":", e$message))
+    return(NA) # Return NA or NULL on error
+  })
+
+  # --- Store result ---
+  stan_fit_list[[k]] <- current_fit
+  print(paste("--- Completed Migration Level", k, "---"))
+
+} # End loop over k
+
+print("All Stan runs complete (or attempted). Results stored in 'stan_fit_list'.")
+```
+
+
+```{r}
+
+# --- Create migration level key ---
+migration_levels <- (1:iter) / iter * max_M_rate
+migration_key <- data.frame(
+  iteration = 1:iter,
+  migration_level = migration_levels
+)
+# print(migration_key)
+
+# --- Extract summaries for alpha (multiple) and beta (single) across all iterations ---
+summary_df <- map_dfr(
+  .x = seq_along(stan_fit_list), # Loop through indices 1 to iter
+  .f = function(k) {
+    fit <- stan_fit_list[[k]]
+
+    # Skip if the fit failed
+    if (is.null(fit) || inherits(fit, "logical") || !inherits(fit, c("stanfit", "CmdStanMCMC"))) {
+      warning(paste("Skipping invalid fit object at iteration", k))
+      return(NULL)
+    }
+
+    # Extract draws using tidybayes::gather_draws
+    # 'regime_idx' will be the column holding the index for alpha (1, 2, ... up to dimension of alpha in Stan).
+    # For beta (scalar), regime_idx will be NA.
+    tidy_draws <- tryCatch({
+      gather_draws(fit, beta, alpha[regime_idx])
+    }, error = function(e) {
+      warning(paste("Could not extract parameters for iteration", k, ":", e$message))
+      return(NULL)
+    })
+
+    if(is.null(tidy_draws) || nrow(tidy_draws) == 0) {
+      warning(paste("No tidy_draws generated for iteration", k))
+      return(NULL)
+    }
+
+    # Calculate median and 50%/95% CIs
+    summaries <- tidy_draws %>%
+      group_by(.variable, regime_idx) %>%
+      median_qi(.value, .width = c(0.50, 0.95)) %>%
+      ungroup() %>%
+      mutate(
+        plot_variable_name = case_when(
+          .variable == "alpha" ~ paste0("alpha[", regime_idx, "]"),
+          .variable == "beta"  ~ "beta",
+          TRUE ~ NA_character_
+        )
+      ) %>%
+      filter(!is.na(plot_variable_name)) %>%
+      select(plot_variable_name, posterior_median = .value, .lower, .upper, .width) %>%
+      rename(.variable = plot_variable_name)
+
+    if(nrow(summaries) > 0) {
+        summaries$iteration = k
+        return(summaries)
+    } else {
+        warning(paste("No summaries generated after processing tidy_draws for iteration", k))
+        return(NULL)
+    }
+  }
+)
+
+# Check if summary_df is empty
+if(is.null(summary_df) || nrow(summary_df) == 0) {
+    stop("No valid summaries could be extracted from stan_fit_list. Check for errors during extraction and summarization.")
+}
+
+# --- Join with migration level ---
+summary_df <- summary_df %>%
+  left_join(migration_key, by = "iteration")
+
+# --- Create data frame for true values ---
+true_alpha_df <- data.frame(
+  .variable = paste0("alpha[", 1:n_theta, "]"), # Use n_theta (true number of regimes)
+  true_value = alpha
+)
+true_beta_df <- data.frame(
+  .variable = "beta",
+  true_value = beta
+)
+true_values_df <- bind_rows(true_alpha_df, true_beta_df)
+
+# --- Define color palette dynamically using ggsci::pal_aaas ---
+if (n_theta > 0) {
+  alpha_names <- paste0("alpha[", 1:n_theta, "]")
+  if (n_theta <= 10) { # pal_aaas("default") provides 10 distinct colors
+    alpha_colors <- pal_aaas("default")(n_theta)
+  } else {
+    warning(paste("More than 10 alpha regimes (", n_theta, "). AAAS palette will recycle colors or error. Consider a different palette for >10 regimes or use scales::hue_pal()."))
+    # Fallback to scales::hue_pal for >10, or handle error if pal_aaas doesn't recycle
+    alpha_colors <- scales::hue_pal()(n_theta) # Example fallback
+  }
+  names(alpha_colors) <- alpha_names
+  beta_color <- c("beta" = "grey30")
+  param_colors <- c(alpha_colors, beta_color)
+} else {
+  warning("n_theta (number of alpha regimes) is 0. Using color for beta only.")
+  param_colors <- c("beta" = "grey30")
+}
+# Optional: Check your palette
+# if (exists("param_colors")) scales::show_col(param_colors)
+
+
+# --- Create the Plot ---
+summary_df_50 <- summary_df %>% filter(.width == 0.50)
+summary_df_95 <- summary_df %>% filter(.width == 0.95)
+
+# Ensure .variable is a factor for consistent ordering in facets, if needed
+# Order them alpha[1], alpha[2], ..., alpha[n_theta], beta
+expected_var_order <- c(paste0("alpha[", 1:n_theta, "]"), "beta")
+summary_df_50$.variable <- factor(summary_df_50$.variable, levels = expected_var_order)
+summary_df_95$.variable <- factor(summary_df_95$.variable, levels = expected_var_order)
+true_values_df$.variable <- factor(true_values_df$.variable, levels = expected_var_order)
+
+
+param_vs_migration_plot <- ggplot(mapping = aes(x = migration_level)) +
+
+  # Add horizontal lines for TRUE values
+  geom_hline(data = true_values_df, aes(yintercept = true_value),
+             linetype = "dashed", color = "black", alpha=0.7) +
+
+  # Ribbon for 95% CI
+  geom_ribbon(data = summary_df_95, aes(ymin = .lower, ymax = .upper, fill = .variable),
+              alpha = 0.25) +
+
+  # Ribbon for 50% CI
+  geom_ribbon(data = summary_df_50, aes(ymin = .lower, ymax = .upper, fill = .variable),
+              alpha = 0.45) +
+
+  # Line connecting the medians
+  geom_line(data = summary_df_50, aes(y = posterior_median, color = .variable), linewidth = 0.85) +
+
+  # Points for the medians
+  geom_point(data = summary_df_50, aes(y = posterior_median, color = .variable), size = 2.5, shape=21, fill="white") +
+
+  # Facet by parameter
+  facet_wrap(~ .variable, scales = "free_y", ncol=1) +
+
+  # Apply the manual color and fill scales
+  scale_color_manual(values = param_colors, name = "Parameter", drop = FALSE) + # drop = FALSE ensures all levels in palette are considered
+  scale_fill_manual(values = param_colors, name = "Parameter", drop = FALSE) +
+
+  # Labels and Theme
+  labs(
+    title = "Parameter Estimates vs. Migration Level",
+    subtitle = "Shaded regions: 95% (lighter) and 50% (darker) Credible Intervals",
+    x = "Migration Level (Target Max Incoming Rate)",
+    y = "Posterior Median"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5, face="bold", size=14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10),
+    strip.background = element_rect(fill="grey92", color="black", linewidth=0.5),
+    strip.text = element_text(face="bold", size=11),
+    legend.position = "none",
+    axis.title = element_text(size=12, face="bold")
+  )
+
+# --- Display the Plot ---
+print(param_vs_migration_plot)
+```
+
+
+########################################################################################################################
+Multi optima multiple slopes models - varying effects
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+########################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Increasing population size to 60
+Define b, X, A, M
+```{r}
+#Initial values
+#set.seed(1)
+iter<-20
+n_pops <- 60
+n_theta <- 3
+alpha <- c(0.1, 0.25, 0.5)
+beta<-c(0.1,0.25,0.5)
+#alpha_prior<-c(0,1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+#beta_prior<-c(0,1) # Example prior for beta (slope)
+alpha_prior<-c(0,0.5) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+
+#es_prior<-2 #exponential, mean=1/prior
+es_prior<-c(0.5,0.1) #Half-normal prior
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+x_true <- rnorm(n_pops, mean = 0, sd = 1)
+x_obs <- x_true + rnorm(n_pops, 0, x_error_sd)
+
+pops_per_regime <- n_pops / n_theta
+x_dat <- tibble(
+    Regime = rep(1:n_theta, each = pops_per_regime),
+    x_true = x_true,
+    x_obs = x_obs
+)
+
+
+```
+
+
+
+```{r}
+I <- diag(n_pops) # Identity matrix
+
+# --- 2. Generate List of Migration Matrices (M_list) ---
+max_M_rate <- 0.25 # Max migration rate component
+
+M_list <- vector("list", iter)
+print(paste("Generating", iter, "M matrices..."))
+for (k in 1:iter) {
+  current_max_rate <- (k / iter) * max_M_rate
+  M <- matrix(0, n_pops, n_pops)
+  if (n_pops == 1) { M[1, 1] <- 0; M_list[[k]] <- M; next }
+  for (i in 1:n_pops) {
+    max_individual_rate <- if (current_max_rate > 0) { current_max_rate / (n_pops - 1) } else { 0 }
+    row_mig <- runif(n_pops - 1, 0, max_individual_rate)
+    M[i, -i] <- row_mig
+    m_i = sum(M[i, -i])
+    if (m_i > 1) { M[i,-i] <- M[i,-i] / m_i; m_i = 1 }
+    M[i, i] <- -m_i
+  }
+  M_list[[k]] <- M
+}
+print("Generated M_list.")
+
+```
+
+```{r}
+
+es_true_simulated_vector <- rtruncnorm(n_pops, a = 0, mean = 0.5, sd = 0.1)
+print(paste("Range of es values:", round(min(es_true_simulated_vector),4), "to", round(max(es_true_simulated_vector),4)))
+
+# --- 3. Generate List of Adaptation Matrices (A_list) ---
+A_list <- vector("list", iter)
+print("Generating corresponding A matrices...")
+for (k in 1:iter) {
+  A <- matrix(0, n_pops, n_pops)
+  m_ii_vec <- diag(M_list[[k]])
+  if (n_pops == 1) { A[1,1] <- -es_true_simulated_vector[i] * (1+m_ii_vec[1]) } # Handle N=1 case
+  else {
+    for (i in 1:n_pops) { A[i, i] <- -es_true_simulated_vector[i] * (1 + m_ii_vec[i]) }
+  }
+  A_list[[k]] <- A
+}
+print("Generated A_list.")
+
+```
+
+One iteration Sima_theta and Sigma_e
+V_theta = Variance in optima/theta not explained by linear relationship with x - noise in the location of the optima themselves
+V_e = Variance of local deviations of population mean phenotypes (z) from their current optima (theta) - arise from ongoing evolutionary processes or randomness within those populations  - before accounting for migration
+Lowering these standard deviations to reduce z scatter
+# --- Define Variance Components (Sigma_theta and Sigma_e) ---
+
+Hierarchical sd_theta and sd_e
+```{r}
+#1. Define the "true" hyperparameter values for the simulation
+true_mu_log_sd_theta <- log(0.1)    #Example: matches your old fixed meanlog
+true_sigma_log_sd_theta <- 0.5      #Example: matches your old fixed sdlog
+true_mu_log_sd_e <- log(0.1)    #Example: matches your old fixed meanlog
+true_sigma_log_sd_e <- 0.5      #Example: matches your old fixed sdlog
+
+#2. Simulate the "raw" effects from N(0,1)
+true_log_sd_theta_raw <- rnorm(n_pops, 0, 1)
+true_log_sd_e_raw <- rnorm(n_pops, 0, 1)
+
+#3. Reconstruct the true log_sd_theta[i] for each population
+true_log_sd_theta <- true_mu_log_sd_theta + true_log_sd_theta_raw * true_sigma_log_sd_theta
+true_log_sd_e <- true_mu_log_sd_e + true_log_sd_e_raw * true_sigma_log_sd_e
+
+
+#4. Transform to get the true sd_theta[i]
+sd_theta_true_simulated_vector <- exp(true_log_sd_theta)
+sd_e_true_simulated_vector <- exp(true_log_sd_e)
+
+#5. Use these sd_theta_true_simulated_vector when constructing diag_sd_theta for Sigma_theta
+#    in your R simulation's data generation process.
+
+# V_theta (variance of optima deviations r_theta)
+cor_theta <- diag(n_pops) # Assuming independent optima deviations
+Sigma_theta <- diag(sd_theta_true_simulated_vector) %*% cor_theta %*% diag(sd_theta_true_simulated_vector)
+
+# V_e (variance of non-equilibrium deviations e)
+cor_e <- diag(n_pops) # Assuming independent non-equilibrium deviations
+Sigma_e <- diag(sd_e_true_simulated_vector) %*% cor_e %*% diag(sd_e_true_simulated_vector)
+
+print(paste("Range of diagonal Sigma_theta values:", round(min(diag(Sigma_theta)),4), "to", round(max(diag(Sigma_theta)),4)))
+print(paste("Range of diagonal Sigma_e values:", round(min(diag(Sigma_e)),4), "to", round(max(diag(Sigma_e)),4)))
+
+
+```
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchMigAdpt_VE_MLM.stan')
+stan_file<-"blouchMigAdpt_VE_MLM.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+if(is.null(stan_model)) warning("Stan model not compiled. Replace placeholder.")
+print("Stan model compiled (or placeholder used).")
+
+# --- 5. Loop Through Iterations: Simulate Data & Run Stan ---
+stan_fit_list <- vector("list", iter) # Initialize list to store results
+names(stan_fit_list) <- paste0("mig_level_", 1:iter) # Optional names
+
+print(paste("Starting", iter, "Stan runs..."))
+
+for (k in 1:iter) {
+  print(paste("--- Running Migration Level", k, "of", iter, "---"))
+
+  # Get M and A for this iteration
+  M_k <- M_list[[k]]
+  A_k <- A_list[[k]]
+
+  # --- Simulate data specifically for this M_k / A_k ---
+  # print("Simulating data...") # Optional verbose output
+  AM_term_k <- tryCatch({
+    I + solve(A_k) %*% M_k # solve(A_k) works as A is diagonal
+  }, error = function(e) {
+    warning(paste("Error calculating AM_term for k=", k, ":", e$message))
+    return(NULL) # Return NULL if solve(A_k) fails (e.g., if A is singular)
+  })
+
+  if (is.null(AM_term_k)) {
+    warning(paste("Skipping Stan run for k=", k, "due to AM_term error."))
+    stan_fit_list[[k]] <- NA # Mark as failed/skipped
+    next # Skip to next iteration
+  }
+##
+
+  theta_true <- numeric(n_pops)
+  theta_true <- alpha[x_dat$Regime] + x_dat$x_true * beta[x_dat$Regime] #Vectorized version
+
+  
+  # Calculate the process covariance matrix Sigma (same as your Sigma_y_residuals)
+  Sigma_z_k <- solve(AM_term_k) %*% Sigma_theta %*% t(solve(AM_term_k)) + Sigma_e
+  print("Calculated Sigma_z_k")
+
+  
+  # Calculate the equilibrium mean vector mu_eq = B^-1 * theta
+  mu_eq_k <- solve(AM_term_k) %*% theta_true
+  cat("Calculated equilibrium mean mu_eq_k (z_eq_k).",mu_eq_k)
+
+  z_true <- mvrnorm(n = 1, mu = mu_eq_k, Sigma = Sigma_z_k)
+  # Ensure z_true is a vector (mvrnorm returns a matrix for n=1)
+  z_true <- as.vector(z_true)
+  cat("Simulated z_true (latent trait mean).",z_true)
+
+  # 3. Simulate Observed z (z_obs) by adding measurement error to z_true
+  # (This part remains the same)
+  z_error_sd <- 0.01 # SD for measurement error in trait
+  z_obs <- z_true + rnorm(n_pops, 0, z_error_sd)
+  cat("Simulated z_obs (z_true + measurement error)",z_obs)
+
+  # Check positive definiteness
+  eigen_values <- eigen(Sigma_z_k, symmetric = TRUE, only.values = TRUE)$values
+  tolerance <- 1e-8
+  if (!all(eigen_values > tolerance)) {
+    warning(paste("Sigma_z_k not positive definite for k=", k, ". Smallest eigenvalue:", min(eigen_values), ". Skipping Stan run."))
+    stan_fit_list[[k]] <- NA # Mark as failed/skipped
+    next # Skip to next iteration
+  }
+
+  # (This part remains largely the same, just ensure variable names match)
+  x_obs <- x_dat$x_obs
+  reg_assign <- x_dat$Regime
+
+  dat_k <- list(
+    N = n_pops,
+    n_theta = n_theta,
+    z_obs = as.vector(z_obs), # Use the final observed values
+    x_obs = as.vector(x_obs),
+    z_error = rep(z_error_sd, n_pops),
+    x_error = rep(x_error_sd, n_pops),
+    M = M_k,
+    alpha_prior = alpha_prior,
+    beta_prior = beta_prior,
+    es_prior = es_prior,
+    nu_cor = 2,
+    reg_assign = reg_assign
+  )
+
+  
+  
+
+  #prior_reg_plot(dat)
+  # --- Run Stan ---
+  print("Sampling...")
+    # Remember to handle potential errors during sampling
+  current_fit <- tryCatch({
+    init_fun <- function() {
+      list(
+        alpha = rnorm(n_theta, dat_k$alpha_prior[1], dat_k$alpha_prior[2]),
+        beta = rnorm(n_theta, dat_k$beta_prior[1], dat_k$beta_prior[2]),
+        es = abs(rnorm(dat_k$N, dat_k$es_prior[1], dat_k$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+        sd_theta = abs(rnorm(dat_k$N, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+        sd_e = abs(rnorm(dat_k$N, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+        L_Omega_theta = diag(dat_k$N),
+        L_Omega_e = diag(dat_k$N),
+        y_true = dat_k$y_obs,
+        x_true = dat_k$x_obs
+      )
+    }
+
+    stan_fit <- rstan::sampling(
+      object = stan_model,
+      data = dat_k,
+      cores = 1,
+      chains = 1,
+      iter = 2000,
+      control = list(adapt_delta = 0.8),
+      init = init_fun
+    )
+
+
+
+  }, error = function(e) {
+    warning(paste("Stan sampling failed for k=", k, ":", e$message))
+    return(NA) # Return NA or NULL on error
+  })
+
+  # --- Store result ---
+  stan_fit_list[[k]] <- current_fit
+  print(paste("--- Completed Migration Level", k, "---"))
+
+} # End loop over k
+
+print("All Stan runs complete (or attempted). Results stored in 'stan_fit_list'.")
+
+```
+
+
+```{r}
+
+# --- Create migration level key ---
+migration_levels <- (1:iter) / iter * max_M_rate
+migration_key <- data.frame(
+  iteration = 1:iter,
+  migration_level = migration_levels
+)
+# print(migration_key)
+
+# --- Extract summaries for alpha (multiple) and beta (single) across all iterations ---
+summary_df <- map_dfr(
+  .x = seq_along(stan_fit_list), # Loop through indices 1 to iter
+  .f = function(k) {
+    fit <- stan_fit_list[[k]]
+
+    # Skip if the fit failed
+    if (is.null(fit) || inherits(fit, "logical") || !inherits(fit, c("stanfit", "CmdStanMCMC"))) {
+      warning(paste("Skipping invalid fit object at iteration", k))
+      return(NULL)
+    }
+
+    # Extract draws using tidybayes::gather_draws
+    # 'regime_idx' will be the column holding the index for alpha (1, 2, ... up to dimension of alpha in Stan).
+    # For beta (scalar), regime_idx will be NA.
+    tidy_draws <- tryCatch({
+      gather_draws(fit, beta[regime_idx], alpha[regime_idx])
+    }, error = function(e) {
+      warning(paste("Could not extract parameters for iteration", k, ":", e$message))
+      return(NULL)
+    })
+
+    if(is.null(tidy_draws) || nrow(tidy_draws) == 0) {
+      warning(paste("No tidy_draws generated for iteration", k))
+      return(NULL)
+    }
+
+    # Calculate median and 50%/95% CIs
+    summaries <- tidy_draws %>%
+      group_by(.variable, regime_idx) %>%
+      median_qi(.value, .width = c(0.50, 0.95)) %>%
+      ungroup() %>%
+      mutate(
+        plot_variable_name = case_when(
+          .variable == "alpha" ~ paste0("alpha[", regime_idx, "]"),
+          .variable == "beta"  ~ paste0("beta[", regime_idx, "]"),
+          TRUE ~ NA_character_
+        )
+      ) %>%
+      filter(!is.na(plot_variable_name)) %>%
+      select(plot_variable_name, posterior_median = .value, .lower, .upper, .width) %>%
+      rename(.variable = plot_variable_name)
+
+    if(nrow(summaries) > 0) {
+        summaries$iteration = k
+        return(summaries)
+    } else {
+        warning(paste("No summaries generated after processing tidy_draws for iteration", k))
+        return(NULL)
+    }
+  }
+)
+
+# Check if summary_df is empty
+if(is.null(summary_df) || nrow(summary_df) == 0) {
+    stop("No valid summaries could be extracted from stan_fit_list. Check for errors during extraction and summarization.")
+}
+
+# --- Join with migration level ---
+summary_df <- summary_df %>%
+  left_join(migration_key, by = "iteration")
+
+# --- Create data frame for true values ---
+true_alpha_df <- data.frame(
+  .variable = paste0("alpha[", 1:n_theta, "]"), # Use n_theta (true number of regimes)
+  true_value = alpha
+)
+true_beta_df <- data.frame(
+  .variable = paste0("beta[", 1:n_theta, "]"),
+  true_value = beta
+)
+true_values_df <- bind_rows(true_alpha_df, true_beta_df)
+
+# --- Define color palette dynamically using ggsci::pal_aaas ---
+if (n_theta > 0) {
+  alpha_names <- paste0("alpha[", 1:n_theta, "]")
+  beta_names <- paste0("beta[", 1:n_theta, "]")
+  if (n_theta <= 10) { # pal_aaas("default") provides 10 distinct colors
+    alpha_colors <- pal_aaas("default")(n_theta)
+  } else {
+    warning(paste("More than 10 alpha regimes (", n_theta, "). AAAS palette will recycle colors or error. Consider a different palette for >10 regimes or use scales::hue_pal()."))
+    # Fallback to scales::hue_pal for >10, or handle error if pal_aaas doesn't recycle
+    alpha_colors <- scales::hue_pal()(n_theta) # Example fallback
+  }
+  names(alpha_colors) <- alpha_names
+  beta_colors <- alpha_colors
+  names(beta_colors) <- beta_names
+  param_colors <- c(alpha_colors, beta_colors)
+} else {
+  warning("n_theta (number of alpha regimes) is 0. Using color for beta only.")
+  param_colors <- c("beta" = "grey30")
+}
+# Optional: Check your palette
+# if (exists("param_colors")) scales::show_col(param_colors)
+
+
+# --- Create the Plot ---
+summary_df_50 <- summary_df %>% filter(.width == 0.50)
+summary_df_95 <- summary_df %>% filter(.width == 0.95)
+
+# Ensure .variable is a factor for consistent ordering in facets, if needed
+# Order them alpha[1], alpha[2], ..., alpha[n_theta], beta
+expected_var_order <- c(paste0("alpha[", 1:n_theta, "]"), paste0("beta[", 1:n_theta, "]"))
+summary_df_50$.variable <- factor(summary_df_50$.variable, levels = expected_var_order)
+summary_df_95$.variable <- factor(summary_df_95$.variable, levels = expected_var_order)
+true_values_df$.variable <- factor(true_values_df$.variable, levels = expected_var_order)
+
+
+param_vs_migration_plot <- ggplot(mapping = aes(x = migration_level)) +
+
+  # Add horizontal lines for TRUE values
+  geom_hline(data = true_values_df, aes(yintercept = true_value),
+             linetype = "dashed", color = "black", alpha=0.7) +
+
+  # Ribbon for 95% CI
+  geom_ribbon(data = summary_df_95, aes(ymin = .lower, ymax = .upper, fill = .variable),
+              alpha = 0.25) +
+
+  # Ribbon for 50% CI
+  geom_ribbon(data = summary_df_50, aes(ymin = .lower, ymax = .upper, fill = .variable),
+              alpha = 0.45) +
+
+  # Line connecting the medians
+  geom_line(data = summary_df_50, aes(y = posterior_median, color = .variable), linewidth = 0.85) +
+
+  # Points for the medians
+  geom_point(data = summary_df_50, aes(y = posterior_median, color = .variable), size = 2.5, shape=21, fill="white") +
+
+  # Facet by parameter
+  facet_wrap(~ .variable, scales = "free_y", ncol=1) +
+
+  # Apply the manual color and fill scales
+  scale_color_manual(values = param_colors, name = "Regimes", drop = FALSE) + # drop = FALSE ensures all levels in palette are considered
+  scale_fill_manual(values = param_colors, name = "Regimes", drop = FALSE) +
+
+  # Labels and Theme
+  labs(
+    title = "Parameter Estimates vs. Migration Level",
+    subtitle = "Shaded regions: 95% (lighter) and 50% (darker) Credible Intervals",
+    x = "Migration Level (Target Max Incoming Rate)",
+    y = "Posterior Median"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5, face="bold", size=14),
+    plot.subtitle = element_text(hjust = 0.5, size = 10),
+    strip.background = element_rect(fill="grey92", color="black", linewidth=0.5),
+    strip.text = element_text(face="bold", size=11),
+    legend.position = "none",
+    axis.title = element_text(size=12, face="bold")
+  )
+
+# --- Display the Plot ---
+print(param_vs_migration_plot)
+```
+

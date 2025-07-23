@@ -1,0 +1,1234 @@
+---
+title: "Generative mvOUOU Mitov Approach Script"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+########################################################################################################################
+Generate OUOU data with known parameter values and then use to test mvBlouchOUOU stan code
+```{r}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+library(matrixcalc)
+library(phytools)
+#library(blouch)
+
+#install.packages("cmdstanr", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
+#install.packages(c("coda","mvtnorm","devtools","loo","dagitty","shape"))
+#devtools::install_github("rmcelreath/rethinking")
+#remotes::install_github("uyedaj/treeplyr")
+
+#install.packages("expm")
+#install.packages("matrixcalc")
+library(expm)
+
+tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
+######################################################################################################################
+#source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/root_trace.R')
+#source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/sim_mvOU.R')
+#source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
+#source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/root_trace_redux.R')
+
+######################################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Generate Phylogeny based on subset 10K Primate Phylogeny - using standard ape::phylo object first
+```{r}
+N<-30 #Number of species
+n_traits <- 2
+set.seed(10) #Set seed to get same random species each time
+
+phy <- ape::keep.tip(tree.10K,sample(tree.10K$tip.label)[1:N]) 
+phy<-ape::multi2di(phy)
+
+l.tree<-max(ape::branching.times(phy)) ## rescale tree to height 1
+phy$edge.length<-phy$edge.length/l.tree 
+
+tip.label<-phy$tip.label
+plot(phy)
+nodelabels(frame = "n", cex = 0.8, col = "blue")
+tiplabels(frame = "n", cex = 0.8, col = "blue")
+#phytools::phenogram(phy,X,spread.labels=TRUE,spread.cost=c(1,0)) #Plot X data
+
+plot(phy,no.margin=TRUE,edge.width=2,cex=0.7)
+ape::nodelabels(frame="none",adj=c(1.1,-0.4))
+ape::tiplabels()
+
+#shifts<-c(56) #Location of nodes with regime shifts
+#trdata<-data.frame(phy$tip.label)
+#trdata<-treeplyr::make.treedata(phy,trdata)
+#trdata<-set.converge.regimes.redux(trdata,shifts)
+
+```
+
+True values
+```{r}
+x0_true<-c(2,6) #Ancestral values
+n_reg <- 2
+
+theta_mat<-data.frame(matrix(c(3,7, #Theta matrix - for optima traits are evolving towards
+              4,8), nrow = 2, byrow = TRUE))
+
+rownames(theta_mat)<-c("OU1","OU2")
+colnames(theta_mat)<-c("Trait1","Trait2")
+
+H_mat<-matrix(c(0.5,0,
+              0,0.7), nrow = 2, byrow = TRUE)
+
+Sigma<-matrix(c(0.1,0,
+              0,0.25), nrow = 2, byrow = TRUE)
+
+
+
+#sim_EY_V_true<-sim_mvOU(phy,paths,z_0,OU_mat,F_mat,Sigma) #Send function paths output, ancestral traits value, and optima values
+
+```
+
+
+```{r}
+# 1. #Get number of nodes of tree - all internal and tips
+is.rooted(phy)
+num_nodes<-N+Nnode(phy) #Number of tips + Number of internal nodes
+
+#Get root node number
+if(is.rooted(phy)){
+  root_node_id <-N+1
+}
+
+root_node_id
+
+# 2. Get node types (0=root, 1=tip, 2=internal)
+node_type <-rep(2,num_nodes) #Default to internal for all nodes
+node_type[1:N] <- 1 #Assign tips 1s
+node_type[root_node_id] <- 0 #Assign root 0
+
+# 3. Parent and Children indices
+parent_of_node <- rep(0, num_nodes) #Asign all 0s first, equal to number of nodes
+#For each child ID, will store the parent of that child, parent_of_node[child_id] = parent_id
+children_of_node_list <- vector("list", num_nodes) #Create vector of list equal to the number of nodes - this will store the children of each parent node - given a parent node id, will return all child node ids
+#children_of_node_list[[parent_id]] = c(child1_id, child2_id, ...)
+
+for(i in 1:nrow(phy$edge)){ #For all branches - node to node - parent to child nodes in order of node numbers -
+  parent <- phy$edge[i, 1] #Parent node
+  child <-phy$edge[i,2] #Child node
+  parent_of_node[child] <- parent #For vector of parent ids, for element = number of child, place parent id in it
+  children_of_node_list[[parent]] <- c(children_of_node_list[[parent]], child) #For list of child ids, for the parent node, add on all children that come from that parent node - creating a list. NULL for tips
+  #Only returns immediate children of parent
+}
+
+```
+
+```{r}
+# 4. Grab ranch lengths
+branch_lengths <- rep(0.0, num_nodes)
+bl_child_node_idx<-c() #Saves the ids of th child nodes in the order of the branch length vector
+for(i in 1:nrow(phy$edge)){
+  child_node <- phy$edge[i,2] #Save the current child node
+  bl_child_node_idx<-c(bl_child_node_idx,child_node)
+  branch_lengths[child_node] <- phy$edge.length[i] #For the branch length vector, for the current child node index, save the edge length - in order of child_nodes
+}
+
+
+```
+
+5. Branch Regimes
+```{r}
+branch_regime_id <- rep(1,num_nodes) #Regimes for each branch in order of child node IDs
+
+#Choose node above - using 50 here
+parent_children_nodes<-getDescendants(phy,47) #Get all nodes that are descendent of the parent
+
+branch_regime_id[parent_children_nodes] <- 2 #For each node, make all children from parent second regime + parent - so branch leading to 
+
+#For printing tree with painted branches
+edge_regimes_for_plot <- branch_regime_id[phy$edge[,2]] # Assigns regime based on the CHILD node's regime, changes it to factor
+reg_colors<-ggsci::pal_npg(palette=c("nrc"),alpha=1)(2)
+plot(phy,edge.color = reg_colors[edge_regimes_for_plot], edge.width = 1, cex = 0.2)
+```
+
+
+6. Setup pre-order traversal - ensures all nodes are covered and parents are before children
+Versus post-order in the analysis
+```{r}
+# --- 5. Pre-order traversal for simulation --- parents processed before children
+#1. Visit the parent node
+#2. Visit its children
+#Root to tips order
+get_pre_order_nodes <- function(tree_edge, N_tips, N_nodes, root_id) {
+  pre_order <- integer(0) #Set up blank pre_order integer vector for san
+  queue <- c(root_id) #Start with root
+  
+  while (length(queue) > 0) { #while length of queue is greater than 0
+    current <- queue[1] #place  queue position 1 in current
+    queue <- queue[-1] #Remove position 1 from current
+    pre_order <- c(pre_order, current) #Combine current parent with existing pre_order integer vector
+    
+    current_children <- tree_edge[tree_edge[,1] == current, 2] #Find all children that derive from current parent
+    queue <- c(queue, current_children) #Place current children into queue - this will make all children be expplored, and put them in the pre_order vector
+  }
+  return(pre_order)
+}
+pre_order_node_ids <- get_pre_order_nodes(phy$edge, N, phy$Nnode, root_node_id)
+
+```
+
+```{r}
+calc_current_node_state<-function(H_mat, lambdas_mat, theta_mat, , current_node, parent_node, parent_state, branch_length, regime_id_for_branch){
+  #Calculate E[x]
+  term1<-expm(-H_mat*branch_length)%*%as.matrix(parent_state)
+  term2<-I-expm(-F_mat*branch_lengths)%*%theta_mat[[regime_id_for_branch]]
+  E_x <- term1 + term2
+  
+  #Calculate V[x]
+  M_eigen <- (1 / lambdas_mat * (1 - exp(-lambdas_mat*branch_length)
+  #print(M_eigen)
+  #cat("M_transformed_Sigma:\n")
+  M_transformed_Sigma <- inv_P %*% Sigma_x %*% t(Sigma_x) %*% t(inv_P) #This transforms the instantaneous rate matrix (R) into the 
+  #print(M_transformed_Sigma)
+
+  V_i <-P %*% (M_eigen * M_transformed_Sigma) %*% t(P)
+  
+}
+```
+
+
+Simulation loop
+```{r}
+P <- eigen(H_mat)$vectors
+lambdas <- eigen(H_mat)$values
+lambdas_matrix <- as.matrix(outer(lambdas,lambdas,"+"))
+inv_P <- solve(P)
+
+node_true_trait_values<-vector("list",num_nodes)
+for (current_node in pre_order_node_ids){
+  if(current_node == root_node_id){
+    node_true_trait_values[[current_node]] <- x0_true
+  }
+  else{
+    parent_node <- parent_of_node[current_node]
+    parent_state <- node_true_trait_values[[parent_node]]
+    branch_length <- branch_lengths[current_node]
+    regime_id_for_branch <- branch_regime_id[current_node]
+    
+    #"the regime governing the evolution along the branch that leads to child_node_id
+    
+    
+    
+    
+    
+    
+    current_node_state<-sim_Mitov_ou(current_node, parent_node, parent_state, branch_length, regime_id_for_branch)
+    node_true_trait_values[[current_node]] <- current_node_state
+  }
+}
+
+
+```
+
+
+
+
+Create ragged data structure for Stan using children_idxs - list of child ids for each parent node
+```{r}
+children_of_node_list[[c(58)]] #List that gives each child of each parent - 1:N are blank as they are the tips, N+1 is the root
+parent_of_node #Vector of parents for each child parent_of_node[child] format
+
+parent_children_nodes<-c() #Stores info on each parent node and its children nodes - 0 for tips
+parent_children_idxs<-c() #Stores info indices of each parent-children node set -  0 for tips, all 2s for example - no trichotomies
+
+
+for(i in 1:num_nodes){ #
+  if(is.null(children_of_node_list[[i]])){
+    parent_children_nodes <- c(parent_children_nodes, 0)
+    parent_children_idxs <- c(parent_children_idxs, 0)
+    }
+  else{
+    parent_children_nodes <- c(parent_children_nodes, children_of_node_list[[i]])
+    parent_children_idxs <- c(parent_children_idxs , length(children_of_node_list[[i]]))
+  }
+}
+
+parent_children_nodes[31:(31+parent_children_idxs[31]-1)] #Find child nodes for each parent, starting at N+1
+
+parent_of_node #Vector of parents for each child parent_of_node[child] format
+parent_children_nodes #Nodes of each parent-child pair
+parent_children_idxs #Get length of parent-children vectors for each node
+```
+
+
+
+
+```{r}
+
+```
+
+
+```{r}
+(phy,z_0,OU_mat,F_mat,Sigma,parent_children_nodes,parent_children_idxs, child_node_idx,branch_length,node_regime_id)
+
+```
+
+
+
+
+```{r}
+
+
+
+# --- 6. OU Trait Evolution Simulation Function (Corrected for multi-regime lookup) ---
+calc_OU_branch_V <- function(A_mat, Sigma_sq_mat, dt) {
+  n <- nrow(A_mat)
+  I_n <- diag(n)
+  
+  lyap_lhs_matrix <- kronecker(A_mat, I_n) + kronecker(I_n, A_mat)
+  vec_Sigma_sq <- as.vector(Sigma_sq_mat)
+  vec_V_stationary <- solve(lyap_lhs_matrix, vec_Sigma_sq)
+  V_stationary <- matrix(vec_V_stationary, nrow = n, ncol = n)
+  
+  expm_A_dt <- expm(-A_mat * dt)
+  V_branch_val <- V_stationary - expm_A_dt %*% V_stationary %*% t(expm_A_dt)
+  
+  V_branch_val <- (V_branch_val + t(V_branch_val)) / 2
+  min_eig <- min(eigen(V_branch_val)$values)
+  if (min_eig < 1e-12) {
+    V_branch_val <- V_branch_val + diag(1e-12 - min_eig, n)
+    V_branch_val <- (V_branch_val + t(V_branch_val)) / 2
+  }
+  return(V_branch_val)
+}
+
+
+# Create an object to store true trait values at each node
+node_true_trait_values <- vector("list", num_nodes)
+node_true_trait_values[[root_node_id]] <- x0_true # Set root state
+
+# Create a matrix to store the final true trait values at the tips
+true_y_at_tips <- matrix(NA, nrow = N, ncol = n_traits, dimnames = list(phy$tip.label, NULL))
+
+# --- Perform Pre-order Traversal and Simulate ---
+for (current_node in pre_order_node_ids) {
+  
+  if (current_node == root_node_id) {
+    current_node_state <- node_true_trait_values[[current_node]]
+  } else {
+    parent_node <- parent_of_node[current_node]
+    parent_state <- node_true_trait_values[[parent_node]]
+
+    # Get branch length and regime ID for this branch
+    branch_len <- branch_length[current_node] # Length of branch leading to current_node
+    regime_id_for_branch <- branch_regime_id[current_node] # Regime on branch leading to current_node
+
+    # Retrieve regime-specific parameters
+    A_seg <- A_true_list[[as.character(regime_id_for_branch)]]
+    psi_seg <- psi_true_list[[as.character(regime_id_for_branch)]]
+    Sigma_sq_seg <- Sigma_sq_true_list[[as.character(regime_id_for_branch)]]
+
+    # Calculate Phi for this branch
+    Phi_seg <- expm(-A_seg * branch_len)
+
+    # Calculate V_branch (variance of innovation noise for this branch)
+    V_branch <- calc_OU_branch_V(A_seg, Sigma_sq_seg, branch_len)
+    
+    # Generate random noise
+    noise <- mvtnorm::rmvnorm(1, mean = rep(0, n_traits), sigma = V_branch)
+
+    # Update state: X(t+dt) = Phi * X(t) + (I - Phi) * psi + noise
+    current_node_state <- as.vector(Phi_seg %*% parent_state +
+                                    (diag(n_traits) - Phi_seg) %*% psi_seg +
+                                    noise)
+    
+    node_true_trait_values[[current_node]] <- current_node_state
+  }
+
+  if (node_type[current_node] == 1) { # If it's a tip
+    tip_label <- names(tip_label_to_node_id)[match(current_node, tip_label_to_node_id)]
+    true_y_at_tips[tip_label, ] <- node_true_trait_values[[current_node]]
+  }
+}
+
+# --- 7. Add Measurement Error to Tips ---
+measurement_error_sd <- 0.1
+y_error_matrix <- matrix(measurement_error_sd, nrow = N, ncol = n_traits, dimnames = list(phy$tip.label, NULL))
+
+set.seed(Sys.time()) # New seed for randomness
+y_obs_simulated <- true_y_at_tips + matrix(rnorm(N * n_traits, mean = 0, sd = measurement_error_sd), nrow = N, ncol = n_traits)
+
+# --- 8. Output and Prepare Stan Data ---
+cat("\n--- Simulation Complete ---\n")
+print(head(true_y_at_tips))
+print(head(y_obs_simulated))
+
+# Prepare data for Stan
+stan_data <- list(
+  N = N,
+  n_traits = n_traits,
+  num_nodes = num_nodes,
+  root_node_id = root_node_id,
+  node_type = node_type,
+  parent_idx = parent_of_node,
+  
+  # For children_idxs (ragged array)
+  children_idxs = children_idxs_stan,
+  
+  # For parent_children_nodes / parent_children_idxs (flattened array)
+  # Note: parent_children_nodes will be empty if all nodes are tips/root with no children
+  total_parent_children_nodes_count = length(parent_children_nodes),
+  parent_children_nodes = as.integer(parent_children_nodes),
+  parent_children_idxs = as.integer(parent_children_idxs),
+  
+  branch_length = branch_length, # length[child_node_id]
+  branch_regime_id = as.integer(branch_regime_id), # regime on branch leading to child_node_id
+  
+  y_obs = y_obs_simulated,
+  y_error = y_error_matrix,
+  
+  n_regimes = n_regs_true,
+  tip_to_node_id = as.integer(tip_label_to_node_id) # Ensure integer
+)
+
+# You can now save `stan_data` to an RDS file or pass directly to rstan::sampling
+# saveRDS(stan_data, "simulated_mvou_data_for_stan.rds")
+```
+
+
+
+
+
+```{r}
+true_EY<-unlist(lapply(sim_EY_V_true[[1]],as.vector)) #First make sure list is treated as vector, then flatten
+true_V<-sim_EY_V_true[[2]]
+
+y_true<-mvrnorm(n=1, mu = true_EY , Sigma = true_V)
+
+y_true <- matrix(y_true , nrow = N, ncol = n_traits, byrow = TRUE)
+rownames(y_true) <- phy$tip.label
+colnames(y_true) <- paste0("Trait", 1:n_traits) #No separator by default
+
+y_error_sd <- 0.1 # Assumed SD of measurement error for x
+y_obs <- y_true + rnorm(N*n_traits, 0, y_error_sd)
+
+```
+
+Create ragged data structure for Stan using root_trace_redux output
+```{r}
+
+path_nodes <- c() #Node paths
+path_nodes_idx <- c() #Group sizes
+regimes <- c()
+regimes_idx <- c()
+branch_lengths <- c()
+branch_lengths_idx <- c()
+
+for(i in 1:N){
+  path_nodes <- c(path_nodes, paths[[1]][[i]])
+  path_nodes_idx <- c(path_nodes_idx , length(paths[[1]][[i]]))
+}
+
+for(i in 1:N){
+  regimes <- c(regimes, paths[[2]][[i]]) #Vector of regimes
+  regimes_idx <- c(regimes_idx , length(paths[[2]][[i]])) #Ids for which regimes are on which branches (length of regimes for each branch)
+  branch_lengths <- c(branch_lengths, paths[[3]][[i]]) #Vector of branch lengths
+  branch_lengths_idx <- c(branch_lengths_idx , length(paths[[3]][[i]])) #Which branches refer to which path
+}
+
+
+```
+
+
+
+
+Calculte C matrix, other parameters
+```{r}
+mrca1 <- ape::mrca(phy) #Node numbers for MRCA of tips
+t_node <- ape::node.depth.edgelength(phy) #Time from root to node, starting with the tips
+t_root_MRCA <- matrix(t_node[mrca1], nrow=N, dimnames = list(phy$tip.label, phy$tip.label)) #Matrix with time from root to MRCA of pairs of tips - pulls out values of times that correspond with node numbers - integers
+t_tips <- t_node[1:N] #Times from root for tips
+t_MRCA_tips <- t_tips - t_root_MRCA #Times from root to tips - times from root to MRCA = times from MRCA to tips = Cij
+lambda_min_from_halflife = log(2) / 3; # Calculate lambda_min based on half-life of 3
+#log_lambda_min_for_stan = log(lambda_min_from_halflife);
+
+```
+
+
+Setup for mvBlouchOU analysis
+```{r}
+dat <- list(
+  N = N,
+  n_traits = n_traits,
+  n_branches = length(branch_lengths),
+  n_path_nodes = length(path_nodes),
+  n_regs = dim(OU_mat)[2],
+  y_obs = as.matrix(y_obs),
+  y_error = matrix(rep(y_error_sd,N*n_traits),nrow=N,ncol=n_traits,byrow=FALSE),
+  path_nodes = path_nodes,
+  path_nodes_idx  = path_nodes_idx,
+  regimes = as.numeric(sub("OU", "", regimes)),
+  regimes_idx = regimes_idx,
+  branch_lengths = branch_lengths,
+  branch_lengths_idx = branch_lengths_idx,
+  OU_mat = OU_mat,
+  t_MRCA_tips = t_MRCA_tips,
+  t_root_MRCA = t_root_MRCA#,
+  #log_lambda_min_val = log_lambda_min_for_stan
+  )
+
+```
+
+To visually explore what your priors look like, you can simulate a large number of samples from each prior distribution specified in your Stan model and then plot their densities or histograms.
+
+This helps you:
+1.  **Understand the implications of your prior choices**: Are they placing mass where you expect? Are they too broad or too narrow?
+2.  **Diagnose potential issues**: For instance, if a scale parameter prior allows for extremely small values, it can lead to numerical instability.
+
+Below is R code to do this. I'll assume `n_traits = 2` as per your simulation setup, and use standard `ggplot2` for plotting.
+
+```{r}
+
+# Load necessary libraries
+library(ggplot2)
+library(rstan) # For rlkjcorr
+library(bayesplot) # Optional, but good for diagnostics later
+library(dplyr)
+library(tidyr)
+library(ggsci) # For nice color palettes
+library(rethinking)
+# Set a seed for reproducibility of prior simulations
+#set.seed(123)
+
+# Define common parameters for visualization
+n_traits <- 2
+n_prior_samples <- 50000 # Number of samples to draw from each prior
+
+# Define a nice color palette
+mypal <- ggsci::pal_npg("nrc", alpha = 0.6)(2)
+mypal_dark <- ggsci::pal_npg("nrc", alpha = 0.9)(2)
+
+cat("--- Visualizing Priors ---\n\n")
+
+# --- 1. y_0_ancestral ~ normal(0, 1) ---
+y0_ancestral_samples<-c()
+for(i in 1:n_traits){
+  y0_ancestral_samples<-c(y0_ancestral_samples,rnorm(n_prior_samples * n_traits, mean = mean(y_obs[,i]), 1)) #sd = sd(y_obs[,i])))
+}
+
+y0_ancestral_df <- data.frame(
+  value = y0_ancestral_samples,
+  trait = rep(paste0("Trait ", 1:n_traits), each = n_prior_samples * n_traits)
+)
+
+p1 <- ggplot(y0_ancestral_df, aes(x = value, fill = trait, color = trait)) +
+  geom_density(alpha = 0.5, size = 0.8) +
+  geom_density(alpha = 0.5, size = 0.8) +
+
+  scale_fill_manual(values = mypal) +
+  scale_color_manual(values = mypal_dark) +
+  labs(
+    title = "Prior: y_0_ancestral ~ Normal(mean(y_obs[,j]), sd(y_obs[,j]))",
+    x = "Value",
+    y = "Density"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p1)
+cat("\nPrior for y_0_ancestral: Centered at 0, unit variance. Generally a weak prior.\n")
+
+# --- 2. lambdas 
+log_lambdas_samples <- rnorm(n_prior_samples*n_traits,log(0.5),1.0)
+lambdas_samples <- exp(log_lambdas_samples)
+
+lambdas_df <- data.frame(
+  value = lambdas_samples,
+  trait = rep(paste0("Trait ", 1:n_traits), each = n_prior_samples)
+)
+
+p2 <- ggplot(lambdas_df, aes(x = value, fill = trait, color = trait)) +
+  geom_density(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = mypal) +
+  scale_color_manual(values = mypal_dark) +
+  labs(
+    title = "Prior: lambdas ~ exp(normal(log(0.5),1.0))",
+    x = "Value",
+    y = "Density"
+  ) +
+  xlim(0, 3) + # Extend slightly beyond 2 to show cutoff
+  geom_vline(xintercept = 2, linetype = "dashed", color = "red", size = 1) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p2)
+
+# --- 2. half lives
+hl_samples_df <- data.frame(
+  value = log(2)/lambdas_samples,
+  trait = rep(paste0("Trait ", 1:n_traits), each = n_prior_samples)
+)
+
+p2 <- ggplot(hl_samples_df, aes(x = value, fill = trait, color = trait)) +
+  geom_density(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = mypal) +
+  scale_color_manual(values = mypal_dark) +
+  labs(
+    title = "Prior: hl ~ log(2)/exp(normal(log(0.5),1.0))",
+    x = "Value",
+    y = "Density"
+  ) +
+  xlim(0, 6) + # Extend slightly beyond 2 to show cutoff
+  geom_vline(xintercept = 3, linetype = "dashed", color = "red", size = 1) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p2)
+
+# --- 3. sigma_P ~ normal(0, 0.5) [implicitly half-normal due to lower=0] ---
+sigma_P_samples <- abs(rnorm(n_prior_samples * n_traits, mean = 0, sd = 0.5))
+sigma_P_df <- data.frame(
+  value = sigma_P_samples,
+  trait = rep(paste0("Trait ", 1:n_traits), each = n_prior_samples)
+)
+
+p3 <- ggplot(sigma_P_df, aes(x = value, fill = trait, color = trait)) +
+  geom_density(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = mypal) +
+  scale_color_manual(values = mypal_dark) +
+  labs(
+    title = "Prior: sigma_P ~ Half-Normal(0, 0.5)",
+    x = "Value",
+    y = "Density"
+  ) +
+  xlim(0, max(sigma_P_df$value) * 1.05) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p3)
+cat("\nPrior for sigma_P: Half-Normal(0, 0.5) puts most mass near 0 but allows for larger values.\n")
+
+
+# --- 4. sigma_Sigma ~ normal(0, 0.5) [implicitly half-normal due to lower=0] ---
+sigma_Sigma_samples <- abs(rnorm(n_prior_samples * n_traits, mean = 0, sd = 0.5))
+sigma_Sigma_df <- data.frame(
+  value = sigma_Sigma_samples,
+  trait = rep(paste0("Trait ", 1:n_traits), each = n_prior_samples)
+)
+
+p4 <- ggplot(sigma_Sigma_df, aes(x = value, fill = trait, color = trait)) +
+  geom_density(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = mypal) +
+  scale_color_manual(values = mypal_dark) +
+  labs(
+    title = "Prior: sigma_Sigma ~ Half-Normal(0, 0.5)",
+    x = "Value",
+    y = "Density"
+  ) +
+  xlim(0, max(sigma_Sigma_df$value) * 1.05) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p4)
+cat("\nPrior for sigma_Sigma: Similar to sigma_P, a Half-Normal(0, 0.5).\n")
+
+# --- 5. Omega_P ~ lkj_corr(20) and Omega_Sigma ~ lkj_corr(10) ---
+# For n_traits = 2, a correlation matrix only has one unique correlation coefficient: rho_12
+# We can plot the density of this correlation.
+Omega_P_samples <- rlkjcorr(n_prior_samples, n_traits, eta = 20)
+Omega_Sigma_samples <- rlkjcorr(n_prior_samples, n_traits, eta = 10)
+
+# Extract the correlation coefficient (element [1,2])
+corr_P_samples <- sapply(Omega_P_samples, function(m) m[1,2])
+corr_Sigma_samples <- sapply(Omega_Sigma_samples, function(m) m[1,2])
+
+# Combine for plotting
+corr_df <- data.frame(
+  value = c(corr_P_samples, corr_Sigma_samples),
+  prior = factor(c(rep("Omega_P (eta=20)", n_prior_samples),
+                   rep("Omega_Sigma (eta=10)", n_prior_samples)))
+)
+
+p5 <- ggplot(corr_df, aes(x = value, fill = prior, color = prior)) +
+  geom_density(alpha = 0.5, size = 0.8) +
+  scale_fill_manual(values = c(mypal[1], mypal[2])) +
+  scale_color_manual(values = c(mypal_dark[1], mypal_dark[2])) +
+  labs(
+    title = "Priors: LKJ Correlation Matrices",
+    subtitle = "Density of correlation coefficient (rho_12)",
+    x = "Correlation Coefficient",
+    y = "Density"
+  ) +
+  xlim(-1, 1) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p5)
+cat("\nPriors for Omega_P (eta=20) and Omega_Sigma (eta=10): LKJ_corr(eta) concentrates probability around identity (zero correlation) as eta increases.\n")
+cat("Eta=20 is a strong prior for zero correlation, Eta=10 is slightly weaker.\n")
+
+# --- 6. y_true_raw ~ normal(0, 1) (if using non-centered parameterization) ---
+y_true_raw_samples <- rnorm(n_prior_samples, mean = 0, sd = 1)
+y_true_raw_df <- data.frame(value = y_true_raw_samples)
+
+p6 <- ggplot(y_true_raw_df, aes(x = value)) +
+  geom_density(fill = mypal[1], color = mypal_dark[1], alpha = 0.6) +
+  labs(
+    title = "Prior: y_true_raw ~ Normal(0, 1) (Non-Centered)",
+    x = "Value",
+    y = "Density"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(p6)
+cat("\nPrior for y_true_raw: Standard Normal. This is the 'raw' component when using non-centered parameterization.\n")
+
+cat("\n--- End of Prior Visualization ---\n")
+```
+
+
+Two chains
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvBlouchOU.stan')
+stan_file<-"mvBlouchOU.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+create_init_fun <- function(stan_data_list) {
+  function() {
+    N_val <- stan_data_list$N
+    n_traits_val <- stan_data_list$n_traits
+    y_obs_val <- stan_data_list$y_obs
+
+    # y_true_raw (continue to randomize around 0,1)
+    y_true_raw_init_val <- matrix(rnorm(N_val * n_traits_val, mean = 0, sd = 1),
+                                  nrow = N_val, ncol = n_traits_val, byrow = TRUE)
+
+    # mu_y_true_param (initialize near observed mean)
+    mu_y_true_param_init_val <- apply(y_obs_val, 2, mean) + rnorm(n_traits_val, 0, 0.1)
+
+    # Fixed safe initial values for log_sigma_y_true
+    log_sigma_y_true_init_val <- rep(log(0.8), n_traits_val) # log(0.8) is approx -0.22, a reasonable mid-range value
+
+    # y_0_ancestral_raw (continue to randomize around 0,1)
+    y_0_ancestral_raw_init_val <- rnorm(n_traits_val, mean = 0, sd = 1)
+
+    # mu_y_0_ancestral (initialize near observed mean)
+    mu_y_0_ancestral_init_val <- apply(y_obs_val, 2, mean) + rnorm(n_traits_val, 0, 0.1)
+
+    # Fixed safe initial values for log_sigma_y_0_ancestral
+    log_sigma_y_0_ancestral_init_val <- rep(log(0.8), n_traits_val) # log(0.8) is approx -0.22
+
+    # CRITICAL: Fixed, safe initial values for the key matrix parameters
+    #lambdas_init_val <- rep(1.0, n_traits_val)     # Fixed at 1.0 (mid-range of [0,2])
+    log_lambdas_init_val <- runif(n_traits_val, log(0.5), log(1.5)) # Adjust range as needed
+    Omega_P_init_val <- diag(n_traits_val)         # Identity matrix (no correlation)
+    sigma_P_init_val <- rep(0.7, n_traits_val)     # Fixed at 0.7 (mid-range of 0.5-1.0)
+    Omega_Sigma_init_val <- diag(n_traits_val)     # Identity matrix (no correlation)
+    sigma_Sigma_init_val <- rep(0.7, n_traits_val) # Fixed at 0.7 (mid-range of 0.5-1.0)
+
+
+    return(list(
+      y_true_raw = y_true_raw_init_val,
+      mu_y_true_param = mu_y_true_param_init_val,
+      log_sigma_y_true = log_sigma_y_true_init_val,
+      y_0_ancestral_raw = y_0_ancestral_raw_init_val,
+      mu_y_0_ancestral = mu_y_0_ancestral_init_val,
+      log_sigma_y_0_ancestral = log_sigma_y_0_ancestral_init_val,
+      log_lambdas = log_lambdas_init_val,
+      Omega_P = Omega_P_init_val,
+      sigma_P = sigma_P_init_val,
+      Omega_Sigma = Omega_Sigma_init_val,
+      sigma_Sigma = sigma_Sigma_init_val
+    ))
+  }
+}
+```
+
+Debug
+```{r}
+# Create the actual init function that Stan will call
+my_init_fun <- create_init_fun(dat)
+
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    init = my_init_fun,
+    chains = 1, # Keep at 1 for faster debugging iterations
+    cores = 1,   # Keep at 1 core since you're using 1 chain
+    iter = 500, # Keep iterations lower for faster testing
+    control = list(adapt_delta = 0.999, max_treedepth = 20) # <--- IMPORTANT: KEEP THESE ENABLED
+)
+```
+
+```{r}
+# Create the actual init function that Stan will call
+my_init_fun <- create_init_fun(dat)
+
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    init = my_init_fun,
+    chains = 1, # Keep at 1 for faster debugging iterations
+    cores = 1,   # Keep at 1 core since you're using 1 chain
+    iter = 500, # Keep iterations lower for faster testing
+    #control = list(adapt_delta = 0.999, max_treedepth = 20) # <--- IMPORTANT: KEEP THESE ENABLED
+)
+```
+
+
+No initial values
+```{r}
+
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = 1, # Keep at 1 for faster debugging iterations
+    cores = 1,   # Keep at 1 core since you're using 1 chain
+    iter = 1000 # Keep iterations lower for faster testing
+    #,control = list(adapt_delta = 0.95)
+                   #, max_treedepth = 20) # <--- IMPORTANT: KEEP THESE ENABLED
+    #control = list(adapt_delta = 0.999, max_treedepth = 20) # <--- IMPORTANT: KEEP THESE ENABLED
+)
+```
+
+
+# Posteriors
+```{r}
+print(stan_fit,
+      pars = c("F_mat", "Sigma" 
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+
+```{r}
+library(bayesplot)
+
+# Assuming 'stan_fit' is the object from your last successful run
+mcmc_pairs(stan_fit,
+           pars = c("y_0_ancestral[1]", "y_0_ancestral[2]",
+                    "lambdas[1]", "lambdas[2]", # Now using 'lambdas' which is exp(log_lambdas)
+                    "Omega_P[1,2]",
+                    "sigma_P[1]", "sigma_P[2]",
+                    "Omega_Sigma[1,2]",
+                    "sigma_Sigma[1]", "sigma_Sigma[2]",
+                    "F_mat[1,1]", "F_mat[2,2]", "F_mat[1,2]",
+                    "log_sigma_y_true[1]", "log_sigma_y_true[2]",
+                    "log_sigma_y_0_ancestral[1]", "log_sigma_y_0_ancestral[2]",
+                    "lp__" # Always include lp__ to see if divergences cluster with low likelihood
+                    ),
+           diag_fun = "dens", off_diag_fun = "scatter", np = nuts_params(stan_fit))
+```
+
+
+```{r}
+library(bayesplot)
+
+# For n_traits = 2, you'll typically have two elements for vectors like lambdas.
+# For correlation matrices (Omega_P, Omega_Sigma), you only need to plot one off-diagonal element, e.g., [1,2].
+# For F_mat, plot the diagonal and one off-diagonal.
+
+mcmc_pairs(stan_fit,
+           pars = c("y_0_ancestral[1]", "y_0_ancestral[2]",
+                    "lambdas[1]", "lambdas[2]",
+                    "Omega_P[1,2]", # Or "Omega_P[2,1]" as it's symmetric
+                    "sigma_P[1]", "sigma_P[2]",
+                    "Omega_Sigma[1,2]", # Or "Omega_Sigma[2,1]"
+                    "sigma_Sigma[1]", "sigma_Sigma[2]",
+                    "F_mat[1,1]", "F_mat[2,2]", "F_mat[1,2]"), # Include key elements of F_mat
+           diag_fun = "dens",
+           off_diag_fun = "scatter",
+           np = nuts_params(stan_fit))
+```
+
+
+Plotting posterior vs prior for R Matrix
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tidybayes) # For spread_draws, gather_draws, median_qi
+
+# Assuming stan_fit is your fitted Stan model object from the previous run
+
+# Extract posterior samples for R directly
+# The `gather_draws` function from tidybayes is great for this.
+# It automatically converts to a long format suitable for ggplot.
+R_posterior_long <- stan_fit %>%
+  gather_draws(R[i, j]) %>% #i and j are placeholders for variables
+  ungroup() %>% # Remove grouping for easier manipulation
+  select(-.chain, -.iteration, -.draw) # Remove internal tidybayes columns if not needed
+
+# Rename columns for clarity
+R_posterior_long <- R_posterior_long %>%
+  rename(trait1 = i, trait2 = j, value = .value) %>%
+  mutate(
+    parameter_name = paste0("R[", trait1, ",", trait2, "]"),
+    type = "Posterior"
+  )
+
+# You'll also need the values of `sigma_R` and `Omega` for the prior (if we simulate from them)
+# For now, let's focus on R directly.
+```
+
+```{r}
+
+# --- 3. Define the function to simulate R from its Prior ---
+# This function simulates from the priors on sigma_R (half-normal) and Omega (correlation matrix).
+# NOTE: The correlation matrix simulation (Omega_prior) here uses a heuristic
+# (cov2cor(tcrossprod(Z))) because `rlkjcorr` is not available in rstan.
+# This heuristic produces valid random correlation matrices, but might not
+# precisely match the `lkj_corr(2)` prior for Omega as closely as a dedicated LKJ sampler.
+# However, it provides a valuable visual comparison.
+simulate_R_prior <- function(n_traits, sigma_prior_sd) {
+  # 1. Generate a random correlation matrix (Omega_prior)
+  # This method generates a random positive definite matrix and then normalizes it.
+  Z <- matrix(rnorm(n_traits * n_traits), n_traits, n_traits)
+  Omega_prior <- cov2cor(tcrossprod(Z))
+
+  # 2. Simulate sigma_R from a half-normal prior (abs of normal)
+  # Your Stan model uses sigma_R ~ normal(0, 1), which for a <lower=0>
+  # constraint means it's a half-normal(0,1).
+  sigma_R_prior <- abs(rnorm(n_traits, 0, sigma_prior_sd))
+
+  # 3. Construct the R matrix from sigma_R and Omega
+  R_mat <- diag(sigma_R_prior) %*% Omega_prior %*% diag(sigma_R_prior)
+  return(R_mat)
+}
+
+# --- 4. Generate Prior Samples for R ---
+n_prior_samples <- 4000 # Number of prior samples to generate for smooth density
+
+R_prior_list <- list()
+for (s in 1:n_prior_samples) {
+  R_prior_list[[s]] <- simulate_R_prior(
+    n_traits = dat$n_traits,      # Using n_traits from your data list
+    sigma_prior_sd = sigma_R_prior_sd            #
+  )
+}
+
+# Convert prior samples to a long format similar to the posterior
+# This part is specifically for n_traits = 2. For larger n_traits,
+# you'd need a more generic way to flatten each R_mat, e.g., using `as.vector`
+# and then recreating indices.
+R_prior_long <- bind_rows(lapply(1:n_prior_samples, function(s) {
+  R_mat <- R_prior_list[[s]]
+  tibble(
+    value = c(R_mat[1,1], R_mat[1,2], R_mat[2,1], R_mat[2,2]),
+    trait1 = rep(c(1,1,2,2), length.out = length(value)),
+    trait2 = rep(c(1,2,1,2), length.out = length(value)),
+    sample_id = s
+  )
+})) %>%
+  mutate(
+    parameter_name = paste0("R[", trait1, ",", trait2, "]"),
+    type = "Prior"
+  ) %>%
+  select(-sample_id) # Remove sample_id once converted
+
+# --- 5. Combine Posterior and Prior Data for Plotting ---
+plot_data_R <- bind_rows(R_posterior_long, R_prior_long)
+```
+
+```{r}
+
+# --- 6. Plotting with ggplot2 (Corrected for linewidth) ---
+# Define a custom color palette for Prior and Posterior
+my_colors <- c("Prior" = "skyblue", "Posterior" = "darkred")
+
+# Order the facets for better presentation (optional: diagonals first, then off-diagonals)
+plot_data_R$parameter_name <- factor(plot_data_R$parameter_name,
+                                     levels = c("R[1,1]", "R[2,2]", "R[1,2]", "R[2,1]"))
+
+# Create a data frame for true R values to add as vertical lines
+true_R_values_df <- data.frame(
+  parameter_name = factor(c("R[1,1]", "R[2,2]", "R[1,2]", "R[2,1]"),
+                          levels = c("R[1,1]", "R[2,2]", "R[1,2]", "R[2,1]")),
+  true_value = c(R_true[1,1], R_true[2,2], R_true[1,2], R_true[2,1])
+)
+
+
+ggplot(plot_data_R, aes(x = value, fill = type, color = type)) +
+  geom_density(alpha = 0.5, linewidth = 0.8) + # CHANGED: size = 0.8 -> linewidth = 0.8
+  facet_wrap(~ parameter_name, scales = "free", ncol = 2) +
+  scale_fill_manual(values = my_colors) +
+  scale_color_manual(values = my_colors) +
+  labs(
+    title = "Posterior vs. Prior Distributions for R Matrix Elements",
+    x = "Value",
+    y = "Density",
+    fill = "Distribution",
+    color = "Distribution"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom") +
+  # Add vertical lines for true R values (only for simulation studies)
+  geom_vline(data = true_R_values_df, aes(xintercept = true_value),
+             linetype = "dashed", color = "darkgreen", linewidth = 0.8) # CHANGED: size = 0.8 -> linewidth = 0.8
+
+```
+
+##################################################################################
+Simulate X data - R[1,2] = 0.25 and [2,1] = 0.25
+```{r}
+n_traits <-2
+true_a_hat <- c(1,5) #Phylogenetic means for 2 traits
+#a <- t(t(t(ones)%*%solve(C)%*%ones)%*%(t(ones)%*%solve(C)%*%X))
+#Rearranged to solve for X given a and C
+ones<-rep(1,N)
+# Example 1: Independent evolution for each trait (covariance = 0)
+R_true <- matrix(c(0.3,0.25, #Known R matrix
+              0.25,0.5),
+             nrow=n_traits, byrow=TRUE)
+
+R_true
+V <- kronecker(R_true,C) #Expected variance–covariance matrices for the values for all traits at all tips given ML
+mu_sp <- c(rep(true_a_hat[1],N),rep(true_a_hat[2],N))
+
+x_true<-mvrnorm(n=1,mu=mu_sp,Sigma=V) #Simulate X values for both traits
+x_true <- matrix(x_true, nrow = N, ncol = n_traits, byrow = FALSE) #Structure so N*r - species by traits
+x_error_sd <- 0.01 # Assumed SD of measurement error for x
+
+x_obs <- x_true + rnorm(N*n_traits, 0, x_error_sd)
+
+cat("First 5 rows of Simulated X (Species x Traits):\n")
+print(head(x_obs, 5))
+
+a_hat_prior<-colMeans(x_obs)
+
+cat("a_hat_prior:\n")
+print(a_hat_prior)
+
+sigma_R_prior_sd <-0.5
+```
+
+Setup for mvBlouchBM analysis
+```{r}
+dat <- list(
+  N = N,
+  n_traits = n_traits,
+  x_obs = as.matrix(x_obs),
+  x_error = matrix(rep(x_error_sd,N*n_traits),nrow=N,ncol=n_traits,byrow=FALSE),
+  C = C,
+  a_hat_prior = a_hat_prior,
+  sigma_R_prior_sd = sigma_R_prior_sd
+)
+
+print("Stan data list 'dat' created with correctly simulated x_obs")
+print("True parameters used:")
+print(paste("a_hat:", true_a_hat))
+print(paste("R_matrix:", R_true))
+print(paste("x_true:", head(x_true)))
+print(paste("x_error_sd:", x_error_sd))
+
+```
+
+Prior for Sigma_R
+```{r}
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(2)
+mypal[2]<-palette()[1]
+
+# Simulate sigma_R prior values
+sigma_R_prior_samples <- abs(rnorm(10000, 0, sigma_R_prior_sd)) # 10,000 samples from half-normal(0,1)
+sigma_R_prior_df <- data.frame(value = sigma_R_prior_samples)
+
+ggplot(sigma_R_prior_df, aes(x = value)) +
+  geom_density(fill = mypal[2], alpha = 0.2)+
+  labs(
+    title = "Prior Distribution for sigma_R",
+    x = "sigma_R Value",
+    y = "Density"
+  ) +
+  theme_bw()+
+  theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())
+
+```
+
+
+Two chains
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvBlouchBM.stan')
+stan_file<-"mvBlouchBM.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Specify the number of chains
+n_chains <- 2 
+
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000                  # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.8) # Keep control parameters
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+# Posteriors
+```{r}
+print(stan_fit,
+      pars = c("a_hat", "R" 
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Plotting posterior vs prior for R Matrix
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(tidybayes) # For spread_draws, gather_draws, median_qi
+
+# Assuming stan_fit is your fitted Stan model object from the previous run
+
+# Extract posterior samples for R directly
+# The `gather_draws` function from tidybayes is great for this.
+# It automatically converts to a long format suitable for ggplot.
+R_posterior_long <- stan_fit %>%
+  gather_draws(R[i, j]) %>% #i and j are placeholders for variables
+  ungroup() %>% # Remove grouping for easier manipulation
+  select(-.chain, -.iteration, -.draw) # Remove internal tidybayes columns if not needed
+
+# Rename columns for clarity
+R_posterior_long <- R_posterior_long %>%
+  rename(trait1 = i, trait2 = j, value = .value) %>%
+  mutate(
+    parameter_name = paste0("R[", trait1, ",", trait2, "]"),
+    type = "Posterior"
+  )
+
+# You'll also need the values of `sigma_R` and `Omega` for the prior (if we simulate from them)
+# For now, let's focus on R directly.
+```
+
+```{r}
+
+# --- 3. Define the function to simulate R from its Prior ---
+# This function simulates from the priors on sigma_R (half-normal) and Omega (correlation matrix).
+# NOTE: The correlation matrix simulation (Omega_prior) here uses a heuristic
+# (cov2cor(tcrossprod(Z))) because `rlkjcorr` is not available in rstan.
+# This heuristic produces valid random correlation matrices, but might not
+# precisely match the `lkj_corr(2)` prior for Omega as closely as a dedicated LKJ sampler.
+# However, it provides a valuable visual comparison.
+simulate_R_prior <- function(n_traits, sigma_prior_sd) {
+  # 1. Generate a random correlation matrix (Omega_prior)
+  # This method generates a random positive definite matrix and then normalizes it.
+  Z <- matrix(rnorm(n_traits * n_traits), n_traits, n_traits)
+  Omega_prior <- cov2cor(tcrossprod(Z))
+
+  # 2. Simulate sigma_R from a half-normal prior (abs of normal)
+  # Your Stan model uses sigma_R ~ normal(0, 1), which for a <lower=0>
+  # constraint means it's a half-normal(0,1).
+  sigma_R_prior <- abs(rnorm(n_traits, 0, sigma_prior_sd))
+
+  # 3. Construct the R matrix from sigma_R and Omega
+  R_mat <- diag(sigma_R_prior) %*% Omega_prior %*% diag(sigma_R_prior)
+  return(R_mat)
+}
+
+# --- 4. Generate Prior Samples for R ---
+n_prior_samples <- 4000 # Number of prior samples to generate for smooth density
+
+R_prior_list <- list()
+for (s in 1:n_prior_samples) {
+  R_prior_list[[s]] <- simulate_R_prior(
+    n_traits = dat$n_traits,      # Using n_traits from your data list
+    sigma_prior_sd = sigma_R_prior_sd            #
+  )
+}
+
+# Convert prior samples to a long format similar to the posterior
+# This part is specifically for n_traits = 2. For larger n_traits,
+# you'd need a more generic way to flatten each R_mat, e.g., using `as.vector`
+# and then recreating indices.
+R_prior_long <- bind_rows(lapply(1:n_prior_samples, function(s) {
+  R_mat <- R_prior_list[[s]]
+  tibble(
+    value = c(R_mat[1,1], R_mat[1,2], R_mat[2,1], R_mat[2,2]),
+    trait1 = rep(c(1,1,2,2), length.out = length(value)),
+    trait2 = rep(c(1,2,1,2), length.out = length(value)),
+    sample_id = s
+  )
+})) %>%
+  mutate(
+    parameter_name = paste0("R[", trait1, ",", trait2, "]"),
+    type = "Prior"
+  ) %>%
+  select(-sample_id) # Remove sample_id once converted
+
+# --- 5. Combine Posterior and Prior Data for Plotting ---
+plot_data_R <- bind_rows(R_posterior_long, R_prior_long)
+```
+
+```{r}
+
+# --- 6. Plotting with ggplot2 (Corrected for linewidth) ---
+# Define a custom color palette for Prior and Posterior
+my_colors <- c("Prior" = "skyblue", "Posterior" = "darkred")
+
+# Order the facets for better presentation (optional: diagonals first, then off-diagonals)
+plot_data_R$parameter_name <- factor(plot_data_R$parameter_name,
+                                     levels = c("R[1,1]", "R[2,2]", "R[1,2]", "R[2,1]"))
+
+# Create a data frame for true R values to add as vertical lines
+true_R_values_df <- data.frame(
+  parameter_name = factor(c("R[1,1]", "R[2,2]", "R[1,2]", "R[2,1]"),
+                          levels = c("R[1,1]", "R[2,2]", "R[1,2]", "R[2,1]")),
+  true_value = c(R_true[1,1], R_true[2,2], R_true[1,2], R_true[2,1])
+)
+
+
+ggplot(plot_data_R, aes(x = value, fill = type, color = type)) +
+  geom_density(alpha = 0.5, linewidth = 0.8) + # CHANGED: size = 0.8 -> linewidth = 0.8
+  facet_wrap(~ parameter_name, scales = "free", ncol = 2) +
+  scale_fill_manual(values = my_colors) +
+  scale_color_manual(values = my_colors) +
+  labs(
+    title = "Posterior vs. Prior Distributions for R Matrix Elements",
+    x = "Value",
+    y = "Density",
+    fill = "Distribution",
+    color = "Distribution"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom") +
+  # Add vertical lines for true R values (only for simulation studies)
+  geom_vline(data = true_R_values_df, aes(xintercept = true_value),
+             linetype = "dashed", color = "darkgreen", linewidth = 0.8) # CHANGED: size = 0.8 -> linewidth = 0.8
+
+```
+

@@ -12,6 +12,11 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 
+RcppExport SEXP _rcpp_module_boot_stan_fit4Dalec_analysis_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4Dalec_analysis_impute_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchMigAdpt_VE_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchMigAdpt_VE_MLM_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4blouchMigAdpt_VE_hier_testing_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_adapt_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_adapt_postpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_adapt_priorpc_mod();
@@ -86,6 +91,11 @@ RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_postpc_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4blouchOU_reg_priorpc_mod();
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_rcpp_module_boot_stan_fit4Dalec_analysis_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4Dalec_analysis_mod, 0},
+    {"_rcpp_module_boot_stan_fit4Dalec_analysis_impute_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4Dalec_analysis_impute_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchMigAdpt_VE_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchMigAdpt_VE_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchMigAdpt_VE_MLM_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchMigAdpt_VE_MLM_mod, 0},
+    {"_rcpp_module_boot_stan_fit4blouchMigAdpt_VE_hier_testing_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchMigAdpt_VE_hier_testing_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_adapt_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_adapt_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_adapt_postpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_adapt_postpc_mod, 0},
     {"_rcpp_module_boot_stan_fit4blouchOU_adapt_priorpc_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4blouchOU_adapt_priorpc_mod, 0},

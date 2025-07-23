@@ -1,0 +1,2689 @@
+---
+title: "Dalechampia Analysis using MigSel Model"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+########################################################################################################################
+
+# Simple Regression Model - single alpha, single beta, single M Matrix
+Non-hierarchical priors on all, and single values for es, sd_theta, sd_e
+
+Complete Case Example first
+```{r, include=FALSE}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+
+######################################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Read in data
+You have the migration and geographic distance matrices given in the three files
+dmat.RData --> Geographic distances in km
+maxs.RData--> Highest unidirectional migration rates (This is the data Mark is asking for, I think) 
+sdmeans.RData--> Standard errors of the highest unidirectional migration rates
+```{r}
+#Initial values
+#set.seed(1)
+dalech.data<-read.csv('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/Dalech.csv')
+load('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/dmat.RData') #
+load('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/maxs.RData')
+load('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/sdmeans.RData')
+
+
+
+```
+ 
+
+## Background
+From Christophe: For this Thomas can answer better, but I think that the idea is to test how the fit between the pollinator size and the flower size (for example GA the gland area that should be larger for populations visited by larger bees) is affected by the migration among population. From my quick and dirty analysis GA measured in the greenhouse and SLP (size of the largest pollinator) are correlated. I guess the idea is to see what the regression of GA on SLP would be when migration is accounted for. Unfortunately, the effect is probably limited due to the limited migration.
+
+Note that the relationship between the size of the largest pollinator and the flower traits is good for the greenhouse measurements (see the figure below for slp vs. GA) but it is not good for the field measurements. .
+
+
+## Hypothetical DAG (Directed Acyclic Graph)
+This is the hypotheses of how the traits are related in this study.
+GA = Gland Area, SLP = size of largest pollinator, u = unobserved confounds, M = migration between populations, o = observed versions, e = measurement error, m = missing values effects - these are the causes of missing values, which are currently unknown.
+
+
+
+```{r}
+set.seed(11)
+ggplot2::theme_set(ggdag::theme_dag())
+
+dag<-ggdag::ggdag(ggdag::dagify(
+  GA ~ SLP,
+  GA ~ u,
+  SLP ~ u,
+  GAo ~ eGA,
+  GAo ~ GA,
+  GAo ~ mGA,
+  SLPo ~ eSLP,
+  SLPo ~ SLP,
+  SLPo ~ mSLP,
+  u ~ M
+  ))
+
+dag
+
+```
+
+
+Set up data - Complete cases first
+```{r}
+N_pops <- nrow(dalech.data)
+
+M_mat_raw <- maxs #Change variable name
+M_mat <- M_mat_raw #Create variable that will be used for model
+# Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:N_pops){
+   m_i = sum(M_mat_raw[i, -i]) # Total immigration rate into pop i not including diagonal
+   #if (m_i > 1) { # If sum of migration rates end up being greater than 1, scale by 
+  #    M_mat[i,-i] <- M_mat_raw[i,-i] / m_i
+  #    m_i = 1
+  # }
+   M_mat[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+print(paste("Max off-diagonal M value:", round(max(M_mat[row(M_mat)!=col(M_mat)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_mat)),4), "to", round(max(diag(M_mat)),4)))
+
+
+```
+
+
+Abbr: population abbreviation
+Size: Size of the population estimated in Opedal 2017
+N: number of individuals
+Visitors: type of visitors
+slp: size of the largest visitor. For this I used the Table 2 in Amrbruster 1984 American Journal of Botany 71 (8): 11 49- 1160.
+N: number of blossom measured in the field
+ASD_F: Anther-Stigma distance field measurements
+ASDSE_F: SE of Anther-Stigma distance field measurements
+GA_F: Gland area field measurements
+GASE_F: SE of Gland area field measurements
+UBA_F: Upper bract area field measurements
+UBASE_F: SE of the upper bract area field measurements
+N: number of blossom measured in the greenhouse
+Then same things for the GH measurements
+ASD
+ASDSE
+GA
+GASE
+UBA
+UBASE
+
+# Define data set - GA ~ SLP + Migration Analysis
+```{r}
+
+dalech_dat <- tibble(
+    pop = dalech.data$Abbr,
+    pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+    pop_n = dalech.data$n, #Number of visits?
+    GA_F = dalech.data$GA_F, #Field
+    GA_F_SE = dalech.data$GASE_F,
+    GA_F_N = dalech.data$N,
+    GA_G = dalech.data$GA, #Greenhouse
+    GA_G_SE = dalech.data$GASE,
+    GA_G_N = dalech.data$N.1,
+    slp = dalech.data$slp,
+    slp_N = dalech.data$n
+)
+
+
+M_mat<-M_mat[complete.cases(dalech_dat),complete.cases(dalech_dat)] #Reduce M matrix to complete cases of data
+dalech_dat<-dalech_dat[complete.cases(dalech_dat),] #Reduce data to just complete cases
+
+dalech_dat$slp<- dalech_dat$slp - mean(dalech_dat$slp,na.rm=TRUE) #Mean center X variable
+
+#dalech_dat<- dalech_dat %>% #Replace missing values with -999
+#  replace(is.na(.), as.numeric(-999))
+
+#
+
+#Setup data for Stan
+
+GA_comb <-c(dalech_dat$GA_F,dalech_dat$GA_G) #GA in both F and G
+GA_SE_comb <-c(dalech_dat$GA_F_SE,dalech_dat$GA_G_SE) #SE in both F and G
+GA_N_pops_comb<-c(dalech_dat$GA_F_N,dalech_dat$GA_G_N) #Population sizes in both F and G
+GA_N_miss <- length(GA_comb[GA_comb==-999])
+GA_missidx <- which(GA_comb==-999)
+
+slp<- dalech_dat$slp
+slp_N_miss <- length(slp[slp==-999]) #Count of number of missing NAs
+slp_missidx <- which(slp==-999)
+       
+N_total <- length(GA_comb)
+N_pops <- nrow(dalech_dat)
+N_regimes <- 2
+
+#regimes
+reg_idx <- c(rep(1,N_pops),rep(2,N_pops))
+pop_idx <- c(1:N_pops,1:N_pops) #Population id - for indexing to use the M matrix 
+
+#z_error_sd<-0.01
+z_error_obs<-GA_SE_comb*sqrt(GA_N_pops_comb)
+x_error_sd<-0.01
+
+
+```
+
+
+Define priors
+```{r}
+alpha_prior<-c(mean(GA_comb),1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+
+```
+
+A:This matrix helps describe how populations adapt to their local alpha, considering the force of selection
+
+Non-hierarchical priors
+```{r}
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+
+dat <- list(
+  N_total = N_total, #Total observations - 20 Field and 20 Greenhouse
+  N_pops = N_pops, #Number of populations
+  N_regimes = N_regimes, #Number of regimes
+
+  z_obs = as.vector(GA_comb), # Use the final observed values
+  N_z_miss = as.integer(GA_N_miss),
+  z_missidx = as.integer(GA_missidx),
+  
+  x_obs = as.vector(slp), 
+  N_x_miss = as.integer(slp_N_miss),
+  x_missidx = as.integer(slp_missidx),
+  
+  #z_error = rep(z_error_sd, N_total),
+  z_error_obs = z_error_obs,
+  x_error = rep(x_error_sd, N_pops),
+  
+  M = M_mat, #Migration matrix - only 1 for both greenhouse and field data, so need to use it twice.
+  
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2,
+  reg_idx = reg_idx,
+  pop_idx = pop_idx
+  
+)
+
+print("Stan data list 'dat' created.")
+```
+
+
+Check out priors
+Prior Predictive Plot for alpha and beta
+```{r, include=FALSE}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+df[df==-999] <- NA
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (GA)",
+    x = "Environmental Predictor (slp)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+z_obs
+```{r, include=FALSE}
+
+# --- Define True Value and Simulate Prior ---
+n_draws <- 10000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+z_imp_prior_sims <-rlnorm(n = n_draws, meanlog=log(25), sdlog = 0.5)
+
+# Create a data frame for plotting
+prior_z_imp_df <- tibble(z_imp_prior = z_imp_prior_sims)
+
+# --- Create the Density Plot ---
+z_imp_prior_density_plot <- ggplot(prior_z_imp_df, aes(x = z_imp_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for z_impute",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "z_imp Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )+
+  xlim(0,100)
+  
+# --- Display the plot ---
+print(z_imp_prior_density_plot)
+```
+
+
+Prior predictive check plot for es - non-hierarchical plot
+```{r, include=FALSE}
+
+# --- 1. Simulate draws from the PRIOR distribution ---
+n_draws <- 5000 # Use more draws for a smoother density plot
+es_prior_sims <- rlnorm(n = n_draws, meanlog = log(0.1),sdlog = 0.5)
+#es_prior_sims <- rexp(n = n_draws, rate = es_prior) # Use rate = 5 as per Stan prior
+#es_prior_sims <- rtruncnorm(n = n_draws,
+                            #a = 0,          # Lower truncation bound
+#                            b = Inf,        # Upper truncation bound (infinity)
+ #                           mean = es_prior[1],     # Mean of the *untruncated* normal
+  #                          sd = es_prior[2])       # SD of the *untruncated* normal
+
+
+
+
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(1)
+mypal[2]<-palette()[1]
+
+
+# Create a data frame for plotting
+prior_df <- tibble(es_prior = es_prior_sims)
+
+# --- 2. Create the Density Plot ---
+es_prior_density_plot <- ggplot(prior_df, aes(x = es_prior)) +
+  # Add density layer
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  
+  # Add vertical line for the true value
+  #geom_vline(xintercept = es_true, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_min, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_max, color = "black", linetype = "dashed", linewidth = 1) +
+  
+  # Labels and Theme
+  labs(
+    title = "Prior Distribution vs True Values for 'es'",
+    #subtitle = paste0("Prior: Truncated Normal(mean = 0.5, sd = 0.1)"),
+    x = "es Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(es_prior_sims, 0.99))) # Zoom x-axis (optional)
+
+
+# --- 3. Display the plot ---
+print(es_prior_density_plot)
+```
+
+SD Theta Prior Predictve Plot - Non-hierarchical Plot
+```{r, include=FALSE}
+
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+sd_theta_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_theta_df <- tibble(sd_prior = sd_theta_prior_sims)
+
+# --- Create the Density Plot ---
+sd_theta_prior_density_plot <- ggplot(prior_theta_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for sd_theta",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+  #coord_cartesian(xlim = c(0, quantile(sd_theta_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_theta_prior_density_plot)
+```
+
+
+sd_e prior plot - Non-hierarchical
+```{r, include=FALSE}
+
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000   # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+sd_e_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_e_df <- tibble(sd_prior = sd_e_prior_sims)
+
+# --- Create the Density Plot ---
+sd_e_prior_density_plot <- ggplot(prior_e_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_e_true, color = "black", linetype = "dashed", linewidth = 1) + # Changed color for variety
+  labs(
+    title = "Prior Distribution for sd_e",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    
+    x = "sd_e Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+  #coord_cartesian(xlim = c(0, quantile(sd_e_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_e_prior_density_plot)
+```
+Single es value
+Diagonal SD theta and SD e matrices
+e.g.
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis.stan')
+stan_file<-"Dalec_analysis.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    #es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    es = abs(rnorm(1, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+    # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    #L_Omega_theta = diag(dat$N_pops),
+    #L_Omega_e = diag(dat$N_pops)
+    # Latent variables (starting at observed values is common)
+    #z_true = dat$z_obs,
+    #x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    init = "random"
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               #"es[1]", "es[2]", "es[3]", 
+               "es",
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]"
+              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+              # "sd_e[1]","sd_e[2]","sd_e[3]"
+                #"det_A",
+                #"det_AM_term",
+                #"det_K_term",
+                #"det_V_term",
+                #"det_Sigma_term1",
+                #"det_Sigma"
+
+               #"L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               #"L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]",
+               #"z_impute[1]","z_impute[2]","z_impute[3]",
+               #"x_impute[1]","x_impute[2]","x_impute[3]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit, pars = c("alpha", "beta", 
+                         #"es[1]", "es[2]", "es[3]", 
+                         "es",
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+x_seq <- seq(from = min(dat$x_obs, na.rm=TRUE), to = max(dat$x_obs, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_seq = x_seq) # Using x_true as predictor name matching model
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+   mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+#https://mjskay.github.io/tidybayes/articles/tidy-brms.html
+
+posterior_params <- stan_fit %>%
+    spread_draws(alpha,beta)
+
+#posterior_params <- stan_fit %>%
+#    spread_draws(alpha,beta,z_impute[i],x_impute[i])
+
+
+# b. Prediction across X avis
+posterior_predictions <- posterior_params %>%
+  crossing(x_pred = x_grid$x_seq) %>%
+  mutate(mu_pred = alpha + beta * x_pred)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(alpha, beta, mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+
+```
+
+
+
+# Regression plots - dashed line is standard regression
+```{r}
+########################################################################################################
+mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
+
+df<-data.frame(GA_F = dalech_dat$GA_F,GA_G = dalech_dat$GA_G,slp = dalech_dat$slp)
+standard_reg<-lm(df$GA_G~df$slp)
+reg_df<-data.frame(standard_reg$coefficients)
+
+regression.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_F,x=slp,color=mypal[1]))+
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_G,x=slp,color=mypal[2]))+
+
+  ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
+  ggplot2::geom_abline(data=reg_df, ggplot2::aes(intercept=reg_df[1,1], slope=reg_df[2,1]),alpha=0.5 , linetype = 2)+ #Priors
+
+    
+  ggplot2::geom_ribbon(data=posterior_summary,ggplot2::aes(x=x_pred,ymin=.lower,ymax=.upper),linetype=2,alpha=0.1)+
+  
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("GA (mm)") + ggplot2::xlab("SLP")+
+  ggplot2::scale_color_manual(name="Sample Composition",values=mypal,labels=c('Field', 'Greenhouse'))
+
+regression.plot
+#Label points
+
+```
+
+
+Posterior vs. prior values for es
+es ~ lognormal(log(0.1),0.5); //Ensures positive es
+```{r}
+mypal <- ggsci::pal_aaas("default", alpha = 1)(5)
+
+n_prior_draws<-2000
+prior_es<-rlnorm(2000,log(0.1),0.5)
+
+# Combine into a tidy format
+prior_es_draws_df <- tibble(es_sim=prior_es) %>%
+   mutate(.draw = 1:n_prior_draws, Distribution = "Prior")
+
+
+posterior_es_draws_df <- stan_fit %>%
+    spread_draws(es) %>%
+  mutate(Distribution = "Posterior")
+
+
+# c. Summarize
+posterior_summary <- posterior_params %>%
+  median_qi(es, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+plot_data<-bind_rows(
+  prior_es_draws_df %>% select(es = es_sim, Distribution),
+  posterior_es_draws_df %>% select(es = es, Distribution)
+  
+  
+)
+
+# --- 2. Create the Density Plot ---
+es_density_plot <- ggplot(plot_data, aes(x = es, color = Distribution, fill = Distribution)) +
+  geom_density(alpha = 0.7)+
+  # Labels and Theme
+  labs(
+    title = "Prior vs. Posterior Distribution for es",
+    x = "es Value",
+    y = "Density"
+  ) +
+  scale_color_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  scale_fill_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  
+
+  )
+
+print(es_density_plot)
+
+
+```
+
+################################################################################################
+# 1b - User specified es = 0.1
+
+Single es value
+Diagonal SD theta and SD e matrices
+e.g.
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis.stan')
+stan_file<-"Dalec_analysis.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    #es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    es = abs(rnorm(1, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+    # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    #L_Omega_theta = diag(dat$N_pops),
+    #L_Omega_e = diag(dat$N_pops)
+    # Latent variables (starting at observed values is common)
+    #z_true = dat$z_obs,
+    #x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    init = "random"
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               #"es[1]", "es[2]", "es[3]", 
+               #"es",
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]"
+              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+              # "sd_e[1]","sd_e[2]","sd_e[3]"
+                #"det_A",
+                #"det_AM_term",
+                #"det_K_term",
+                #"det_V_term",
+                #"det_Sigma_term1",
+                #"det_Sigma"
+
+               #"L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               #"L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]",
+               #"z_impute[1]","z_impute[2]","z_impute[3]",
+               #"x_impute[1]","x_impute[2]","x_impute[3]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit, pars = c("alpha", "beta", 
+                         #"es[1]", "es[2]", "es[3]", 
+                         "es",
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+x_seq <- seq(from = min(dat$x_obs, na.rm=TRUE), to = max(dat$x_obs, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_seq = x_seq) # Using x_true as predictor name matching model
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+   mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+#https://mjskay.github.io/tidybayes/articles/tidy-brms.html
+
+posterior_params <- stan_fit %>%
+    spread_draws(alpha,beta)
+
+#posterior_params <- stan_fit %>%
+#    spread_draws(alpha,beta,z_impute[i],x_impute[i])
+
+
+# b. Prediction across X avis
+posterior_predictions <- posterior_params %>%
+  crossing(x_pred = x_grid$x_seq) %>%
+  mutate(mu_pred = alpha + beta * x_pred)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(alpha, beta, mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+
+```
+
+
+
+Regression plots
+```{r}
+########################################################################################################
+mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
+
+df<-data.frame(GA_F = dalech_dat$GA_F,GA_G = dalech_dat$GA_G,slp = dalech_dat$slp)
+standard_reg<-lm(df$GA_G~df$slp)
+reg_df<-data.frame(standard_reg$coefficients)
+
+regression.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_F,x=slp,color=mypal[1]))+
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_G,x=slp,color=mypal[2]))+
+
+  ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
+  ggplot2::geom_abline(data=reg_df, ggplot2::aes(intercept=reg_df[1,1], slope=reg_df[2,1]),alpha=0.5 , linetype = 2)+ #Priors
+
+    
+  ggplot2::geom_ribbon(data=posterior_summary,ggplot2::aes(x=x_pred,ymin=.lower,ymax=.upper),linetype=2,alpha=0.1)+
+  
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("GA (mm)") + ggplot2::xlab("SLP")+
+  ggplot2::scale_color_manual(name="Sample Composition",values=mypal,labels=c('Field', 'Greenhouse'))
+
+regression.plot
+#Label points
+
+```
+
+
+Posterior vs. prior values for es
+es ~ lognormal(log(0.1),0.5); //Ensures positive es
+```{r, include=FALSE}
+mypal <- ggsci::pal_aaas("default", alpha = 1)(5)
+
+n_prior_draws<-2000
+prior_es<-rlnorm(2000,log(0.1),0.5)
+
+# Combine into a tidy format
+prior_es_draws_df <- tibble(es_sim=prior_es) %>%
+   mutate(.draw = 1:n_prior_draws, Distribution = "Prior")
+
+
+posterior_es_draws_df <- stan_fit %>%
+    spread_draws(es) %>%
+  mutate(Distribution = "Posterior")
+
+
+# c. Summarize
+posterior_summary <- posterior_params %>%
+  median_qi(es, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+plot_data<-bind_rows(
+  prior_es_draws_df %>% select(es = es_sim, Distribution),
+  posterior_es_draws_df %>% select(es = es, Distribution)
+  
+  
+)
+
+# --- 2. Create the Density Plot ---
+es_density_plot <- ggplot(plot_data, aes(x = es, color = Distribution, fill = Distribution)) +
+  geom_density(alpha = 0.7)+
+  # Labels and Theme
+  labs(
+    title = "Prior vs. Posterior Distribution for es",
+    x = "es Value",
+    y = "Density"
+  ) +
+  scale_color_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  scale_fill_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  
+
+  )
+
+print(es_density_plot)
+
+
+```
+
+################################################################################################
+# 1b - User specified es = 5
+
+Single es value
+Diagonal SD theta and SD e matrices
+e.g.
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis.stan')
+stan_file<-"Dalec_analysis.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    #es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    es = abs(rnorm(1, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+    # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    #L_Omega_theta = diag(dat$N_pops),
+    #L_Omega_e = diag(dat$N_pops)
+    # Latent variables (starting at observed values is common)
+    #z_true = dat$z_obs,
+    #x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    init = "random"
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               #"es[1]", "es[2]", "es[3]", 
+               #"es",
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]"
+              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+              # "sd_e[1]","sd_e[2]","sd_e[3]"
+                #"det_A",
+                #"det_AM_term",
+                #"det_K_term",
+                #"det_V_term",
+                #"det_Sigma_term1",
+                #"det_Sigma"
+
+               #"L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               #"L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]",
+               #"z_impute[1]","z_impute[2]","z_impute[3]",
+               #"x_impute[1]","x_impute[2]","x_impute[3]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit, pars = c("alpha", "beta", 
+                         #"es[1]", "es[2]", "es[3]", 
+                         "es",
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+x_seq <- seq(from = min(dat$x_obs, na.rm=TRUE), to = max(dat$x_obs, na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_seq = x_seq) # Using x_true as predictor name matching model
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+   mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+#https://mjskay.github.io/tidybayes/articles/tidy-brms.html
+
+posterior_params <- stan_fit %>%
+    spread_draws(alpha,beta)
+
+#posterior_params <- stan_fit %>%
+#    spread_draws(alpha,beta,z_impute[i],x_impute[i])
+
+
+# b. Prediction across X avis
+posterior_predictions <- posterior_params %>%
+  crossing(x_pred = x_grid$x_seq) %>%
+  mutate(mu_pred = alpha + beta * x_pred)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(alpha, beta, mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+
+```
+
+
+
+Regression plots
+```{r}
+########################################################################################################
+mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
+
+df<-data.frame(GA_F = dalech_dat$GA_F,GA_G = dalech_dat$GA_G,slp = dalech_dat$slp)
+standard_reg<-lm(df$GA_G~df$slp)
+reg_df<-data.frame(standard_reg$coefficients)
+
+regression.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_F,x=slp,color=mypal[1]))+
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_G,x=slp,color=mypal[2]))+
+
+  ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
+  ggplot2::geom_abline(data=reg_df, ggplot2::aes(intercept=reg_df[1,1], slope=reg_df[2,1]),alpha=0.5 , linetype = 2)+ #Priors
+
+    
+  ggplot2::geom_ribbon(data=posterior_summary,ggplot2::aes(x=x_pred,ymin=.lower,ymax=.upper),linetype=2,alpha=0.1)+
+  
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("GA (mm)") + ggplot2::xlab("SLP")+
+  ggplot2::scale_color_manual(name="Sample Composition",values=mypal,labels=c('Field', 'Greenhouse'))
+
+regression.plot
+#Label points
+
+```
+
+
+Posterior vs. prior values for es
+es ~ lognormal(log(0.1),0.5); //Ensures positive es
+```{r, include=FALSE}
+mypal <- ggsci::pal_aaas("default", alpha = 1)(5)
+
+n_prior_draws<-2000
+prior_es<-rlnorm(2000,log(0.1),0.5)
+
+# Combine into a tidy format
+prior_es_draws_df <- tibble(es_sim=prior_es) %>%
+   mutate(.draw = 1:n_prior_draws, Distribution = "Prior")
+
+
+posterior_es_draws_df <- stan_fit %>%
+    spread_draws(es) %>%
+  mutate(Distribution = "Posterior")
+
+
+# c. Summarize
+posterior_summary <- posterior_params %>%
+  median_qi(es, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+plot_data<-bind_rows(
+  prior_es_draws_df %>% select(es = es_sim, Distribution),
+  posterior_es_draws_df %>% select(es = es, Distribution)
+  
+  
+)
+
+# --- 2. Create the Density Plot ---
+es_density_plot <- ggplot(plot_data, aes(x = es, color = Distribution, fill = Distribution)) +
+  geom_density(alpha = 0.7)+
+  # Labels and Theme
+  labs(
+    title = "Prior vs. Posterior Distribution for es",
+    x = "es Value",
+    y = "Density"
+  ) +
+  scale_color_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  scale_fill_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  
+
+  )
+
+print(es_density_plot)
+
+
+```
+
+
+
+
+
+
+
+
+# 2 - Bayesian Imputation of missing values
+First, naive imputation - uninformed priors for missing values
+
+Simple Regression Model - single alpha, single beta, single M Matrix
+Non-hierarchical priors on all, single es, single sd theta, single sd e
+
+Set up data
+```{r, include = FALSE}
+N_pops <- nrow(dalech.data)
+
+M_mat_raw <- maxs #Change variable name
+M_mat <- M_mat_raw #Create variable that will be used for model
+# Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:N_pops){
+  m_i = sum(M_mat_raw[i, -i]) # Total immigration rate into pop i not including diagonal
+  #if (m_i > 1) { # If sum of migration rates end up being greater than 1, scale by 
+  #    M_mat[i,-i] <- M_mat_raw[i,-i] / m_i
+  #    m_i = 1
+  # }
+  M_mat[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+print(paste("Max off-diagonal M value:", round(max(M_mat[row(M_mat)!=col(M_mat)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_mat)),4), "to", round(max(diag(M_mat)),4)))
+
+
+```
+
+
+Abbr: population abbreviation
+Size: Size of the population estimated in Opedal 2017
+N: number of individuals
+Visitors: type of visitors
+slp: size of the largest visitor. For this I used the Table 2 in Amrbruster 1984 American Journal of Botany 71 (8): 11 49- 1160.
+N: number of blossom measured in the field
+ASD_F: Anther-Stigma distance field measurements
+ASDSE_F: SE of Anther-Stigma distance field measurements
+GA_F: Gland area field measurements
+GASE_F: SE of Gland area field measurements
+UBA_F: Upper bract area field measurements
+UBASE_F: SE of the upper bract area field measurements
+N: number of blossom measured in the greenhouse
+Then same things for the GH measurements
+ASD
+ASDSE
+GA
+GASE
+UBA
+UBASE
+
+Note that the relationship between the size of the largest pollinator and the flower traits is good for the greenhouse measurements (see the figure below for slp vs. GA) but it is not good for the field measurements. .
+
+For this Thomas can answer better, but I think that the idea is to test how the fit between the pollinator size and the flower size (for example GA the gland area that should be larger for populations visited by larger bees) is affected by the migration among population. From my quick and dirty analysis GA measured in the greenhouse and SLP (size of the largest pollinator) are correlated. I guess the idea is to see what the regression of GA on SLP would be when migration is accounted for. Unfortunately, the effect is probably limited due to the limited migration.
+
+
+
+# Define data set - GA ~ SLP + Migration Analysis
+```{r, include = FALSE}
+
+dalech_dat <- tibble(
+  pop = dalech.data$Abbr,
+  pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+  pop_n = dalech.data$n, #Number of visits?
+  GA_F = dalech.data$GA_F, #Field
+  GA_F_SE = dalech.data$GASE_F,
+  GA_F_N = dalech.data$N,
+  GA_G = dalech.data$GA, #Greenhouse
+  GA_G_SE = dalech.data$GASE,
+  GA_G_N = dalech.data$N.1,
+  slp = dalech.data$slp,
+  slp_N = dalech.data$n
+)
+
+
+#M_mat<-M_mat[complete.cases(dalech_dat),complete.cases(dalech_dat)] #Reduce M matrix to complete cases of data
+#dalech_dat<-dalech_dat[complete.cases(dalech_dat),] #Reduce data to just complete cases
+
+dalech_dat$slp<- dalech_dat$slp - mean(dalech_dat$slp,na.rm=TRUE) #Mean center X variable
+
+dalech_dat<- dalech_dat %>% #Replace missing values with -999
+  replace(is.na(.), as.numeric(-999))
+
+#
+
+#Setup data for Stan
+
+GA_comb <-c(dalech_dat$GA_F,dalech_dat$GA_G) #GA in both F and G
+GA_SE_comb <-c(dalech_dat$GA_F_SE,dalech_dat$GA_G_SE) #SE in both F and G
+GA_N_pops_comb<-c(dalech_dat$GA_F_N,dalech_dat$GA_G_N) #Population sizes in both F and G
+GA_N_miss <- length(GA_comb[GA_comb==-999])
+GA_missidx <- which(GA_comb==-999)
+
+slp<- dalech_dat$slp
+slp_N_miss <- length(slp[slp==-999]) #Count of number of missing NAs
+slp_missidx <- which(slp==-999)
+
+N_total <- length(GA_comb)
+N_pops <- nrow(dalech_dat)
+N_regimes <- 2
+
+#regimes
+reg_idx <- c(rep(1,N_pops),rep(2,N_pops))
+pop_idx <- c(1:N_pops,1:N_pops) #Population id - for indexing to use the M matrix 
+
+#z_error_sd<-0.01
+GA_SE_comb[-GA_missidx]
+GA_N_pops_comb[-GA_missidx]
+
+z_error_obs<-rep(-999,N_total)
+z_error_obs[-GA_missidx]<-GA_SE_comb[-GA_missidx]*sqrt(GA_N_pops_comb[-GA_missidx])
+x_error_sd<-0.01
+
+
+```
+
+
+Define priors
+```{r,include=FALSE}
+alpha_prior<-c(mean(GA_comb[-GA_missidx]),1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+
+```
+
+A:This matrix helps describe how populations adapt to their local alpha, considering the force of selection
+
+Non-hierarchical priors
+```{r,include=FALSE}
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+
+dat <- list(
+  N_total = N_total, #Total observations - 20 Field and 20 Greenhouse
+  N_pops = N_pops, #Number of populations
+  N_regimes = N_regimes, #Number of regimes
+  
+  z_obs = as.vector(GA_comb), # Use the final observed values
+  N_z_miss = as.integer(GA_N_miss),
+  z_missidx = as.integer(GA_missidx),
+  
+  x_obs = as.vector(slp), 
+  N_x_miss = as.integer(slp_N_miss),
+  x_missidx = as.integer(slp_missidx),
+  
+  #z_error = rep(z_error_sd, N_total),
+  z_error_obs = z_error_obs,
+  x_error = rep(x_error_sd, N_pops),
+  
+  M = M_mat, #Migration matrix - only 1 for both greenhouse and field data, so need to use it twice.
+  
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2,
+  reg_idx = reg_idx,
+  pop_idx = pop_idx
+  
+)
+
+print("Stan data list 'dat' created.")
+```
+
+
+Check out priors
+Prior Predictive Plot for alpha and beta
+```{r, include=FALSE}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+df[df==-999] <- NA
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+  
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+  
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (GA)",
+    x = "Environmental Predictor (slp)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+Imputed z values
+```{r,include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+#z_imp_prior_sims <-rlnorm(n = n_draws, meanlog=log(25), sdlog = 0.5)
+z_imp_prior_sims <-rnorm(n = n_draws, mean = 25, sd = 0.5)
+
+# Create a data frame for plotting
+prior_z_imp_df <- tibble(z_imp_prior = z_imp_prior_sims)
+
+# --- Create the Density Plot ---
+z_imp_prior_density_plot <- ggplot(prior_z_imp_df, aes(x = z_imp_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for z_impute",
+    #subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    subtitle = paste0("Prior: Normal (mean=25,sd=0.5)"),
+    x = "z_imp Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+# --- Display the plot ---
+print(z_imp_prior_density_plot)
+```
+
+Imputed z error values
+```{r,include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+z_error_imp_prior_sims <-rlnorm(n = n_draws, meanlog=log(1), sdlog = 0.5)
+
+
+# Create a data frame for plotting
+prior_z_error_imp_df <- tibble(z_error_imp_prior = z_error_imp_prior_sims)
+
+# --- Create the Density Plot ---
+z_error_imp_prior_density_plot <- ggplot(prior_z_error_imp_df, aes(x = z_error_imp_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for z_error_impute",
+    #subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    subtitle = paste0("Prior: Lognormal (meanlog=log(1),sdlog=0.5)"),
+    x = "z_imp Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )#+
+#xlim(0,100)
+
+# --- Display the plot ---
+print(z_error_imp_prior_density_plot)
+```
+
+
+Prior predictive check plot for es - non-hierarchical plot
+```{r,include=FALSE}
+# --- 1. Simulate draws from the PRIOR distribution ---
+n_draws <- 5000 # Use more draws for a smoother density plot
+es_prior_sims <- rlnorm(n = n_draws, meanlog = log(0.1),sdlog = 0.5)
+#es_prior_sims <- rexp(n = n_draws, rate = es_prior) # Use rate = 5 as per Stan prior
+#es_prior_sims <- rtruncnorm(n = n_draws,
+#a = 0,          # Lower truncation bound
+#                            b = Inf,        # Upper truncation bound (infinity)
+#                           mean = es_prior[1],     # Mean of the *untruncated* normal
+#                          sd = es_prior[2])       # SD of the *untruncated* normal
+
+
+
+
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(1)
+mypal[2]<-palette()[1]
+
+
+# Create a data frame for plotting
+prior_df <- tibble(es_prior = es_prior_sims)
+
+# --- 2. Create the Density Plot ---
+es_prior_density_plot <- ggplot(prior_df, aes(x = es_prior)) +
+  # Add density layer
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  
+  # Add vertical line for the true value
+  #geom_vline(xintercept = es_true, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_min, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_max, color = "black", linetype = "dashed", linewidth = 1) +
+  
+  # Labels and Theme
+  labs(
+    title = "Prior Distribution for es",
+    #subtitle = paste0("Prior: Truncated Normal(mean = 0.5, sd = 0.1)"),
+    x = "es Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(es_prior_sims, 0.99))) # Zoom x-axis (optional)
+
+
+# --- 3. Display the plot ---
+print(es_prior_density_plot)
+```
+
+SD Theta Prior Predictve Plot - Non-hierarchical Plot
+```{r,include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+sd_theta_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_theta_df <- tibble(sd_prior = sd_theta_prior_sims)
+
+# --- Create the Density Plot ---
+sd_theta_prior_density_plot <- ggplot(prior_theta_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for sd_theta",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+#coord_cartesian(xlim = c(0, quantile(sd_theta_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_theta_prior_density_plot)
+```
+
+
+sd_e prior plot - Non-hierarchical
+```{r,include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000   # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+sd_e_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_e_df <- tibble(sd_prior = sd_e_prior_sims)
+
+# --- Create the Density Plot ---
+sd_e_prior_density_plot <- ggplot(prior_e_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_e_true, color = "black", linetype = "dashed", linewidth = 1) + # Changed color for variety
+  labs(
+    title = "Prior Distribution for sd_e",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    
+    x = "sd_e Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+#coord_cartesian(xlim = c(0, quantile(sd_e_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_e_prior_density_plot)
+```
+Single es value
+Diagonal SD theta and SD e matrices
+e.g.
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis.stan')
+stan_file<-"Dalec_analysis.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    # Scalar es (provide a reasonable starting point, e.g., near true value 0.5)
+    #es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    es = abs(rnorm(1, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    #es = abs(rnorm(dat$N, 0.5, 0.1)) + 0.01, # Draw near 0.5, ensure positive
+    # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+    
+    # Cholesky factors (starting with identity often works)
+    #L_Omega_theta = diag(dat$N_pops),
+    #L_Omega_e = diag(dat$N_pops)
+    # Latent variables (starting at observed values is common)
+    #z_true = dat$z_obs,
+    #x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+  object = stan_model,
+  data = dat,
+  chains = n_chains,             # Use the specified number of chains
+  cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+  iter = 2000,                   # Keep iterations (or increase if needed)
+  control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+  #init = init_list_multichain    # Pass the list of lists
+  init = "random"
+)
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta", 
+               #"es[1]", "es[2]", "es[3]", 
+               "es",
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]",
+               # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               # "sd_e[1]","sd_e[2]","sd_e[3]"
+               #"det_A",
+               #"det_AM_term",
+               #"det_K_term",
+               #"det_V_term",
+               #"det_Sigma_term1",
+               #"det_Sigma"
+               
+               #"L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               #"L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]",
+               "z_impute[1]","z_impute[2]","z_impute[3]",
+               "x_impute[1]","x_impute[2]","x_impute[3]",
+               "z_error_impute[1]","z_error_impute[2]","z_error_impute[3]"
+      ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r,include=FALSE}
+pairs(stan_fit, pars = c("alpha", "beta", 
+                         #"es[1]", "es[2]", "es[3]", 
+                         "es",
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+x_seq <- seq(from = min(dat$x_obs[-dat$x_missidx], na.rm=TRUE), to = max(dat$x_obs[-dat$x_missidx], na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_seq = x_seq) # Using x_true as predictor name matching model
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+  mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+#https://mjskay.github.io/tidybayes/articles/tidy-brms.html
+
+#posterior_params <- stan_fit %>%
+#    spread_draws(alpha,beta)
+
+posterior_params <- stan_fit %>%
+  spread_draws(alpha,beta,z_impute[i],x_impute[i],z_error_impute[i])
+
+
+# b. Prediction across X avis
+posterior_predictions <- posterior_params %>%
+  crossing(x_pred = x_grid$x_seq) %>%
+  mutate(mu_pred = alpha + beta * x_pred)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+posterior_imputed_summary <- posterior_predictions %>%
+  group_by(i) %>%
+  median_qi(z_impute, z_error_impute, x_impute, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+#posterior_reg_predictions %>%
+#  group_by(x_pred) %>%
+#  median_qi(alpha, beta, mu_pred, .width = 0.89) %>% # Use your desired CI width
+#  ungroup()
+
+```
+
+
+
+Regression plots
+```{r}
+########################################################################################################
+mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
+
+df_GA <- data.frame(GA = dat$z_obs,GA_SD = dat$z_error_obs, Z_Status="Known", Sample="Field")
+df_slp <- data.frame(slp = dat$x_obs, slp_SD = 0.1, X_Status="Known")
+df_GA[dat$z_missidx,1]<-posterior_imputed_summary$z_impute
+df_GA[dat$z_missidx,2]<-posterior_imputed_summary$z_error_impute
+df_GA[dat$z_missidx,3]<-"Z Imputed"
+df_GA$Sample[19:36]<-"Green House"
+
+df_slp[dat$x_missidx,1]<-posterior_imputed_summary$x_impute
+df_slp[dat$x_missidx,3]<-"X Imputed"
+
+
+df<-cbind(df_GA,df_slp)
+
+regression.plot<-ggplot2::ggplot()+  
+  ggplot2::geom_point(data=df, ggplot2::aes(y=GA,x=slp, color=Sample, fill = X_Status))+
+  
+  #ggplot2::geom_point(data=df[dat$z_missidx],ggplot2::aes(y=GA,x=slp,color=Sample))
+  
+  
+  ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
+  
+  ggplot2::geom_ribbon(data=posterior_summary,ggplot2::aes(x=x_pred,ymin=.lower,ymax=.upper),linetype=2,alpha=0.1)+
+  
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+  
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
+  
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("GA (mm)") + ggplot2::xlab("SLP")+
+  ggplot2::scale_color_manual(name="Sample Composition",values=mypal,labels=c('Field', 'Greenhouse'))
+
+regression.plot
+#Label points
+
+```
+
+
+Posterior vs. prior values for es
+es ~ lognormal(log(0.1),0.5); //Ensures positive es
+```{r}
+mypal <- ggsci::pal_aaas("default", alpha = 1)(5)
+
+n_prior_draws<-2000
+prior_es<-rlnorm(2000,log(0.1),0.5)
+
+# Combine into a tidy format
+prior_es_draws_df <- tibble(es_sim=prior_es) %>%
+  mutate(.draw = 1:n_prior_draws, Distribution = "Prior")
+
+
+posterior_es_draws_df <- stan_fit %>%
+  spread_draws(es) %>%
+  mutate(Distribution = "Posterior")
+
+
+# c. Summarize
+posterior_summary <- posterior_params %>%
+  median_qi(es, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+plot_data<-bind_rows(
+  prior_es_draws_df %>% select(es = es_sim, Distribution),
+  posterior_es_draws_df %>% select(es = es, Distribution)
+  
+  
+)
+
+# --- 2. Create the Density Plot ---
+es_density_plot <- ggplot(plot_data, aes(x = es, color = Distribution, fill = Distribution)) +
+  geom_density(alpha = 0.7)+
+  # Labels and Theme
+  labs(
+    title = "Prior vs. Posterior Distribution for es",
+    x = "es Value",
+    y = "Density"
+  ) +
+  scale_color_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  scale_fill_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+    
+    
+  )
+
+print(es_density_plot)
+
+
+```
+
+
+################################################################################################
+
+
+# 3 - Bayesian Imputation of missing values
+Informed imputation - slp size depends on GA size
+
+Simple Regression Model - single alpha, single beta, single M Matrix
+Non-hierarchical priors on all, single es, single sd theta, single sd e
+
+Set up data
+```{r, include=FALSE}
+N_pops <- nrow(dalech.data)
+
+M_mat_raw <- maxs #Change variable name
+M_mat <- M_mat_raw #Create variable that will be used for model
+# Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:N_pops){
+   m_i = sum(M_mat_raw[i, -i]) # Total immigration rate into pop i not including diagonal
+   #if (m_i > 1) { # If sum of migration rates end up being greater than 1, scale by 
+  #    M_mat[i,-i] <- M_mat_raw[i,-i] / m_i
+  #    m_i = 1
+  # }
+   M_mat[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+print(paste("Max off-diagonal M value:", round(max(M_mat[row(M_mat)!=col(M_mat)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_mat)),4), "to", round(max(diag(M_mat)),4)))
+
+#M_mat <- (M_mat + t(M_mat)) / 2
+
+
+```
+
+
+Abbr: population abbreviation
+Size: Size of the population estimated in Opedal 2017
+N: number of individuals
+Visitors: type of visitors
+slp: size of the largest visitor. For this I used the Table 2 in Amrbruster 1984 American Journal of Botany 71 (8): 11 49- 1160.
+N: number of blossom measured in the field
+ASD_F: Anther-Stigma distance field measurements
+ASDSE_F: SE of Anther-Stigma distance field measurements
+GA_F: Gland area field measurements
+GASE_F: SE of Gland area field measurements
+UBA_F: Upper bract area field measurements
+UBASE_F: SE of the upper bract area field measurements
+N: number of blossom measured in the greenhouse
+Then same things for the GH measurements
+ASD
+ASDSE
+GA
+GASE
+UBA
+UBASE
+
+Note that the relationship between the size of the largest pollinator and the flower traits is good for the greenhouse measurements (see the figure below for slp vs. GA) but it is not good for the field measurements. .
+
+For this Thomas can answer better, but I think that the idea is to test how the fit between the pollinator size and the flower size (for example GA the gland area that should be larger for populations visited by larger bees) is affected by the migration among population. From my quick and dirty analysis GA measured in the greenhouse and SLP (size of the largest pollinator) are correlated. I guess the idea is to see what the regression of GA on SLP would be when migration is accounted for. Unfortunately, the effect is probably limited due to the limited migration.
+
+
+
+# Define data set - GA ~ SLP + Migration Analysis
+```{r, include=FALSE}
+
+dalech_dat <- tibble(
+    pop = dalech.data$Abbr,
+    pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+    pop_n = dalech.data$n, #Number of visits?
+    GA_F = dalech.data$GA_F, #Field
+    GA_F_SE = dalech.data$GASE_F,
+    GA_F_N = dalech.data$N,
+    GA_G = dalech.data$GA, #Greenhouse
+    GA_G_SE = dalech.data$GASE,
+    GA_G_N = dalech.data$N.1,
+    slp = dalech.data$slp,
+    slp_N = dalech.data$n
+)
+
+
+#M_mat<-M_mat[complete.cases(dalech_dat),complete.cases(dalech_dat)] #Reduce M matrix to complete cases of data
+#dalech_dat<-dalech_dat[complete.cases(dalech_dat),] #Reduce data to just complete cases
+
+dalech_dat$slp<- dalech_dat$slp - mean(dalech_dat$slp,na.rm=TRUE) #Mean center X variable
+
+dalech_dat<- dalech_dat %>% #Replace missing values with -999
+  replace(is.na(.), as.numeric(-999))
+
+#
+
+#Setup data for Stan
+
+GA_comb <-c(dalech_dat$GA_F,dalech_dat$GA_G) #GA in both F and G - Field First
+GA_SE_comb <-c(dalech_dat$GA_F_SE,dalech_dat$GA_G_SE) #SE in both F and G
+GA_N_pops_comb<-c(dalech_dat$GA_F_N,dalech_dat$GA_G_N) #Population sizes in both F and G
+GA_N_miss <- length(GA_comb[GA_comb==-999])
+GA_missidx <- which(GA_comb==-999)
+
+slp<- dalech_dat$slp
+slp_N_miss <- length(slp[slp==-999]) #Count of number of missing NAs
+slp_missidx <- which(slp==-999)
+       
+N_total <- length(GA_comb)
+N_pops <- nrow(dalech_dat)
+N_regimes <- 2
+
+#regimes
+reg_idx <- c(rep(1,N_pops),rep(2,N_pops))
+pop_idx <- c(1:N_pops,1:N_pops) #Population id - for indexing to use the M matrix 
+
+#z_error_sd<-0.01
+GA_SE_comb[-GA_missidx]
+GA_N_pops_comb[-GA_missidx]
+
+z_error_obs<-rep(-999,N_total)
+z_error_obs[-GA_missidx]<-GA_SE_comb[-GA_missidx]*sqrt(GA_N_pops_comb[-GA_missidx])
+x_error_sd<-0.01
+
+
+```
+
+
+Define priors
+```{r, include=FALSE}
+alpha_prior<-c(mean(GA_comb[-GA_missidx]),1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(0.5,0.1) #Half-normal prior
+
+```
+
+A:This matrix helps describe how populations adapt to their local alpha, considering the force of selection
+
+Non-hierarchical priors
+```{r}
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+
+dat <- list(
+  N_total = N_total, #Total xXobservations - 20 Field and 20 Greenhouse
+  N_pops = N_pops, #Number of populations
+  N_regimes = N_regimes, #Number of regimes
+
+  z_obs = as.vector(GA_comb), # Use the final observed values - field then greenhouse
+  N_z_miss = as.integer(GA_N_miss),
+  z_missidx = as.integer(GA_missidx),
+  
+  x_obs = as.vector(slp), 
+  N_x_miss = as.integer(slp_N_miss),
+  x_missidx = as.integer(slp_missidx),
+  
+  #z_error = rep(z_error_sd, N_total),
+  z_error_obs = z_error_obs,
+  x_error = rep(x_error_sd, N_pops),
+  
+  M = M_mat, #Migration matrix - only 1 for both greenhouse and field data, so need to use it twice.
+  
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2,
+  reg_idx = reg_idx,
+  pop_idx = pop_idx
+  
+)
+
+print("Stan data list 'dat' created.")
+```
+
+
+Check out priors
+Prior Predictive Plot for alpha and beta
+```{r, include=FALSE}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+df[df==-999] <- NA
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (GA)",
+    x = "Environmental Predictor (slp)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+Imputed z values
+```{r, include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+#z_imp_prior_sims <-rlnorm(n = n_draws, meanlog=log(25), sdlog = 0.5)
+z_imp_prior_sims <-rnorm(n = n_draws, mean = 25, sd = 0.5)
+
+# Create a data frame for plotting
+prior_z_imp_df <- tibble(z_imp_prior = z_imp_prior_sims)
+
+# --- Create the Density Plot ---
+z_imp_prior_density_plot <- ggplot(prior_z_imp_df, aes(x = z_imp_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for z_impute",
+    #subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    subtitle = paste0("Prior: Normal (mean=25,sd=0.5)"),
+    x = "z_imp Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+# --- Display the plot ---
+print(z_imp_prior_density_plot)
+```
+
+Imputed z error values
+```{r, include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+z_error_imp_prior_sims <-rlnorm(n = n_draws, meanlog=log(1), sdlog = 0.5)
+
+
+# Create a data frame for plotting
+prior_z_error_imp_df <- tibble(z_error_imp_prior = z_error_imp_prior_sims)
+
+# --- Create the Density Plot ---
+z_error_imp_prior_density_plot <- ggplot(prior_z_error_imp_df, aes(x = z_error_imp_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for z_error_impute",
+    #subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    subtitle = paste0("Prior: Lognormal (meanlog=log(1),sdlog=0.5)"),
+    x = "z_imp Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )#+
+  #xlim(0,100)
+  
+# --- Display the plot ---
+print(z_error_imp_prior_density_plot)
+```
+
+
+Prior predictive check plot for es - non-hierarchical plot
+```{r, include=FALSE}
+# --- 1. Simulate draws from the PRIOR distribution ---
+n_draws <- 5000 # Use more draws for a smoother density plot
+es_prior_sims <- rlnorm(n = n_draws, meanlog = log(0.1),sdlog = 0.5)
+#es_prior_sims <- rexp(n = n_draws, rate = es_prior) # Use rate = 5 as per Stan prior
+#es_prior_sims <- rtruncnorm(n = n_draws,
+                            #a = 0,          # Lower truncation bound
+#                            b = Inf,        # Upper truncation bound (infinity)
+ #                           mean = es_prior[1],     # Mean of the *untruncated* normal
+  #                          sd = es_prior[2])       # SD of the *untruncated* normal
+
+
+
+
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(1)
+mypal[2]<-palette()[1]
+
+
+# Create a data frame for plotting
+prior_df <- tibble(es_prior = es_prior_sims)
+
+# --- 2. Create the Density Plot ---
+es_prior_density_plot <- ggplot(prior_df, aes(x = es_prior)) +
+  # Add density layer
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  
+  # Add vertical line for the true value
+  #geom_vline(xintercept = es_true, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_min, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_max, color = "black", linetype = "dashed", linewidth = 1) +
+  
+  # Labels and Theme
+  labs(
+    title = "Prior Distribution for es",
+    #subtitle = paste0("Prior: Truncated Normal(mean = 0.5, sd = 0.1)"),
+    x = "es Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(es_prior_sims, 0.99))) # Zoom x-axis (optional)
+
+
+# --- 3. Display the plot ---
+print(es_prior_density_plot)
+```
+
+SD Theta Prior Predictve Plot - Non-hierarchical Plot
+```{r, include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+sd_theta_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_theta_df <- tibble(sd_prior = sd_theta_prior_sims)
+
+# --- Create the Density Plot ---
+sd_theta_prior_density_plot <- ggplot(prior_theta_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for sd_theta",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+  #coord_cartesian(xlim = c(0, quantile(sd_theta_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_theta_prior_density_plot)
+```
+
+
+sd_e prior plot - Non-hierarchical
+```{r, include=FALSE}
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000   # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+sd_e_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_e_df <- tibble(sd_prior = sd_e_prior_sims)
+
+# --- Create the Density Plot ---
+sd_e_prior_density_plot <- ggplot(prior_e_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_e_true, color = "black", linetype = "dashed", linewidth = 1) + # Changed color for variety
+  labs(
+    title = "Prior Distribution for sd_e",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    
+    x = "sd_e Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+  #coord_cartesian(xlim = c(0, quantile(sd_e_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_e_prior_density_plot)
+```
+
+Single es value
+Diagonal SD theta and SD e matrices
+e.g.
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_impute.stan')
+stan_file<-"Dalec_analysis_impute.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+# Function to generate initial values for ONE chain
+# Ensures parameters match the latest Stan model (scalar 'es')
+generate_inits <- function() {
+  list(
+    # Regime-specific intercepts and slopes
+    alpha = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    beta = rnorm(1, dat$beta_prior[1], dat$beta_prior[2]),
+    alpha_z_imp = rnorm(1, dat$alpha_prior[1], dat$alpha_prior[2]),
+    #es = abs(rnorm(dat$N, dat$es_prior[1], dat$es_prior[2])) + 0.01, # Draw near 0.5, ensure positive
+    es = abs(rnorm(1, dat$es_prior[1], dat$es_prior[2])) + 0.01), # Draw near 0.5, ensure positive
+    #Population specific es - depends on how far from the optimum the pop is
+    
+    # Population-specific SDs (consider centering near expected value, e.g., 0.1)
+    sd_theta = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    sd_e = abs(rnorm(dat$N_pops, 0.15, 0.05)) + 0.01     # Draw near 0.15, ensure positive
+    #sd_theta = abs(rnorm(1, 0.15, 0.05)) + 0.01, # Draw near 0.15, ensure positive
+    #sd_e = abs(rnorm(1, 0.15, 0.05)) + 0.01,     # Draw near 0.15, ensure positive
+ 
+    # Cholesky factors (starting with identity often works)
+    #L_Omega_theta = diag(dat$N_pops),
+    #L_Omega_e = diag(dat$N_pops)
+    
+    # Latent variables (starting at observed values is common)
+    #z_impute = rnorm(1, mean(dat$z_obs[-dat$z_missidx]),sd(dat$z_obs[-dat$z_missidx])),
+    #x_true = dat$x_obs
+  )
+}
+
+# Specify the number of chains
+n_chains <- 2 # Set to 2 (or 4 for recommended practice)
+
+# Create a list containing initial values for n_chains
+# lapply calls generate_inits() for each chain (1 to n_chains)
+init_list_multichain <- lapply(1:n_chains, function(id) generate_inits())
+
+# Make sure stan_model is compiled using the LATEST Stan code (with scalar es)
+# stan_model <- rstan::stan_model(file="your_latest_stan_file.stan") # Recompile if needed
+
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 2000,                   # Keep iterations (or increase if needed)
+    init_r = 0.01,
+    control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    init = "random"
+    )
+
+# You now have results from 2 chains in stan_fit
+```
+
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+#print(stan_fit,pars = c("beta","alpha","theta","es","sd_theta","sd_e"))
+
+print(stan_fit,
+      pars = c("alpha", "beta",
+               "alpha_z_imp[1]", 
+               "alpha_z_imp[2]",
+               "beta_z_imp[1]",
+               "beta_z_imp[2]",
+               "alpha_x_imp[1]", 
+               "alpha_x_imp[2]",
+               "beta_x_imp[1]",
+               "beta_x_imp[2]",
+
+               "sigma_z_imp",
+               "sigma_x_imp",
+               #"es[1]", "es[2]", "es[3]", 
+               "es",
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]",
+              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+              # "sd_e[1]","sd_e[2]","sd_e[3]"
+                #"det_A",
+                #"det_AM_term",
+                #"det_K_term",
+                #"det_V_term",
+                #"det_Sigma_term1",
+                #"det_Sigma"
+
+               #"L_Omega_theta[1,1]","L_Omega_theta[2,1]","L_Omega_theta[3,1]",
+               #"L_Omega_e[1,1]","L_Omega_e[2,1]","L_Omega_e[3,1]",
+               "z_impute[1]","z_impute[2]","z_impute[3]",
+               "x_impute[1]","x_impute[2]","x_impute[3]",
+               "z_error_impute[1]","z_error_impute[2]","z_error_impute[3]"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post<-rstan::extract(stan_fit)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+pairs(stan_fit, pars = c("alpha", "beta", 
+               "alpha_z_imp[1]", 
+               "alpha_z_imp[2]",
+               "beta_z_imp[1]",
+               "beta_z_imp[2]",
+               "alpha_x_imp[1]", 
+               "alpha_x_imp[2]",
+               "beta_x_imp[1]",
+               "beta_x_imp[2]",
+                      "es",
+                         "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+                         "sd_e[1]", "sd_e[2]", "sd_e[3]"))
+
+```
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+x_seq <- seq(from = min(dat$x_obs[-dat$x_missidx], na.rm=TRUE), to = max(dat$x_obs[-dat$x_missidx], na.rm=TRUE), length.out = 100)
+x_grid <- data.frame(x_seq = x_seq) # Using x_true as predictor name matching model
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+   mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+posterior_params <- stan_fit %>%
+    spread_draws(alpha,beta)
+                 
+posterior_z_impute_draws <- stan_fit %>%
+  spread_draws(z_impute[i],z_error_impute[i])
+
+posterior_x_impute_draws <- stan_fit %>%
+  spread_draws(x_impute[i])
+
+# b. Prediction across X avis
+posterior_predictions <- posterior_params %>%
+  crossing(x_pred = x_grid$x_seq) %>%
+  mutate(mu_pred = alpha + beta * x_pred)
+
+# c. Summarize
+posterior_summary <- posterior_predictions %>%
+  group_by(x_pred) %>%
+  median_qi(mu_pred, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+posterior_z_impute_summary <- posterior_z_impute_draws %>%
+  group_by(i) %>%
+  median_qi(z_impute, z_error_impute, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+posterior_x_impute_summary <- posterior_x_impute_draws %>%
+  group_by(i) %>%
+  median_qi(x_impute, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+
+```
+
+
+
+Regression plots
+```{r}
+########################################################################################################
+
+df_plot <- tibble(
+  GA = dat$z_obs,
+  GA_SD = dat$z_error_obs, 
+  regime_idx = dat$reg_idx,
+  pop_idx = dat$pop_idx
+) %>%
+  left_join(
+    tibble(
+      slp = dat$x_obs, 
+      pop_idx = 1:dat$N_pops),
+    by = "pop_idx") %>%
+  mutate(
+    Status = "Observed",
+    Status = ifelse(GA == -999, "GA Imputed", Status),
+    Status = ifelse(slp == -999, "SLP Imputed", Status),
+    Status = ifelse(GA == -999 & slp == -999, "Both Imputed", Status),
+    Sample = case_when(
+      regime_idx == 1 ~ "Field",
+      regime_idx == 2 ~ "Greenhouse",
+    )
+  )
+
+
+#Mapping imputed values onto df_plot
+for(i in 1:dat$N_z_miss){
+  df_plot$GA[dat$z_missidx[i]] <- posterior_z_impute_summary$z_impute[i]
+  df_plot$GA_SD[dat$z_missidx[i]] <- posterior_z_impute_summary$z_error_impute[i]
+}
+
+for(i in 1:dat$N_x_miss){
+  df_plot$slp[dat$x_missidx[i]] <- posterior_x_impute_summary$x_impute[i]
+  df_plot$slp[dat$x_missidx[i]+N_pops] <- posterior_x_impute_summary$x_impute[i]
+}
+
+
+  
+mypal <- ggsci::pal_aaas("default", alpha = 1)(4)
+
+
+regression.plot<-ggplot2::ggplot(data = df_plot, ggplot2::aes(y = GA, x = slp)) +  
+  ggplot2::geom_point(data=filter(df_plot, grepl("Imputed",Status)),
+                      ggplot2::aes(color = Sample, shape = Status),alpha = 0.7, size = 3, stroke = 1) +
+  ggplot2::geom_point(data=filter(df_plot, grepl("Observed",Status)),
+                      ggplot2::aes(color = Sample, shape = Status),alpha = 0.7, size = 3, stroke = 1) +
+
+  ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
+  
+  ggplot2::geom_ribbon(data=posterior_summary,ggplot2::aes(x=x_pred,ymin=.lower,ymax=.upper),linetype=2,alpha=0.1,
+                       inherit.aes = FALSE)+
+  
+  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[3],
+                      inherit.aes = FALSE)+
+
+  
+  ggplot2::theme_bw()+
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank())+
+  
+  ggplot2::ylab("GA (mm)") + ggplot2::xlab("SLP")+
+  
+  ggplot2::scale_color_manual(name="Sample Composition", values=mypal[c(1,2)], labels=c('Field', 'Greenhouse'))+
+
+  ggplot2::scale_shape_manual(name = "Status", values = c("Observed" = 19, "GA Imputed" = 4, "slp Imputed" = 8, "Both Imputed" = 13))
+
+regression.plot
+#Label points
+
+```
+
+
+Posterior vs. prior values for es
+es ~ lognormal(log(0.1),0.5); //Ensures positive es
+```{r, include=FALSE}
+mypal <- ggsci::pal_aaas("default", alpha = 1)(5)
+
+n_prior_draws<-2000
+prior_es<-rlnorm(2000,log(0.1),0.5)
+
+# Combine into a tidy format
+prior_es_draws_df <- tibble(es_sim=prior_es) %>%
+   mutate(.draw = 1:n_prior_draws, Distribution = "Prior")
+
+
+posterior_es_draws_df <- stan_fit %>%
+    spread_draws(es) %>%
+  mutate(Distribution = "Posterior")
+
+
+# c. Summarize
+posterior_summary <- posterior_params %>%
+  median_qi(es, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+plot_data<-bind_rows(
+  prior_es_draws_df %>% select(es = es_sim, Distribution),
+  posterior_es_draws_df %>% select(es = es, Distribution)
+  
+  
+)
+
+# --- 2. Create the Density Plot ---
+es_density_plot <- ggplot(plot_data, aes(x = es, color = Distribution, fill = Distribution)) +
+  geom_density(alpha = 0.7)+
+  # Labels and Theme
+  labs(
+    title = "Prior vs. Posterior Distribution for es",
+    x = "es Value",
+    y = "Density"
+  ) +
+  scale_color_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  scale_fill_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  
+
+  )
+
+print(es_density_plot)
+
+
+```
+
+
