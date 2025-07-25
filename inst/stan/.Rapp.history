@@ -1,2 +1,6 @@
 load("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing_v3/blouch/inst/stan/blouchOU_reg_direct.rds")
 load("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project - SBR2/R Packages - SBR2 - cloned/testing_v3/blouch/inst/stan/blouchOU_reg_direct_adapt_mlm_ve_nc_postpc.rds")
+load("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_mlm_vi_nc.rds")
+load("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_mlm_vi.rds")
+load("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct.rds")
+load("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_mlm_vi_nc.rds")

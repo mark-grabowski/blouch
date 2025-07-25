@@ -120,16 +120,16 @@ parameters {
   vector[N] Y;
   matrix[N,Z_adaptive] X;
 }
-
-model {
-  matrix[N,N] V;
-  vector[N] mu;
-  matrix[N,N] L_v;
-  matrix[N,Z_adaptive] pred_X;
-  //matrix[N,n_reg+Z_adaptive] dmX;
+transformed parameters{
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
-  matrix[N,n_reg] optima_matrix;
+  matrix[N,n_reg] optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
+  matrix[N,Z_adaptive] pred_X = calc_dmX(a,T_term,X); //Given measurement error in X variable, uncomment this nested statement
+  matrix[N,N] V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
+  matrix[N,N] L_v = cholesky_decompose(V);
+  vector[N] mu = optima_matrix*optima+pred_X*beta;
+}
+model {
   //vector[n_reg+Z_adaptive] optima_beta = append_row(optima,beta);
   target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
   target += exponential_lpdf(vy|vy_prior);
@@ -141,50 +141,23 @@ model {
     target += normal_lpdf(X[,i]|0,1);
     target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
   }
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_dmX(a,T_term,X); //Given measurement error in X variable, uncomment this nested statement
-  //dmX = append_col(optima_matrix,pred_X);
-  V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
-  L_v = cholesky_decompose(V);
-  //mu = dmX*optima_beta;
-  mu = optima_matrix*optima+pred_X*beta;
-
   target += multi_normal_cholesky_lpdf(Y | mu , L_v);
   target += normal_lpdf(Y_obs | Y, Y_error);
 }
 generated quantities {
-  matrix[N,N] V;
-  matrix[N,N] inv_V;
-  matrix[N,Z_adaptive] pred_X;
-  //matrix[N,n_reg+Z_adaptive] dmX;
-  //vector[n_reg+Z_adaptive] optima_beta = append_row(optima,beta);
-  matrix[N,n_reg] optima_matrix;
-  vector[N] mu;
   real g_i;
   real sigma_ii;
   real sigma_i;
   real u_i;
   vector[N] log_lik;
-  real sigma2_y = vy*(2*(log(2)/hl));
-  real a = log(2)/hl;
   vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term));
   vector[Z_adaptive] beta_e;
-
   for(i in 1:Z_adaptive){
     beta_e[i] = beta[i]* rho[i];
     }
   //LOO-CV for multivariate normal models
-
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_dmX(a,T_term,X); //Given measurement error in X variable, uncomment this nested statement
-  //pred_X = calc_dmX(a,T_term,X_pbs); //Given measurement error in X variable, uncomment this nested statement
-  //dmX = append_col(optima_matrix,pred_X);
-  V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
-  inv_V = inverse(V);
-  //mu = dmX*optima_beta;
-  mu = optima_matrix*optima+pred_X*beta;
-
-
+  matrix[N,N] V_total = V + diag_matrix(square(Y_error));
+  matrix[N,N] inv_V = inverse(V_total);
   for(i in 1:N){
       g_i = (inv_V*(Y_obs-mu))[i];
       sigma_ii = inv_V[i,i];

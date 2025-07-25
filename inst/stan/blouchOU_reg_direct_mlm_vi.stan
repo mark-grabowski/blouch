@@ -1,4 +1,4 @@
-//Blouch OU model reprogrammed
+//Blouch OU model - 2025 - Blouch v2.0
 //Combination of regime model with direct effect model
 //Regime model - for single regime painting and SIMMAPS
 //Multilevel model - varying intercepts across regimes
@@ -100,75 +100,43 @@ parameters {
 
 }
 
-model {
-  matrix[N,N] V;
-  vector[N] mu;
-  matrix[N,N] L_v;
-  //matrix[N,n_reg+Z_direct] dmX;
+transformed parameters{
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
-  matrix[N,n_reg] optima_matrix;
-  //vector[n_reg+Z_direct] optima_beta = append_row(optima,beta);
-  //hl ~ lognormal(log(0.25),0.25);
+  matrix[N,n_reg] optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes); //X data
+  matrix[N,N] V = calc_direct_V(a, sigma2_y,ta, tij);
+  matrix[N,N] L_v = cholesky_decompose(V);
+  vector[N] mu = optima_matrix*optima+X*beta;
+}
+
+model {
   target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
-  //vy ~ exponential(20);
   target += exponential_lpdf(vy|vy_prior);
-  //sigma ~ exponential(5);
-  //sigma ~ normal(0,1);
-  //beta ~ normal(6.304451,1.5);
-  //optima_bar ~ normal(-1.179507,0.75);
-  //optima ~ normal(optima_bar,sigma);
   target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
   target += normal_lpdf(beta|beta_prior[1],beta_prior[2]);
   target += normal_lpdf(optima_bar|optima_prior[1],optima_prior[2]);
   target += normal_lpdf(optima|optima_bar,sigma);
   for(i in 1:(Z_direct)){ //Given measurement error in X variable, uncomment this nested statement
-    //X[,i] ~ normal(0,1);
     target += normal_lpdf(X[,i]|0,1);
-    //X_obs[,i] ~ normal(X[,i], X_error[,i]);
     target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
   }
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes); //X data
-  //dmX = append_col(optima_matrix,X); ////Given measurement error in X variable, uncomment this statement
-  //dmX = append_col(optima_matrix,X_obs); ////Given no measurement error in X variable, uncomment this statement
-  V = calc_direct_V(a, sigma2_y,ta, tij);
-  L_v = cholesky_decompose(V);
-  //mu = dmX*optima_beta;
-  mu = optima_matrix*optima+X*beta;
-  //Y ~ multi_normal_cholesky(mu , L_v);//Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ normal(Y,Y_error); //Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ multi_normal_cholesky(mu , L_v); //Given no measurement error in Y variable, uncomment this statement
   target += multi_normal_cholesky_lpdf(Y | mu , L_v);
   target += normal_lpdf(Y_obs | Y, Y_error);
 }
 generated quantities {
-  matrix[N,N] V;
-  matrix[N,N] inv_V;
-  //matrix[N,n_reg+Z_direct] dmX;
-  matrix[N,n_reg] optima_matrix;
-  //vector[n_reg+Z_direct] optima_beta = append_row(optima,beta);
-  vector[N] mu;
   real g_i;
   real sigma_ii;
   real sigma_i;
   real u_i;
   vector[N] log_lik;
-  real sigma2_y = vy*(2*(log(2)/hl));
-  real a = log(2)/hl;
   //LOO-CV for multivariate normal models
-  V = calc_direct_V(a, sigma2_y,ta, tij);
-  inv_V = inverse(V);
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes); //X data
-  //dmX = append_col(optima_matrix,X); ////Given measurement error in X variable, uncomment this statement
-  //mu = dmX*optima_beta;
-  mu = optima_matrix*optima+X*beta;
-
+  matrix[N,N] V_total = V + diag_matrix(square(Y_error));
+  matrix[N,N] inv_V = inverse(V_total);
   for(i in 1:N){
-    g_i = (inv_V*(Y-mu))[i];
-    sigma_ii = inv_V[i,i];
-    u_i = Y[i]-g_i/sigma_ii;
-    sigma_i = 1/sigma_ii;
-
-    log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y[i]-u_i)/sigma_i);
-    }
+      g_i = (inv_V*(Y_obs-mu))[i];
+      sigma_ii = inv_V[i,i];
+      u_i = Y_obs[i]-g_i/sigma_ii;
+      sigma_i = 1/sigma_ii;
+      log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y_obs[i]-u_i)/sigma_i);
+      }
 }

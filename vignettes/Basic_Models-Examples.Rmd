@@ -1,5 +1,5 @@
 ---
-title: "Basic Model Walkthrough"
+title: "Basic Model Walkthrough - Blouch v2.0"
 author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -24,6 +24,22 @@ rm(list=ls())
 
 
 ```{r setup}
+#library(devtools)
+library(ape)
+library(slouch)
+library(treeplyr)
+library(ggplot2)
+library(ggsci)
+library(ggpubr)
+library(MASS)
+library(rstan)
+library(rethinking)
+library(geiger)
+library(phytools)
+```
+
+
+```{r setup}
 library(blouch)
 ```
 
@@ -42,6 +58,14 @@ if (!file.exists(M)) file.create(M)
 arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
 cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
     file = M, sep = "\n", append = FALSE)
+```
+
+
+```{r}
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
+tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
 ```
 
 
@@ -189,11 +213,9 @@ vy.prior.plot<-ggplot2::ggplot()+
     panel.grid.major = ggplot2::element_blank(),
     panel.grid.minor = ggplot2::element_blank())+
   
-  #labs(title="Prior vs. Posterior Distribution ",x="vy", y = "Density")+
   ggplot2::labs(title="",x="vy", y = "Density")+
   ggplot2::geom_vline(xintercept=c(vy),linetype=2)+
   
-  #scale_fill_manual(labels=c("Posterior","Prior"))+
   ggsci::scale_fill_npg(name="",labels=c("Prior"))
 
 
@@ -205,8 +227,6 @@ Prior on how shared branch lengths correspond to covariance
 ```{r}
 a.sims<-log(2)/hl.sims;
 sigma2_y.sims<-vy.sims*(2*(log(2)/hl.sims));
-#x<-seq(from=0,to=1,by=0.001)
-#V.sim<-calc_direct_V(phy,a.sims,sigma2_y.sims)
 
 plot( NULL , xlim=c(0,1) , ylim=c(0,1) , xlab="Time since MRCA" , ylab="Covariance" ,cex.axis=0.75, mgp=c(1.25,0.25,0),tcl=-0.25)
 for (i in 1:30){
@@ -243,23 +263,11 @@ prior.slope.plot
 ```
 
 
-## Not for the faint of heart
-And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in press) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020)
-
-
-```{r, eval=FALSE}
-#Stan Code
-  
-```
-
-
-
 ## Data setup for *Blouch*
 We will use the helper function blouch.direct.prep to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the helper function the number of predictor traits, 1 here. The last few variables are all the priors for the parameters above.
 
 ```{r blouch.direct.prep}
 ############################################################################################################
-#Test Blouch prep code - direct effect model - blouch.direct.prep()
 dat<-blouch.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error", hl.prior,vy.prior,optima.prior,beta.prior)
 
 ```
@@ -269,6 +277,17 @@ We will run the direct effect model first. Below are the priors used for this si
 
 For example, here are the four most important priors for the model below - these values are explored in Grabowski (in press). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
 Now let's run the direct effect model blouchOU_direct.
+
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_direct.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_direct.stan")
+```
+
+```{r Run_direct_effect_model , results='hide'}
+fit.direct<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
 
 ```{r Run_direct_effect_model , results='hide'}
 fit.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct,data = dat,chains = 2,cores=2,iter =2000)
@@ -404,6 +423,15 @@ rm(list=ls())
 *Blouch* also implements the model of adaptive evolution introduced by Hansen et al. (2008). Here the response variable evolves according to an Ornstein-Uhlenbeck process towards an optimal state that is modeled as a function of the predictor variable. Most of these steps below are similar to those above for the direct effect model so I will not go into them fully.
 
 Again, we will create a phylogeny by randomly sampling from the 10K Trees phylogeny. 
+
+```{r}
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
+tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
+```
+
+
 ```{r}
 ########################################################################################################
 #Create phylogeny
@@ -598,33 +626,21 @@ prior.slope.plot
 We will use the helper function blouch.adapt.prep() to setup the dat file for Stan. Here the name of the column in trdata$dat that contains the response variable is "Y_with_error", the associated error column name is "Y_error," the direct effect predictor column is named "X_with_error", and its associated errors is "X_error". Finally, we give the helper function the number of predictor traits, 1 here, and the prior distributions on the parameters.
 
 ```{r blouch.adapt.prep}
-#Test Blouch prep code - adaptive model
 dat<-blouch.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",hl.prior,vy.prior,optima.prior,beta.prior)
 ```
 
 
 ## Running models
-Below are the priors used for this simulation. See Grabowski (in press) for more on setting these priors. To change these values requires you to open the Stan function, in this case blouchOU_direct, and manually edit them. Unfortunately there is no way around this at present, but trust me - it will be worth it.
 
-For example, here are the four most important priors for the model below - these values are explored in Grabowski (in press). Remember, always do prior predictive simulations first - in other words, look at distributions of the values and see if they are actually biologically possible - see the exploring priors step above.
-
-```{r, eval=FALSE}
-########################################################################################################
-#Priors
-#hl ~ lognormal(log(0.25),0.25);
-#vy ~ exponential(5);
-#alpha ~ normal(2.0,0,2);
-#beta ~ normal(0.25,0.1); 
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_adapt.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_adapt.stan")
 ```
 
-And here are the lines of Stan code for setting these priors. To change the values to make them appropriate for your own analyses, you just need to change the numbers below. All Stan programs are in the Blouch/inst/stan folder and named according to the model they run. See Table S1 of Grabowski (in press) for more on the models. Remember, your priors should be based on what you know about the biological processes underlying your research question and prior predictive simulations (see McElreath 2020).
-
-
-```{r, eval=FALSE}
-#Stan Code
-
+```{r Run_adaptive_model , results='hide'}
+fit.adapt<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
 ```
-
 
 Now let's run the adaptive model blouchOU_adapt
 ```{r Run_adaptive_model , results='hide'}
@@ -998,6 +1014,17 @@ dat<-blouch.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd
 ```
 
 Priors are set as above, and the blouchOU_direct_adapt model is run here.
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_direct_adapt.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_direct_adapt.stan")
+```
+
+```{r Run_MOAM , results='hide'}
+fit.direct.adapt<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 
 ```{r Run_direct_adapt_model , results='hide'}
 fit.direct.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_adapt,data = dat,chains = 2, cores=2,iter =2000)

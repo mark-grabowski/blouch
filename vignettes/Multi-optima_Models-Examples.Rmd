@@ -1,5 +1,5 @@
 ---
-title: "Mullti-Optima Models Walkthrough"
+title: "Mullti-Optima Models Walkthrough - Blouch v2.0"
 author: "Mark Grabowski"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -26,7 +26,18 @@ rm(list=ls())
 
 
 ```{r setup}
-library(blouch)
+#library(devtools)
+library(ape)
+library(slouch)
+library(treeplyr)
+library(ggplot2)
+library(ggsci)
+library(ggpubr)
+library(MASS)
+library(rstan)
+library(rethinking)
+library(geiger)
+library(phytools)
 ```
 
 
@@ -46,6 +57,12 @@ cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256
     file = M, sep = "\n", append = FALSE)
 ```
 
+```{r}
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
+tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
+```
 
 
 ## Multi-optima Model
@@ -78,10 +95,10 @@ ape::tiplabels()
 #Paint Regimes on Tree
 #source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/Simulation Code/Functions/set.converge.regimes.R") #Macbook Pro
 
-shifts<-c(84) #Location of nodes with regime shifts
+shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes(trdata,shifts)
+trdata<-set.converge.regimes.redux(trdata,shifts)
 
 #Check if manual setting code worked
 shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
@@ -98,6 +115,10 @@ Format tree
 ```{r Format_tree}
 ############################################################################################################
 #Simulate data
+#concat.factor <- function(...){
+#  as.factor(do.call(c, lapply(list(...), as.character)))
+#}
+
 n<-length(trdata$phy$tip.label)
 regimes_internal <-trdata$phy$node.label
 regimes_tip <- trdata$dat$regimes
@@ -250,6 +271,19 @@ We will use the helper function blouch.reg.prep() to setup the dat file for Stan
 dat<-blouch.reg.prep(trdata,"Y_with_error","Y_error","regimes",hl.prior,vy.prior,optima.prior)
 ```
 
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg.stan")
+#fit.direct.prior<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_priorpc,data = dat,chains = 2,cores=2,iter =2000,algorithm=c("Fixed_param"))
+```
+
+```{r Run_MOAM , results='hide'}
+fit.reg<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 Here we run the basic Multi-optima Model, look at the results, and rstan::extract the posterior
 ```{r Run_RM , results='hide'}
 fit.reg<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg,data = dat,chains = 2,iter =2000,cores=2)
@@ -259,6 +293,7 @@ fit.reg<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg,data = dat,c
 print(fit.reg,pars = c("hl","vy","optima"))
 post<-rstan::extract(fit.reg) #rstan::extract posterior
 ```
+
 Now lets look at the prior vs. posterior plots for the parameters
 Half-life plot
 ```{r}
@@ -379,26 +414,59 @@ sigma.prior<-c(0,1)
 dat<-blouch.reg.mlm.prep(trdata,"Y_with_error","Y_error","regimes",hl.prior,vy.prior,optima.prior,sigma.prior)
 ```
 
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_mlm_vi.stan')
+stan_model <- rstan::stan_model("blouchOU_reg_mlm_vi.stan")
+```
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.mlm.vi.regimes<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
 
 ```{r}
 fit.mlm.vi.regimes<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_mlm_vi,data = dat,chains = 2,iter= 2000,cores=2)
+```
 
+```{r}
 print(fit.mlm.vi.regimes,pars = c("hl","vy","optima","optima_bar","sigma"))
 post<-rstan::extract(fit.mlm.vi.regimes)
 ```
 
+```{r}
+fit.mlm.vi.regimes<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_mlm_vi,data = dat,chains = 2,iter= 2000,cores=2)
+```
+
+
+
 Finally we will run the non-centered version of the same model, which can be used when the posterior is hard to explore and the centered version of the model produces divergences.
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_mlm_vi_nc.stan')
+stan_model <- rstan::stan_model("blouchOU_reg_mlm_vi_nc.stan")
+```
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.mlm.vi.regimes.nc<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 ```{r}
 fit.mlm.vi.regimes.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_mlm_vi_nc,data = dat,chains = 2,iter =2000,cores=2) #,control=list(adapt_delta=0.95))
+```
+
+
+```{r}
 print(fit.mlm.vi.regimes.nc,pars = c("hl","vy","optima","optima_bar","sigma"))
-###plot(rethinking::precis(fit.mlm.vi.regimes.nc,depth=2,pars = c("hl","vy","optima","optima_bar","sigma")))
 post<-rstan::extract(fit.mlm.vi.regimes.nc)
 ```
 
+Clear Workspace
 ```{r}
 rm(list=ls())
 ```
-
 
 ## Multi-optima Direct Effect Model
 We will now include both regimes painted on the tree and a direct effect predictor
@@ -427,10 +495,10 @@ ape::tiplabels()
 
 #Paint Regimes on Tree
 #source("/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch project/blouch/Simulation Code/Functions/set.converge.regimes.R") #Macbook Pro
-shifts<-c(84) #Location of nodes with regime shifts
+shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes(trdata,shifts)
+trdata<-set.converge.regimes.redux(trdata,shifts)
 
 
 #Check if manual setting code worked
@@ -616,6 +684,17 @@ dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_er
 
 ```
 
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct.stan')
+stan_model <- rstan::stan_model("blouchOU_reg_direct.stan")
+```
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.direct<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 Now we run the basic Multi-optima Direct Effect Model, look at the results, and rstan::extract the posterior
 ```{r Run_MODEM , results='hide'}
 fit.reg.direct<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct,data = dat,chains = 2,cores=2,iter=2000)
@@ -774,6 +853,18 @@ We will use the helper function blouch.reg.direct.prep() to setup the dat file f
 dat<-blouch.reg.direct.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_direct=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior)
 ```
 
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_mlm_vi.stan')
+stan_model <- rstan::stan_model("blouchOU_reg_direct_mlm_vi.stan")
+```
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.direct.mlm.vi<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 ```{r Run_MLMODEM , results='hide'}
 fit.reg.direct.mlm.vi<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi,data = dat,chains = 2,cores=2,iter = 2000)
 ```
@@ -784,8 +875,19 @@ post<-rstan::extract(fit.reg.direct.mlm.vi) #rstan::extract posterior distributi
 ```
 
 And finally the non-centered version of the Multilevel model
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_mlm_vi_nc.stan')
+stan_model <- rstan::stan_model("blouchOU_reg_direct_mlm_vi_nc.stan")
+```
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.direct.mlm.vi.nc<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 ```{r Run_MLMODEMNC , results='hide'}
-fit.reg.direct.mlm.vi<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi_nc,data = dat,chains = 2,cores=2,iter = 2000)
+fit.reg.direct.mlm.vi.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_vi_nc,data = dat,chains = 2,cores=2,iter = 2000)
 ```
 
 ```{r Print_MLMODEMNC}
@@ -798,6 +900,9 @@ post<-rstan::extract(fit.reg.direct.mlm.vi) #rstan::extract posterior distributi
 ```{r}
 rm(list=ls())
 ```
+
+########################################################################################################
+Blouch v2.0
 
 ## Multi-optima Adaptive Model
 We will now include both regimes painted on the tree and an adaptive predictor
@@ -822,10 +927,10 @@ ape::nodelabels(frame="none",adj=c(1.1,-0.4))
 ape::tiplabels()
 
 #Paint Regimes on Tree
-shifts<-c(84) #Location of nodes with regime shifts
+shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes(trdata,shifts)
+trdata<-set.converge.regimes.redux(trdata,shifts)
 
 #Check if manual setting code worked
 shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
@@ -1007,9 +1112,21 @@ We will use the helper function blouch.reg.adapt.prep() to setup the dat file fo
 dat<-blouch.reg.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_error",Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior)
 ```
 
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_adapt.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_adapt.stan")
+#fit.direct.prior<- rstan::sampling(object = blouch:::stanmodels$blouchOU_direct_priorpc,data = dat,chains = 2,cores=2,iter =2000,algorithm=c("Fixed_param"))
+```
+
+
 Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
 ```{r Run_MOAM , results='hide'}
-fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt,data = dat,chains = 2,cores = 2, iter =2000)
+#fit.reg.adapt<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt,data = dat,chains = 2,cores = 2, iter =2000)
+
+fit.reg.adapt<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+
+
 ```
 
 ```{r Print_MOAM}
@@ -1173,6 +1290,19 @@ dat<-blouch.reg.adapt.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","X
 ```
 
 
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_adapt_mlm_vi.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_adapt_mlm_vi.stan")
+```
+
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.adapt.mlm.vi<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+
 ```{r Run_MLMOAM , results='hide'}
 fit.reg.adapt.mlm.vi<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_vi,data = dat,chains = 2,cores=2,iter =2000)
 ```
@@ -1183,6 +1313,19 @@ post<-rstan::extract(fit.reg.adapt.mlm.vi)
 ```
 
 And the non-centered version
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_adapt_mlm_vi_nc.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_adapt_mlm_vi_nc.stan")
+```
+
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.adapt.mlm.vi.nc<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+
 ```{r Run_MLMOAMNC}
 fit.reg.adapt.mlm.vi.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_vi_nc,data = dat,chains = 2,cores=2,iter =2000)
 ```
@@ -1194,9 +1337,22 @@ post<-rstan::extract(fit.reg.adapt.mlm.vi.nc)
 
 From there the posteriors should be explored, compared to the priors, etc. See the Simulation Example for one example of how to do this.
 
+
+
+
+v2.0
+
 ```{r}
 rm(list=ls())
 ```
+
+```{r}
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
+tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
+source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
+```
+
 
 ## Multi-optima Direct Effect and Adaptive Model
 We will now include both regimes painted on the tree and a direct effect and adaptive predictor
@@ -1224,10 +1380,10 @@ ape::nodelabels(frame="none",adj=c(1.1,-0.4))
 ape::tiplabels()
 
 #Paint Regimes on Tree
-shifts<-c(84) #Location of nodes with regime shifts
+shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes(trdata,shifts)
+trdata<-set.converge.regimes.redux(trdata,shifts)
 
 #Check if manual setting code worked
 shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
@@ -1429,6 +1585,20 @@ We will use the helper function blouch.reg.direct.adapt.prep() to setup the dat 
 dat<-blouch.reg.direct.adapt.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior)
 
 ```
+
+And the non-centered version
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_adapt.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_direct_adapt.stan")
+```
+
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.direct.adapt<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
 
 First we run the basic Multi-optima Direct Effect Adaptive Model.
 ```{r Run_MODAM , results='hide'}
@@ -1635,7 +1805,32 @@ trdata$dat<-cbind(trdata$dat,data.frame(cbind(Y_with_error,Y_error,X_with_error,
 dat<-blouch.reg.direct.adapt.mlm.prep(trdata,"Y_with_error","Y_error",c("Xd","Xa"),c("Xd_error","Xa_error"),Z_direct=1,Z_adaptive=1,"regimes",hl.prior,vy.prior,optima.prior,beta.prior,sigma.prior)
 ```
 
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_adapt_mlm_vi.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_direct_adapt_mlm_vi.stan")
+```
+
+```{r Run_MOAM , results='hide'}
+fit.reg.direct.adapt.mlm.vi<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+
 Next we run the Multilevel version of the same model
+
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_adapt_mlm_vi.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_direct_adapt_mlm_vi.stan")
+```
+
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.direct.adapt.mlm.vi<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+
 ```{r Run_MLMODAM , results='hide'}
 fit.reg.direct.adapt.mlm.vi<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_vi,data = dat,chains = 2,cores=2,iter =2000)
 ```
@@ -1645,7 +1840,23 @@ print(fit.reg.direct.adapt.mlm.vi,pars = c("hl","vy","optima","beta","beta_e"))
 post<-rstan::extract(fit.reg.direct.adapt.mlm.vi)
 ```
 
+
 Finally we run the non-centered version of that model
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_adapt_mlm_vi_nc.stan') #Macbook Pro
+stan_model <- rstan::stan_model("blouchOU_reg_direct_adapt_mlm_vi_nc.stan")
+```
+
+
+Now we run the basic Multi-optima Adaptive Model, look at the results, and rstan::extract the posterior
+```{r Run_MOAM , results='hide'}
+fit.reg.direct.adapt.mlm.vi.nc<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
+```
+
+
+
+
 ```{r Run_MLMODAMNC , results='hide'}
 fit.reg.direct.adapt.mlm.vi.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_adapt_mlm_vi_nc,data = dat,chains = 1,cores=1,iter =2000)
 ```
