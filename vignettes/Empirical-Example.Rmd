@@ -26,6 +26,8 @@ rm(list=ls())
 library(blouch)
 ```
 
+## Blouch v2.0
+
 ## Background
 
 Tsuboi et al. (2024) collected an expansive dataset on antler size and body size and generated a new Cervidae phylogeny to test the hypothesis of Gould (1973) that the elaborate antlers of the Irish Elk were the result of a positive allometric relationship with body size. I supplemented this dataset with data on Cervidae breeding group size categories from Plard et al. (2011) and Clutton-Brock et al. (1980) to test the hypothesis that antler size is influenced by sexual selection by using breeding group size as a predictor of antler size.

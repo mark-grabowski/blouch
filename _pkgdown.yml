@@ -2,8 +2,14 @@ url: https://mark-grabowski.github.io/blouch/
 name: blouch
 navbar:
   structure:
-    left:   [intro, articles, reference, news]
-    right:  [search, github]
+    left:
+    - intro
+    - articles
+    - reference
+    - news
+    right:
+    - search
+    - github
   components:
     articles:
       text: Articles
@@ -20,8 +26,8 @@ navbar:
         href: articles/Varying_Effects_Models-Examples.html
     github:
       text: Github
-      href: "https://github.com/mark-grabowski/blouch"
-      icon: "fa-brands fa-github"
+      href: https://github.com/mark-grabowski/blouch
+      icon: fa-brands fa-github
     title: blouch
     type: inverse
 template:

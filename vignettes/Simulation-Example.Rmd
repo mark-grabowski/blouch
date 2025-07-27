@@ -27,6 +27,8 @@ rm(list=ls())
 library(blouch)
 ```
 
+## Blouch v2.0
+
 *Blouch* uses RStan to implement Stan. The following code enables some compiler optimizations to improve the estimation speed of the model, and is taken from: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
 ```{r optimizations}
 #options(mc.cores = parallel::detectCores())

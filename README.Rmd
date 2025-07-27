@@ -18,14 +18,14 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-*Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits allometric and adaptive models of continuous trait evolution in a Bayesian framework based on fixed or continuous predictors and incorporates measurement error. In addition to assigning biologically meaningful priors when compared to non-Bayesian approaches, *Blouch* includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models.
+*Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses fits allometric and adaptive models of continuous trait evolution in a Bayesian framework based on fixed or continuous predictors and incorporates measurement error. In addition to assigning biologically meaningful priors when compared to non-Bayesian approaches, *Blouch* includes new implementations of Ornstein-Ulenbeck models including allowing for varying effects (varying intercepts and varying slopes), multilevel modeling, and non-centered models. Blouch v2.0 includes functions to find the location of shifts in the optima on a phylogeny.
 
 While the front-end component of *Blouch* is written in R (R Core Team, 2023), the nuts and bolts are written in the language Stan (Carpenter et al., 2017), which allows estimation of Bayesian models using Markov chain Monte Carlo (MCMC) methods based on the Hamilton Monte Carlo sampler.
 
 ## Getting Started
 If you are just getting started with *Blouch* I recommend starting with the Empirical and Simulation Example articles available on the package website. The other articles are abbreviated versions of this example showing the various models implemented by *Blouch* - most of the steps of a preliminary analysis will be the same.
 
-*Blouch* is based on an article currently in press:
+*Blouch* is based on an:
 
 + Grabowski, M (2024). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative Hypotheses. Systematic Biology.
 

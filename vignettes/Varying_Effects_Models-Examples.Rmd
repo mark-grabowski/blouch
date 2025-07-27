@@ -27,22 +27,7 @@ rm(list=ls())
 library(blouch)
 ```
 
-
-```{r setup}
-#library(devtools)
-library(ape)
-library(slouch)
-library(treeplyr)
-library(ggplot2)
-library(ggsci)
-library(ggpubr)
-library(MASS)
-library(rstan)
-library(rethinking)
-library(geiger)
-library(phytools)
-```
-
+## Blouch v2.0
 
 ```{r}
 ########################################################################################################
@@ -59,15 +44,6 @@ arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
 cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
     file = M, sep = "\n", append = FALSE)
 ```
-
-
-```{r}
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
-tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
-```
-
 
 
 Here I walk you through the varying effects models of *Blouch*. By varying effects I mean varying intercepts and slopes, which to my knowledge has not been done previously for OU models in the adaptation-inertia framework. We will run three different models below - a multilevel model which pools information across the regimes, a non-centered version of the same model to aid in exploring the posterior, and a non-multilevel version of the varying effects model. This article is an abbreviated versions of the Simulation Example article - most of the steps of analysis will be the same and are not repeated here. Note that the Stan runs are also too few iterations and use only 1 chain and 1 core.
@@ -100,7 +76,7 @@ ape::tiplabels()
 shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes.redux(trdata,shifts)
+trdata<-set.converge.regimes(trdata,shifts)
 
 
 #Check if manual setting code worked
@@ -285,17 +261,6 @@ dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error","X_with_error","X_er
 
 ```
 
-
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_ve.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_direct_ve.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.direct.ve<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
 Multi-optima Direct Effect Model with Varying Effects
 ```{r}
 fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
@@ -460,16 +425,6 @@ dat<-blouch.reg.direct.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","
 
 
 ```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_mlm_ve.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_direct_mlm_ve.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.direct.mlm.ve<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
-```{r}
 fit.reg.direct.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
 ```
 
@@ -479,16 +434,6 @@ post<-rstan::extract(fit.reg.direct.mlm.ve)
 ```
 
 Multilevel Multi-optima Direct Effect Model with Varying Effects - Non centered
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_mlm_ve_nc.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_direct_mlm_ve_nc.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
 
 ```{r}
 fit.reg.direct.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_mlm_ve_nc,data = dat,chains = 2,cores=2,iter=2000)
@@ -502,17 +447,6 @@ post<-rstan::extract(fit.reg.direct.mlm.ve.nc)
 ```{r}
 rm(list=ls())
 ```
-
-
-```{r}
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
-tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
-```
-
-
-
 
 ## Multlevel Multi-optima Direct Effect Model with Varying Effects - Multiple Predictors
 Two regimes with two direct effect predictors and multiple slopes per optima but single alpha parameter
@@ -547,7 +481,7 @@ ape::tiplabels()
 shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes.redux(trdata,shifts)
+trdata<-set.converge.regimes(trdata,shifts)
 
 #Check if manual setting code worked
 shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
@@ -652,16 +586,6 @@ dat<-blouch.reg.direct.prep(trdata,"Y_with_error","Y_error",c("X1","X2"),c("X1_e
 
 ```
 
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_direct_ve.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_direct_ve.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.direct.ve<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
 Multi-optima Direct Efect Model with Varying Effects
 ```{r results='hide'}
 fit.reg.direct.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_direct_ve,data = dat,chains = 2,cores=2,iter =2000)
@@ -677,13 +601,6 @@ From there the posteriors should be explored, compared to the priors, etc. One c
 ```{r}
 rm(list=ls())
 
-```
-
-```{r}
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/set.converge.regimes.redux.R')
-tree.10K<-read.tree('/Users/markgrabowski/Documents/Academic/Research/Data Sets/Other Data Sets/Phylogenies/10K Trees Primate Phylogeny/10KPrimateTree.tre')
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/blouch.prep.R')
-source('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/R/simulation.helpers.R')
 ```
 
 ## Multlevel Multi-optima Adaptive Model with Varying Effects - Single Predictor
@@ -710,7 +627,7 @@ ape::tiplabels()
 shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes.redux(trdata,shifts)
+trdata<-set.converge.regimes(trdata,shifts)
 
 
 #Check if manual setting code worked
@@ -901,16 +818,6 @@ dat<-blouch.reg.adapt.prep(trdata,"Y_with_error","Y_error","X_with_error","X_err
 
 ```
 
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_adapt_ve.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_adapt_ve.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.adapt.ve<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
 First we will run the Multi-optima Adaptive Model with Varying Effects
 ```{r results='hide'}
 fit.reg.adapt.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_ve,data = dat,chains = 2,cores=2,iter=2000)
@@ -1088,16 +995,6 @@ dat<-blouch.reg.adapt.mlm.prep(trdata,"Y_with_error","Y_error","X_with_error","X
 
 ```
 
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_adapt_mlm_ve.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_adapt_mlm_ve.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.adapt.mlm.ve<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
 Now we run the Multilevel Multi-optima Adaptive Model with Varying Effects, look at the results, and rstan::extract the posterior
 ```{r results='hide'}
 fit.reg.adapt.mlm.ve<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve,data = dat,chains = 2,cores=2,iter=2000)
@@ -1109,16 +1006,6 @@ post<-rstan::extract(fit.reg.adapt.mlm.ve) #rstan::extract posterior distributio
 ```
 
 Now we run the non-centered version of the Multilevel Multi-optima Adaptive Model with Varying Effects
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/blouchOU_reg_adapt_mlm_ve.stan') #Macbook Pro
-stan_model <- rstan::stan_model("blouchOU_reg_adapt_mlm_ve_nc.stan")
-```
-
-```{r Run_MOAM , results='hide'}
-fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = stan_model,data = dat,chains = 2,iter =2000,cores=2)
-```
-
 
 ```{r results='hide'}
 fit.reg.adapt.mlm.ve.nc<- rstan::sampling(object = blouch:::stanmodels$blouchOU_reg_adapt_mlm_ve_nc,data = dat,chains = 2,cores=2,iter=2000)
@@ -1161,7 +1048,7 @@ ape::tiplabels()
 shifts<-c(88) #Location of nodes with regime shifts
 trdata<-data.frame(phy$tip.label)
 trdata<-treeplyr::make.treedata(phy,trdata)
-trdata<-set.converge.regimes.redux(trdata,shifts)
+trdata<-set.converge.regimes(trdata,shifts)
 
 #Check if manual setting code worked
 shifts.total<-c(trdata$dat$regimes,trdata$phy$node.label)
