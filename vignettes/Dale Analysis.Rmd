@@ -1,6 +1,8 @@
 ---
 title: "Dalechampia Analysis using MigSel Model"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 ########################################################################################################################
 
@@ -308,7 +310,7 @@ slope_plot_manual <- ggplot() +
   theme(plot.title = element_text(hjust = 0.5))
 
 # --- 6. Display the plot ---
-print(slope_plot_manual)
+slope_plot_manual
 ```
 
 z_obs
@@ -344,7 +346,7 @@ z_imp_prior_density_plot <- ggplot(prior_z_imp_df, aes(x = z_imp_prior)) +
   xlim(0,100)
   
 # --- Display the plot ---
-print(z_imp_prior_density_plot)
+z_imp_prior_density_plot
 ```
 
 
@@ -478,8 +480,8 @@ print(sd_e_prior_density_plot)
 Single es value
 Diagonal SD theta and SD e matrices
 e.g.
-matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
-matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta); Individual sd_thetas per population
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e); Individual sd_e per population
 
 ```{r, include=FALSE}
 setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
@@ -549,9 +551,9 @@ print(stan_fit,
       pars = c("alpha", "beta", 
                #"es[1]", "es[2]", "es[3]", 
                "es",
-               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]"
-              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
-              # "sd_e[1]","sd_e[2]","sd_e[3]"
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]",
+               "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "sd_e[1]","sd_e[2]","sd_e[3]"
                 #"det_A",
                 #"det_AM_term",
                 #"det_K_term",
@@ -639,22 +641,26 @@ posterior_predictions %>%
 
 
 
-# Regression plots - dashed line is standard regression
+# Regression plots - dashed line is standard regression for greenhouse, dotted line is for field
 ```{r}
 ########################################################################################################
 mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
 
 df<-data.frame(GA_F = dalech_dat$GA_F,GA_G = dalech_dat$GA_G,slp = dalech_dat$slp)
-standard_reg<-lm(df$GA_G~df$slp)
-reg_df<-data.frame(standard_reg$coefficients)
+standard_reg_G<-lm(df$GA_G~df$slp)
+standard_reg_F<-lm(df$GA_F~df$slp)
+
+reg_df_G<-data.frame(standard_reg_G$coefficients)
+reg_df_F<-data.frame(standard_reg_F$coefficients)
+
 
 regression.plot<-ggplot2::ggplot()+  
   ggplot2::geom_point(data=df,ggplot2::aes(y=GA_F,x=slp,color=mypal[1]))+
   ggplot2::geom_point(data=df,ggplot2::aes(y=GA_G,x=slp,color=mypal[2]))+
 
   ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
-  ggplot2::geom_abline(data=reg_df, ggplot2::aes(intercept=reg_df[1,1], slope=reg_df[2,1]),alpha=0.5 , linetype = 2)+ #Priors
-
+  ggplot2::geom_abline(data=reg_df_G, ggplot2::aes(intercept=reg_df_G[1,1], slope=reg_df_G[2,1]),alpha=0.5 , linetype = 2)+ #Priors
+  ggplot2::geom_abline(data=reg_df_F, ggplot2::aes(intercept=reg_df_F[1,1], slope=reg_df_F[2,1]),alpha=0.5 , linetype = 3)+ #Priors
     
   ggplot2::geom_ribbon(data=posterior_summary,ggplot2::aes(x=x_pred,ymin=.lower,ymax=.upper),linetype=2,alpha=0.1)+
   
@@ -793,7 +799,7 @@ stan_fit <- rstan::sampling(
     data = dat,
     chains = n_chains,             # Use the specified number of chains
     cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
-    iter = 2000,                   # Keep iterations (or increase if needed)
+    iter = 4000,                   # Keep iterations (or increase if needed)
     control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
     #init = init_list_multichain    # Pass the list of lists
     init = "random"
@@ -811,9 +817,9 @@ print(stan_fit,
       pars = c("alpha", "beta", 
                #"es[1]", "es[2]", "es[3]", 
                "es",
-               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]"
-              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
-              # "sd_e[1]","sd_e[2]","sd_e[3]"
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]",
+              "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "sd_e[1]","sd_e[2]","sd_e[3]"
                 #"det_A",
                 #"det_AM_term",
                 #"det_K_term",
@@ -1313,8 +1319,6 @@ print(es_density_plot)
 
 
 Only using GH data - no field data included
-
-
 Set up data - Complete cases first
 ```{r}
 M_order<-c("S1","S11","S12","S13","S16","S18","S19","S2","S20","S21","S22","S4","S6","S7","S8","S9") #Order of pops in migration matrix
@@ -1774,9 +1778,9 @@ print(stan_fit,
       pars = c("alpha", "beta", 
                #"es[1]", "es[2]", "es[3]", 
                "es",
-               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]"
-              # "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
-              # "sd_e[1]","sd_e[2]","sd_e[3]"
+               "A[1,1]","A[2,2]","A[3,3]","A[4,4]","A[5,5]",
+               "sd_theta[1]", "sd_theta[2]", "sd_theta[3]", 
+               "sd_e[1]","sd_e[2]","sd_e[3]"
                 #"det_A",
                 #"det_AM_term",
                 #"det_K_term",
@@ -1874,7 +1878,7 @@ standard_reg<-lm(df$GA_G~df$slp)
 reg_df<-data.frame(standard_reg$coefficients)
 
 regression.plot<-ggplot2::ggplot()+  
-  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_G,x=slp,color=mypal[2]))+
+  ggplot2::geom_point(data=df,ggplot2::aes(y=GA_G,x=slp,color=mypal[1]))+
 
   ggplot2::geom_abline(data=prior_draws_df, ggplot2::aes(intercept=alpha_sim, slope=beta_sim),alpha=0.05)+ #Priors
   ggplot2::geom_abline(data=reg_df, ggplot2::aes(intercept=reg_df[1,1], slope=reg_df[2,1]),alpha=0.5 , linetype = 2)+ #Priors
@@ -1884,7 +1888,6 @@ regression.plot<-ggplot2::ggplot()+
   
   ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
 
-  ggplot2::geom_line(data=posterior_summary,ggplot2::aes(x=x_pred,y=mu_pred),linetype=1,linewidth=1,alpha=0.85,color=mypal[1])+
 
   
   ggplot2::theme_bw()+
@@ -1893,7 +1896,7 @@ regression.plot<-ggplot2::ggplot()+
     panel.grid.minor = ggplot2::element_blank())+
   
   ggplot2::ylab("GA (mm)") + ggplot2::xlab("SLP")+
-  ggplot2::scale_color_manual(name="Sample Composition",values=mypal,labels=c('Greenhouse'))
+  ggplot2::scale_color_manual(name="Sample Composition",values=mypal[2],labels=c('Greenhouse'))
 
 regression.plot
 #Label points

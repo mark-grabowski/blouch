@@ -71,7 +71,7 @@ transformed parameters {
   vector[N_total] z_merge_error;
 
   vector[N_pops] x_merge_obs;
-  real<lower=0> es = 5;      // Fixed es
+  real<lower=0> es = 0.1;      // Fixed es
   matrix[N_pops,N_pops] A;       // Adaptation matrix
   matrix[N_pops,N_pops] AM_term; // I + A^-1 M
   vector[N_pops] mu_pops;        // Mean of y for each population

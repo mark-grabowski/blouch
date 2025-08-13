@@ -124,8 +124,11 @@ model {
   //es ~ normal(es_prior[1], es_prior[2]) T[0,]; //Prior to implementing hierarchical prior on es; T[0,] truncates the normal distribution at zero, ensuring es remains positive
   //es ~ normal(0,1) T[0,];
   es ~ lognormal(log(0.1),0.5); //Ensures positive es
-  sd_theta ~ lognormal(log(0.5), 0.2);  // Mean around 0.1 on the original scale, smaller SD on log scale
-  sd_e ~ lognormal(log(0.5), 0.2);  // Mean around 0.1 on the original scale, smaller SD on log scale
+  for(i in 1:N_pops){
+    sd_theta[i] ~ lognormal(log(0.5), 0.2);  // Mean around 0.1 on the original scale, smaller SD on log scale
+    sd_e[i] ~ lognormal(log(0.5), 0.2);  // Mean around 0.1 on the original scale, smaller SD on log scale
+  }
+
 
   //z_obs_sd ~ lognormal(log(1), 0.5); // Median 0.7, SD of log(SD) is 0.5
   x_obs_sd ~ lognormal(log(1), 0.5); // Median 0.7, SD of log(SD) is 0.5
