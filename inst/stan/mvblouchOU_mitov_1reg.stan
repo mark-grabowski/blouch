@@ -64,7 +64,6 @@ functions {
       matrix[n_traits,n_traits] C_i;
       vector[n_traits] d_i;
       real f_i;
-
       if(current_node_type != 0){ //Skip for root node
           Phi = compute_Phi(
           branch_length,
@@ -122,9 +121,11 @@ functions {
       //inv_V_i = inverse(V_i);
       }
 
-
     //omega + Phi *x_j
     if (current_node_type == 1){// Is current node is a tip, use known values
+      //print("Phi = ", Phi);
+      //print("omega = ", omega);
+
       //print("Sigma_mats = ", Sigma_mats);
       //print("V_i = ", V_i);
       //print("eigenvalues of V_i = ", eigenvalues_sym(V_i));
@@ -179,6 +180,13 @@ functions {
       m_kernals[parent] += d_i;
       r_kernals[parent] += f_i;
       }
+    //print("i=", i,
+    //  " node=", current_node,
+    //  " parent=", parent,
+    //  " branch_length=", branch_length,
+    //  " Phi=", Phi,
+    //  " Omega=", omega);
+
     }
 
     //Return the final log-likelihood
@@ -219,9 +227,9 @@ parameters {
   vector[n_traits] y_root;
   //cholesky_factor_corr[n_traits] L_Omega_P;     // Correlation matrix for P (part of LKJ prior)
   //vector<lower=0>[n_traits] sigma_P; // Standard deviations for P (part of LKJ prior)
-  cholesky_factor_corr[n_traits] L_Omega_Sigma;     // Correlation matrix for Sigma (part of LKJ prior)
+  //cholesky_factor_corr[n_traits] L_Omega_Sigma;     // Correlation matrix for Sigma (part of LKJ prior)
   //corr_matrix[n_traits] Omega_Sigma;
-  vector<lower=0.05>[n_traits] sigma_Sigma; // Standard deviations for Sigma (part of LKJ prior)
+  //vector<lower=0.05>[n_traits] sigma_Sigma; // Standard deviations for Sigma (part of LKJ prior)
   //vector [n_traits] log_sigma_Sigma; // log-scale standard deviations for Sigma (part of LKJ prior) - can have negative log values
   //real<lower=-0.95, upper=0.95> rho;  // prevent singularities
   vector[n_traits] theta_mats;
@@ -290,8 +298,12 @@ transformed parameters{
   //Omega_Sigma[2,1] = rho;
 
   matrix[n_traits, n_traits] Sigma_mats;
-  Sigma_mats = diag_pre_multiply(sigma_Sigma, L_Omega_Sigma)
-          * diag_pre_multiply(sigma_Sigma, L_Omega_Sigma)';
+  Sigma_mats[1,1] = 0.5;
+  Sigma_mats[2,1] = 0.1414214;
+  Sigma_mats[1,2] = 0.1414214;
+  Sigma_mats[2,2] = 1.0;
+  //Sigma_mats = diag_pre_multiply(sigma_Sigma, L_Omega_Sigma)
+  //        * diag_pre_multiply(sigma_Sigma, L_Omega_Sigma)';
 
   //Sigma_mats = quad_form_diag(Omega_Sigma, sigma_Sigma);
 
@@ -301,7 +313,7 @@ transformed parameters{
   //matrix[n_traits, n_traits] Sigma_mats = diag_pre_multiply(sigma_Sigma, L_Omega_Sigma) *
   //                                      diag_pre_multiply(sigma_Sigma, L_Omega_Sigma)';
 
-  Sigma_mats = 0.5 * (Sigma_mats + Sigma_mats');
+  //Sigma_mats = 0.5 * (Sigma_mats + Sigma_mats');
 
   //matrix[n_traits, n_traits] Sigma_mats; //Fix Sigma_mats at known values
   //Sigma_mats[1,1] = 0.1;
@@ -333,7 +345,7 @@ model {
     }
   }
   for(k in 1:n_traits){
-    y_true[,k] ~ normal(0, 1);
+    y_true[,k] ~ normal(0, 0.5);
   }
 
   y_root ~ normal(0, 1);
@@ -351,12 +363,12 @@ model {
 
   //Non-centered Sigmas
   //rho ~ normal(0, 1);
-  L_Omega_Sigma ~ lkj_corr_cholesky(2); //Prior for correlation matrix for Sigma
+  //L_Omega_Sigma ~ lkj_corr_cholesky(2); //Prior for correlation matrix for Sigma
   //sigma_Sigma ~ normal(0, 1.0) T[0, ];
   //rho ~ uniform(-0.95, 0.95);                // or normal(0, 0.5) for stronger regularization
   //rho ~ normal(0, 0.5);                // or normal(0, 0.5) for stronger regularization
   //sigma_Sigma ~ lognormal(log(0.8), 0.2); // Centered around true sigma_Sigma values
-  sigma_Sigma ~ lognormal(0, 0.25); // Centered around true sigma_Sigma values
+  //sigma_Sigma ~ lognormal(0, 0.25); // Centered around true sigma_Sigma values
   //Omega_Sigma ~ lkj_corr(2); //4 = Peaked at 0 - extreme correlations less possible
   //to_vector(Sigma_Z) ~ std_normal();
 
@@ -369,7 +381,7 @@ model {
   //log_lambdas_sd ~ normal(0,0.1);
 
   //Thetas
-  theta_mats ~ normal(0, 0.2); // Strong regularization around 0
+  theta_mats ~ normal(0, 1.0); // Strong regularization around 0
   //Non-centered thetas
   //theta_sd ~ normal(0,0.1);
   //theta_mu ~ normal(4,2);

@@ -499,12 +499,12 @@ n_traits <- 2
 # ------------------
 # Simulated "true" values from your setup
 true_vals <- list(
-  sigma_P = c(sqrt(0.1), sqrt(0.25)),  # From Sigma = diag(sigma) %*% Omega %*% diag(sigma)
-  sigma_Sigma = c(sqrt(0.1), sqrt(0.25)),
+  sigma_P = eigen(H_mats[[1]])$values,  # From Sigma = diag(sigma) %*% Omega %*% diag(sigma)
+  sigma_Sigma = sigma_Sigma,
   lambda = c(2, 2),   # Since H = diag(2, 2)
-  theta = c(3, 8),
-  H = matrix(c(2, 0, 0, 2), 2, 2),
-  Sigma = matrix(c(0.1, 0, 0, 0.25), 2, 2)
+  theta = theta_std, #c(3, 8),
+  H = H_mats[[1]],
+  Sigma = Sigmas[[1]]
 )
 
 # ------------------
@@ -529,9 +529,10 @@ log_lambda_sd <- rhnorm(n_sims, sigma = 0.1)
 lambda <- t(sapply(1:n_sims, function(i) exp(log_lambda_mu[i] + log_lambda_sd[i] * rnorm(n_traits))))
 
 # Priors for theta
-theta_mu <- matrix(rnorm(n_sims * n_traits, 4, 2), ncol = n_traits)
-theta_sd <- rexp(n_sims, 1)
-theta <- t(sapply(1:n_sims, function(i) theta_mu[i, ] + theta_sd[i] * rnorm(n_traits)))
+theta_prior <- rnorm(n_sims, 0, 1)
+#theta_mu <- matrix(rnorm(n_sims * n_traits, 4, 2), ncol = n_traits)
+#theta_sd <- rexp(n_sims, 1)
+#theta <- t(sapply(1:n_sims, function(i) theta_mu[i, ] + theta_sd[i] * rnorm(n_traits)))
 
 # Sample Omega_Sigma (correlation matrix) using LKJ prior from rethinking
 Omega_Sigma_list <- rlkjcorr(n_sims, K = n_traits, eta = 2)
@@ -556,7 +557,7 @@ plot_prior <- function(samples, true_value, title, xlab = "Value", xlim) {
   df <- data.frame(value = samples)
   ggplot(df, aes(x = value)) +
     geom_histogram(bins = 100, color = "black", fill = "skyblue") +
-    geom_vline(xintercept = true_value, color = "red", size = 1) +
+    geom_vline(xintercept = true_value, color = "red", linewidth = 1) +
     ggtitle(title) +
     xlab(xlab) +
     xlim(xlim) +
@@ -575,8 +576,8 @@ p4 <- plot_prior(sigma_Sigma[, 2], true_vals$sigma_Sigma[2], "Prior: sigma_Sigma
 p5 <- plot_prior(lambda[, 1], true_vals$lambda[1], "Prior: lambda[1]", xlim = c(0,5))
 p6 <- plot_prior(lambda[, 2], true_vals$lambda[2], "Prior: lambda[2]", xlim = c(0,5))
 
-p7 <- plot_prior(theta[, 1], true_vals$theta[1], "Prior: theta[1]", xlim = c(-5,15))
-p8 <- plot_prior(theta[, 2], true_vals$theta[2], "Prior: theta[2]", xlim = c(-5,15))
+p7 <- plot_prior(theta_prior, true_vals$theta[1], "Prior: theta[1]", xlim = c(-5,15))
+p8 <- plot_prior(theta_prior, true_vals$theta[2], "Prior: theta[2]", xlim = c(-5,15))
 
 p9  <- plot_prior(Sigma_11, true_vals$Sigma[1, 1], "Prior: Sigma[1,1]", xlim = c(0,5))
 p10 <- plot_prior(Sigma_12, true_vals$Sigma[1, 2], "Prior: Sigma[1,2]", xlim = c(0,5))
@@ -616,7 +617,7 @@ stan_fit <- rstan::sampling(
     data = dat,
     chains = 1, 
     cores = 1,   
-    iter = 1000,
+    iter = 500,
     control = list(max_treedepth=15, adapt_delta=0.999))
 
 ```
@@ -625,8 +626,9 @@ stan_fit <- rstan::sampling(
 ```{r}
 init = function() list(
   #L_Omega_Sigma = diag(2),
-  sigma_Sigma = c(1.0, 1.0),
-  rho = 0.1)
+  #sigma_Sigma = c(1.0, 1.0),
+  #rho = 0.1,
+  Sigma_mats = Sigmas[[1]])
 
 stan_fit <- rstan::sampling(
     object = stan_model,
@@ -643,14 +645,17 @@ stan_fit <- rstan::sampling(
 ```{r}
 print(stan_fit,
       #pars = c("H_mats", "L_Omega_P", "sigma_P", "Sigma_mats", "theta_mats","y_true" 
-      pars = c("H_mats", "Sigma_mats", "sigma_Sigma","theta_mats",
+      pars = c("H_mats", "Sigma_mats", 
+               #"sigma_Sigma",
+               "theta_mats",
+               "y_root",
                #"Omega_Sigma",
                #"rho",
-               #"y_true",
-               "Sigma_eigenvalues",
+               "y_true"
+               #"Sigma_eigenvalues",
                #"P_mats[1,1]","P_mats[1,2]","P_mats[2,1]","P_mats[2,2]",
                #"L_Omega_P[1,1]","L_Omega_P[1,2]","L_Omega_P[2,1]","L_Omega_P[2,2]"
-               "L_Omega_Sigma[1,1]","L_Omega_Sigma[1,2]","L_Omega_Sigma[2,1]","L_Omega_Sigma[2,2]"
+               #"L_Omega_Sigma[1,1]","L_Omega_Sigma[1,2]","L_Omega_Sigma[2,1]","L_Omega_Sigma[2,2]"
                #"sigma_P[1]","sigma_P[2]"
       #pars = c("H_mats", "Sigma_mats", "L_Omega_Sigma", "sigma_Sigma","sigma_Sigma_mu","sigma_Sigma_sd","theta_mats","y_true" 
 
