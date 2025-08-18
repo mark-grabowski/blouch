@@ -228,8 +228,6 @@ parameters {
   //cholesky_factor_corr[n_traits] L_Omega_P;     // Correlation matrix for P (part of LKJ prior)
   //vector<lower=0>[n_traits] sigma_P; // Standard deviations for P (part of LKJ prior)
   //cholesky_factor_corr[n_traits] L_Omega_Sigma;     // Correlation matrix for Sigma (part of LKJ prior)
-  //corr_matrix[n_traits] Omega_Sigma;
-  //vector<lower=0.05>[n_traits] sigma_Sigma; // Standard deviations for Sigma (part of LKJ prior)
   //vector [n_traits] log_sigma_Sigma; // log-scale standard deviations for Sigma (part of LKJ prior) - can have negative log values
   //real<lower=-0.95, upper=0.95> rho;  // prevent singularities
   vector[n_traits] theta_mats;

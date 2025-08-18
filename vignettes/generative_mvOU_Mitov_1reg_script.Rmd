@@ -357,7 +357,7 @@ trait_means <- colMeans(dat$y_obs)
 trait_sds   <- apply(dat$y_obs, 2, sd)
 
 # Standardize Y
-dat$y_obs <- scale(dat$y_obs, center = trait_means, scale = trait_sds)
+#dat$y_obs <- scale(dat$y_obs, center = trait_means, scale = trait_sds)
 
 # Original theta values (one per trait)
 theta_mat
@@ -608,37 +608,41 @@ stan_file<-"mvBlouchOU_mitov_1reg.stan"
 stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
 ```
 
+Testing version
+```{r}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvOU_mitov.stan')
+stan_file<-"mvOU_mitov.stan"
 
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+```
 
-Debug run with no initial values
+Debug run
 ```{r}
 stan_fit <- rstan::sampling(
     object = stan_model,
     data = dat,
     chains = 1, 
     cores = 1,   
-    iter = 500,
-    control = list(max_treedepth=15, adapt_delta=0.999))
+    iter = 500)
+
+    #control = list(max_treedepth=15, adapt_delta=0.85))
 
 ```
 
 
 ```{r}
-init = function() list(
-  #L_Omega_Sigma = diag(2),
-  #sigma_Sigma = c(1.0, 1.0),
-  #rho = 0.1,
-  Sigma_mats = Sigmas[[1]])
-
 stan_fit <- rstan::sampling(
     object = stan_model,
     data = dat,
-    chains = 1, 
-    cores = 1,   
-    iter = 2000,
-    init = init,
-    control = list(max_treedepth=15, adapt_delta=0.999))
+    chains = 2, 
+    cores = 2,   
+    iter = 2000)
+
+    #control = list(max_treedepth=15, adapt_delta=0.85))
+
 ```
+
 
 
 # Posteriors
