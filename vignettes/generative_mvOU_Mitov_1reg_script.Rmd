@@ -18,6 +18,8 @@ library(ggsci)     # For AAAS colors
 library(truncnorm)
 library(matrixcalc)
 library(phytools)
+
+library(loo) #For model comparison
 #library(blouch)
 
 #install.packages("cmdstanr", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
@@ -54,7 +56,7 @@ cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256
 
 Generate Phylogeny based on subset 10K Primate Phylogeny - using standard ape::phylo object first
 ```{r}
-N<-30 #Number of species
+N<-100 #Number of species
 n_traits <- 2
 set.seed(10) #Set seed to get same random species each time
 
@@ -94,8 +96,12 @@ theta_mat<-data.frame(matrix(c( #Theta matrix - for optima traits are evolving t
 colnames(theta_mat)<-c("OU")
 rownames(theta_mat)<-c("Trait1","Trait2")
 
-H_mat_reg1<-matrix(c(2,0, #H Matrix - 
-              0,2), nrow = 2, byrow = TRUE)
+#H_mat_reg1<-matrix(c(2,0, #H Matrix - 
+              #0,2), nrow = 2, byrow = TRUE)
+
+H_mat_reg1<-matrix(c(2,0.5, #H Matrix - 
+              0.5,2), nrow = 2, byrow = TRUE)
+
 
 H_mats<-list(H_mat_reg1)
 
@@ -103,7 +109,7 @@ sigma_Sigma <- c(0.5,1.0)  # Fixed scales
 Omega_Sigma <- matrix(c(1, 0.2,
                         0.2, 1), nrow = 2)
 
-Sigma_reg1 <- diag(sqrt(sigma_Sigma)) %*% Omega_Sigma %*% diag(sqrt(sigma_Sigma))
+Sigma_reg1 <- diag(sigma_Sigma) %*% Omega_Sigma %*% diag(sigma_Sigma)
 
 
 #Sigma_reg1<-matrix(c(0.5,0,
@@ -212,7 +218,8 @@ calc_current_node_state<-function(current_node, parent_node, parent_state, branc
   #Definitions
   
   I<-diag(n_traits) 
-  Sigma_sq_matrix <- Sigmas[[regime_id_for_branch]] %*% t(Sigmas[[regime_id_for_branch]])
+  #Sigma_sq_matrix <- Sigmas[[regime_id_for_branch]] %*% t(Sigmas[[regime_id_for_branch]])
+  Sigma_mat <- Sigmas[[regime_id_for_branch]]
   H_mat <- H_mats[[regime_id_for_branch]]
   thetas <- theta_mat[,regime_id_for_branch]
   
@@ -223,12 +230,15 @@ calc_current_node_state<-function(current_node, parent_node, parent_state, branc
   
   #2. Calculate variance at branch give specific regime - Lyapunov Equation into a Linear System
   L <- kronecker(I, H_mat) + kronecker(H_mat,I)
-  s <- vec(Sigma_sq_matrix)
-  v <- solve(L) %*% s
+  #s <- vec(Sigma_sq_matrix)
+  #v <- solve(L) %*% s
+  v <- solve(L, as.vector(Sigma_mat)) 
   V_stationary <- matrix(v,nrow = n_traits) #Stationary/Equlibrium V/CV Matrix
   V_i <- V_stationary - expm(-H_mat * branch_length) %*% V_stationary %*% expm(-t(H_mat) * branch_length) #Remaining variance over branch
   #For short branches, V_stationary - V_stationary, as expm(-H*ti) will be close to the identity matrix - so near 0
-
+  V_i <- 0.5*(V_i + t(V_i)) #Make symmetrical - NEW Additions
+  V_i <- V_i + 1e-10 * diag(n_traits) #Add jitter - NEW Additions
+  
   node_X_state <- mvrnorm(n=1, mu = E_x,Sigma = V_i) #Simulate node state based on expectation and variance
   return(node_X_state)
 }
@@ -265,7 +275,10 @@ rownames(simulated_tip_values)<-phy$tip.label
 colnames(simulated_tip_values)<-c("Trait1","Trait2")
 
 y_error_sd<-0.01
-simulated_tip_values<-simulated_tip_values+rnorm(n=N,0,y_error_sd)
+
+simulated_tip_values <- simulated_tip_values +
+  matrix(rnorm(N * n_traits, 0, y_error_sd), nrow = N, ncol = n_traits)
+
 ```
 
 
@@ -357,7 +370,12 @@ trait_means <- colMeans(dat$y_obs)
 trait_sds   <- apply(dat$y_obs, 2, sd)
 
 # Standardize Y
-#dat$y_obs <- scale(dat$y_obs, center = trait_means, scale = trait_sds)
+dat$y_obs <- scale(dat$y_obs, center = trait_means, scale = trait_sds)
+
+# Also scale the per-trait measurement error
+y_error_sd <- 0.01
+dat$y_error <- matrix(rep(y_error_sd / trait_sds, each = N), nrow = N, byrow = FALSE)
+
 
 # Original theta values (one per trait)
 theta_mat
@@ -418,7 +436,7 @@ true_vals <- list(
 
 # Priors for sigma_Sigma
 # Sample Omega_Sigma (correlation matrix) using LKJ prior from rethinking
-Omega_Sigma_list <- rlkjcorr(n_sims, K = n_traits, eta = 2)
+Omega_Sigma_list <- rlkjcorr(n_sims, K = n_traits, eta = 4)
 
 
 # ------------------
@@ -426,7 +444,7 @@ Omega_Sigma_list <- rlkjcorr(n_sims, K = n_traits, eta = 2)
 # sigma_Sigma - from a trunctuated normal distribution
 #sigma_Sigma <- cbind(rtruncnorm(n_sims , a = 0, mean = 0, sd = 1 ),rtruncnorm(n_sims , a= 0, mean = 0, sd=1))
 #sigma_Sigma <- cbind(rlnorm(n=n_sims,log(0.8),0.2),rlnorm(n=n_sims,log(0.8),0.2)) #Mean around true values - 
-sigma_Sigma <- cbind(rlnorm(n=n_sims,0,0.25),rlnorm(n=n_sims,0,0.25)) #Mean around true values - 
+sigma_Sigma <- cbind(rlnorm(n=n_sims,log(0.7),0.25),rlnorm(n=n_sims,log(0.7),0.25)) #Mean around true values - 
 
 
 # Compute full Sigma matrices
@@ -638,8 +656,8 @@ stan_fit <- rstan::sampling(
     chains = 2, 
     cores = 2,   
     iter = 2000)
-
-    #control = list(max_treedepth=15, adapt_delta=0.85))
+#    , control = list(max_treedepth=12))
+#, adapt_delta=0.85))
 
 ```
 
@@ -649,11 +667,12 @@ stan_fit <- rstan::sampling(
 ```{r}
 print(stan_fit,
       #pars = c("H_mats", "L_Omega_P", "sigma_P", "Sigma_mats", "theta_mats","y_true" 
-      pars = c("H_mats", "Sigma_mats", 
-               #"sigma_Sigma",
+      pars = c("H_mats", 
+               "Sigma_mats", 
+               "sigma_Sigma",
+              "Omega_Sigma",
                "theta_mats",
                "y_root",
-               #"Omega_Sigma",
                #"rho",
                "y_true"
                #"Sigma_eigenvalues",

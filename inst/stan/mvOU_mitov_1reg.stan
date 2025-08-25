@@ -1,6 +1,6 @@
 //08/16/2025 Programming mvOUOU model using Mitov et al. (2020) approach - working from
-//08/24/2025 - Appears to be working version
-//Multiple regime version
+//08/23/2025 - Appears to be working version
+//Single regime version
 
 functions {
    matrix compute_Phi(real branch_length, matrix H_mat){
@@ -158,10 +158,7 @@ functions {
       int current_node = post_order_path_nodes[i]; //Get current node in postorder path
       int parent = parent_of_node[current_node]; //Get current node's parent
       real branch_length = branch_lengths[current_node]; //Get branch length leading to current node - from parent
-      int current_reg = branch_regime_idx[current_node]; //Get branch regime leading to current node
       int current_node_type = node_types[current_node]; //Get current node type - 0 for root, 1 for tips, 2 for internal nodes
-
-
       matrix[n_traits,n_traits] Phi;
       vector[n_traits] omega;
       matrix[n_traits,n_traits] V_i;
@@ -184,7 +181,7 @@ functions {
           n_traits,
           branch_length,
           H_mats,
-          theta_mats[current_reg]);
+          theta_mats);
 
         V_i = compute_V_from_HSigma(
           n_traits,
@@ -323,7 +320,7 @@ model {
     y_root,
     post_order_path_nodes,
     branch_lengths,
-    branch_regime_idx, //Path of nodes from tip to root
+    branch_regime_idx,
     parent_of_node, //Path of nodes from tip to root
     node_types,
     H_mats,
