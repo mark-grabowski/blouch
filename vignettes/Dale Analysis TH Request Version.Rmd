@@ -1,0 +1,1166 @@
+---
+title: "Dalechampia Analysis using MigSel Model"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+########################################################################################################################
+
+# Simple Regression Model - single alpha, single beta, single M Matrix
+Non-hierarchical priors on all, and single values for es, sd_theta, sd_e
+
+Complete Case Example first
+```{r, include=FALSE}
+rm(list=ls())
+library(MASS)
+library(rstan)
+library(ggplot2)
+library(dplyr)
+library(tidybayes) # For spread_draws, median_qi
+library(tidyr)     # For crossing, pivot_longer
+library(ggsci)     # For AAAS colors
+library(truncnorm)
+
+######################################################################################################################
+#For execution on a local, multicore CPU with excess RAM we recommend calling
+options(mc.cores = parallel::detectCores())
+#options(mc.cores = 8)
+rstan::rstan_options(auto_write = TRUE)
+
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars")
+if (!file.exists(M)) file.create(M)
+arch <- ifelse(R.version$arch == "aarch64", "arm64", "x86_64")
+cat(paste("\nCXX14FLAGS += -O3 -mtune=native -arch", arch, "-ftemplate-depth-256"),
+    file = M, sep = "\n", append = FALSE)
+
+```
+
+Read in data
+You have the migration and geographic distance matrices given in the three files
+dmat.RData --> Geographic distances in km
+maxs.RData--> Highest unidirectional migration rates (This is the data Mark is asking for, I think) 
+sdmeans.RData--> Standard errors of the highest unidirectional migration rates
+```{r}
+#Initial values
+#set.seed(1)
+dalech.data<-read.csv('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/Dalech.csv')
+load('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/dmat.RData') #
+load('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/maxs.RData')
+load('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Migration Selection Model/Example Data/Dalechampia Data/sdmeans.RData')
+
+
+
+```
+ 
+
+## Background
+From Christophe: For this Thomas can answer better, but I think that the idea is to test how the fit between the pollinator size and the flower size (for example GA the gland area that should be larger for populations visited by larger bees) is affected by the migration among population. From my quick and dirty analysis GA measured in the greenhouse and SLP (size of the largest pollinator) are correlated. I guess the idea is to see what the regression of GA on SLP would be when migration is accounted for. Unfortunately, the effect is probably limited due to the limited migration.
+
+Note that the relationship between the size of the largest pollinator and the flower traits is good for the greenhouse measurements (see the figure below for slp vs. GA) but it is not good for the field measurements. .
+
+
+## Hypothetical DAG (Directed Acyclic Graph)
+This is the hypotheses of how the traits are related in this study.
+GA = Gland Area, SLP = size of largest pollinator, u = unobserved confounds, M = migration between populations, o = observed versions, e = measurement error, m = missing values effects - these are the causes of missing values, which are currently unknown.
+
+
+
+```{r}
+set.seed(11)
+ggplot2::theme_set(ggdag::theme_dag())
+
+dag<-ggdag::ggdag(ggdag::dagify(
+  GA ~ SLP,
+  GA ~ u,
+  SLP ~ u,
+  GAo ~ eGA,
+  GAo ~ GA,
+  GAo ~ mGA,
+  SLPo ~ eSLP,
+  SLPo ~ SLP,
+  SLPo ~ mSLP,
+  u ~ M
+  ))
+
+dag
+
+```
+
+
+Set up data - Complete cases first
+```{r}
+M_order<-c("S1","S11","S12","S13","S16","S18","S19","S2","S20","S21","S22","S26","S3","S4","S6","S7","S8","S9") #Order of pops in migration matrix
+data_order<-dalech.data$Abbr #Order of data in measurements dataset
+# [1] "S1"  "S2"  "S3"  "S4"  "S6"  "S7"  "S8"  "S9"  "S11" "S12" "S13" "S16" "S18" "S19" "S20" "S21" "S22" "S26"
+
+M_mat_raw <- data.frame(maxs) #Change variable name
+names(M_mat_raw)<-M_order #Put in order given above
+rownames(M_mat_raw)<-M_order
+
+matching_M_pops<-match(data_order,names(M_mat_raw)) #Returns index of pops in M that match order of dataset 
+
+M_mat_reorder<-M_mat_raw[matching_M_pops,matching_M_pops] #Reorder by new index
+
+N_pops <- nrow(dalech.data) #Get number of populations
+
+M_mat <- M_mat_reorder #Create variable that will be used for model
+
+# Ensure M represents proportions INTO i FROM j (rows sum to m_i)
+for(i in 1:N_pops){
+   m_i = sum(M_mat[i, -i]) # Total immigration rate into pop i not including diagonal
+   #if (m_i > 1) { # If sum of migration rates end up being greater than 1, scale by 
+  #    M_mat[i,-i] <- M_mat_raw[i,-i] / m_i
+  #    m_i = 1
+  # }
+   M_mat[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
+}
+
+M_mat<-as.matrix(M_mat)
+
+print(paste("Max off-diagonal M value:", round(max(M_mat[row(M_mat)!=col(M_mat)]),4)))
+print(paste("Range of diagonal M values:", round(min(diag(M_mat)),4), "to", round(max(diag(M_mat)),4)))
+
+
+```
+
+
+Abbr: population abbreviation
+Size: Size of the population estimated in Opedal 2017
+N: number of individuals
+Visitors: type of visitors
+slp: size of the largest visitor. For this I used the Table 2 in Amrbruster 1984 American Journal of Botany 71 (8): 11 49- 1160.
+N: number of blossom measured in the field
+ASD_F: Anther-Stigma distance field measurements
+ASDSE_F: SE of Anther-Stigma distance field measurements
+GA_F: Gland area field measurements
+GASE_F: SE of Gland area field measurements
+UBA_F: Upper bract area field measurements
+UBASE_F: SE of the upper bract area field measurements
+N: number of blossom measured in the greenhouse
+Then same things for the GH measurements
+ASD
+ASDSE
+GA
+GASE
+UBA
+UBASE
+
+2. TH request - Only using GH data - no field data included, complete cases only
+
+# Define data set - GA ~ SLP + Migration Analysis
+```{r}
+
+dalech_dat <- tibble(
+    pop = dalech.data$Abbr,
+    pop_size = dalech.data$Size, #Population size of the visitors?
+    pop_n = dalech.data$n, #Number of visits?
+    GA_G = dalech.data$GA, #Greenhouse Only
+    GA_G_SE = dalech.data$GASE,
+    GA_G_N = dalech.data$N.1,
+    slp = dalech.data$slp,
+    slp_N = dalech.data$n
+)
+
+
+M_mat<-M_mat[complete.cases(dalech_dat),complete.cases(dalech_dat)] #Reduce M matrix to complete cases of data
+
+dalech_dat<-dalech_dat[complete.cases(dalech_dat),] #Reduce data to just complete cases
+dalech_dat$slp<- dalech_dat$slp - mean(dalech_dat$slp,na.rm=TRUE) #Mean center X variable
+
+#Setup data for Stan
+GA<-dalech_dat$GA_G #GA for Greenhouse only
+GA_SE<-c(dalech_dat$GA_G_SE) #SE in greenhouse only
+GA_N_miss <- length(GA[GA==-999])
+GA_missidx <- which(GA==-999)
+
+slp<- dalech_dat$slp
+slp_N_miss <- length(slp[slp==-999]) #Count of number of missing NAs
+slp_missidx <- which(slp==-999)
+       
+N_total <- length(GA)
+N_pops <- nrow(dalech_dat)
+N_regimes <- 1
+
+#regimes
+reg_idx <- c(rep(1,N_pops))
+pop_idx <- c(1:N_pops) #Population id - for indexing to use the M matrix 
+
+#z_error_sd<-0.01
+z_error_obs<-GA_SE
+
+
+```
+
+
+Define priors
+```{r}
+alpha_prior<-c(mean(GA),1) # Stan model expects 'alpha_prior' name (unless changed in Stan)
+beta_prior<-c(0.5,0.5) # Example prior for beta (slope)
+es_prior<-c(1.0,0.5) #Half-normal prior
+
+```
+
+A:This matrix helps describe how populations adapt to their local alpha, considering the force of selection
+##############################################################################################################################
+Create Stan dat file - Mig Sel Model
+##############################################################################################################################
+Non-hierarchical priors
+```{r}
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+
+dat <- list(
+  N_pops = N_pops, #Number of populations
+
+  z_obs = as.vector(GA), # Use the final observed values
+  N_z_miss = as.integer(GA_N_miss),
+  z_missidx = as.integer(GA_missidx),
+  
+  x_obs = as.vector(slp), 
+  N_x_miss = as.integer(slp_N_miss),
+  x_missidx = as.integer(slp_missidx),
+  
+  #z_error = rep(z_error_sd, N_total),
+  z_error_obs = z_error_obs,
+
+  M = M_mat, #Migration matrix - only 1 for both greenhouse and field data, so need to use it twice.
+  
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2
+
+)
+
+print("Stan data list 'dat' created.")
+```
+
+##############################################################################################################################
+Check out priors
+##############################################################################################################################
+Prior Predictive Plot for alpha and beta
+```{r, include=FALSE}
+# --- Load necessary libraries ---
+# --- Prerequisites (Assume these are already in your R environment) ---
+# dat         <- # Your data list used for Stan
+# alpha       <- # The true intercept value used in simulation
+# beta_global <- # The true slope value used in simulation
+# x_obs       <- dat$x_obs # Extract observed x for range calculation
+
+# --- 1. Simulate lines from the PRIOR distribution ---
+# (Same as before)
+n_prior_draws <- 500
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd <- dat$alpha_prior[2]
+beta_prior_mean <- dat$beta_prior[1]
+beta_prior_sd <- dat$beta_prior[2]
+
+prior_draws <- tibble(
+  draw = 1:n_prior_draws,
+  alpha_sim = rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd),
+  beta_sim = rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+)
+
+# --- 2. Prepare observed data for plotting ---
+# (Same as before, using z_obs if that's the name you used)
+df <- data.frame(z_obs = dat$z_obs, x_obs = dat$x_obs)
+df[df==-999] <- NA
+
+# --- 5. Create the ggplot ---
+# (Plotting code uses the manually summarized data frame 'posterior_summary_manual')
+slope_plot_manual <- ggplot() +
+  # Layer 1: Observed data points
+  geom_point(data = df, aes(y = z_obs, x = x_obs)) +
+
+  # Layer 2: Prior predictive lines
+  geom_abline(
+    data = prior_draws,
+    aes(intercept = alpha_sim, slope = beta_sim),
+    color = "grey70", alpha = 0.1
+  ) +
+
+  
+  # Theme and Labels
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Prior Regression Lines",
+    y = "Trait Value (GA)",
+    x = "Environmental Predictor (slp)" # Label x-axis appropriately
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# --- 6. Display the plot ---
+print(slope_plot_manual)
+```
+
+Prior predictive check plot for es - non-hierarchical plot
+```{r, include=FALSE}
+
+# --- 1. Simulate draws from the PRIOR distribution ---
+n_draws <- 5000 # Use more draws for a smoother density plot
+es_prior_sims <- rlnorm(n = n_draws, meanlog = log(1),sdlog = 0.5)
+#es_prior_sims <- rexp(n = n_draws, rate = es_prior) # Use rate = 5 as per Stan prior
+#es_prior_sims <- rtruncnorm(n = n_draws,
+                            #a = 0,          # Lower truncation bound
+#                            b = Inf,        # Upper truncation bound (infinity)
+ #                           mean = es_prior[1],     # Mean of the *untruncated* normal
+  #                          sd = es_prior[2])       # SD of the *untruncated* normal
+
+
+
+
+
+mypal <- ggsci::pal_npg("nrc", alpha = 0.4)(1)
+mypal[2]<-palette()[1]
+
+
+# Create a data frame for plotting
+prior_df <- tibble(es_prior = es_prior_sims)
+
+# --- 2. Create the Density Plot ---
+es_prior_density_plot <- ggplot(prior_df, aes(x = es_prior)) +
+  # Add density layer
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  
+  # Add vertical line for the true value
+  #geom_vline(xintercept = es_true, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_min, color = "black", linetype = "dashed", linewidth = 1) +
+  #geom_vline(xintercept = es_max, color = "black", linetype = "dashed", linewidth = 1) +
+  
+  # Labels and Theme
+  labs(
+    title = "Prior Distribution vs True Values for 'es'",
+    #subtitle = paste0("Prior: Truncated Normal(mean = 0.5, sd = 0.1)"),
+    x = "es Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) +
+  coord_cartesian(xlim = c(0, quantile(es_prior_sims, 0.99))) # Zoom x-axis (optional)
+
+
+# --- 3. Display the plot ---
+print(es_prior_density_plot)
+
+```
+
+SD Theta Prior Predictve Plot - Non-hierarchical Plot
+```{r, include=FALSE}
+
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000      # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+#sd_theta_prior_sims <-extraDistr::rhnorm(n = n_draws, sigma=0.2)
+sd_theta_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_theta_df <- tibble(sd_prior = sd_theta_prior_sims)
+
+# --- Create the Density Plot ---
+sd_theta_prior_density_plot <- ggplot(prior_theta_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_theta_true, color = "black", linetype = "dashed", linewidth = 1) +
+  labs(
+    title = "Prior Distribution for sd_theta",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    x = "sd_theta Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+  #coord_cartesian(xlim = c(0, quantile(sd_theta_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_theta_prior_density_plot)
+```
+
+
+sd_e prior plot - Non-hierarchical
+```{r, include=FALSE}
+
+# --- Define True Value and Simulate Prior ---
+n_draws <- 5000   # Use more draws for a smoother density
+
+# Simulate from the Half-Normal(sigma=0.2) prior used in the R code block
+sd_e_prior_sims <-rlnorm(n = n_draws, meanlog=log(0.5), sdlog = 0.2)
+
+# Create a data frame for plotting
+prior_e_df <- tibble(sd_prior = sd_e_prior_sims)
+
+# --- Create the Density Plot ---
+sd_e_prior_density_plot <- ggplot(prior_e_df, aes(x = sd_prior)) +
+  geom_density(fill = "grey80", color = "grey30", alpha = 0.7) +
+  #geom_vline(xintercept = sd_e_true, color = "black", linetype = "dashed", linewidth = 1) + # Changed color for variety
+  labs(
+    title = "Prior Distribution for sd_e",
+    subtitle = paste0("Prior: Lognormal (meanlog=log(0.1),sdlog=0.5)"),
+    
+    x = "sd_e Value",
+    y = "Prior Density"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  ) #+
+  #coord_cartesian(xlim = c(0, quantile(sd_e_prior_sims, 0.99))) # Zoom x-axis
+
+# --- Display the plot ---
+print(sd_e_prior_density_plot)
+```
+
+##############################################################################################################################
+Load Model
+##############################################################################################################################
+Single es value
+Diagonal SD theta and SD e matrices
+e.g.
+matrix[N_pops, N_pops] diag_sd_theta = diag_matrix(sd_theta);
+matrix[N_pops, N_pops] diag_sd_e = diag_matrix(sd_e);
+
+MigSel Model
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest.stan')
+stan_file<-"Dalec_analysis_THRequest.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+```
+
+##############################################################################################################################
+Debug Run
+##############################################################################################################################
+```{r, include=FALSE}
+# --- Updated sampling call ---
+stan_fit <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = 2,             # Use the specified number of chains
+    cores = min(2, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 500                   # Keep iterations (or increase if needed)
+    #control = list(max_treedepth = 12) # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    )
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_MS <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+
+```
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+print(stan_fit_MS,
+      pars = c("alpha", "beta", 
+               "es",
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e",
+                "half_life"
+
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_MS<-rstan::extract(stan_fit_MS)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit_MS, 
+            pars = c("alpha", "beta", 
+               "es",
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ))
+
+```
+
+
+##############################################################################################################################
+Create Stan dat file - OLS Version
+##############################################################################################################################
+
+Non-hierarchical priors
+```{r}
+# --- Setup for Stan ---
+# (This part remains largely the same, just ensure variable names match)
+
+dat <- list(
+  N_pops = N_pops, #Number of populations
+
+  z_obs = as.vector(GA), # Use the final observed values
+  N_z_miss = as.integer(GA_N_miss),
+  z_missidx = as.integer(GA_missidx),
+  
+  x_obs = as.vector(slp), 
+  N_x_miss = as.integer(slp_N_miss),
+  x_missidx = as.integer(slp_missidx),
+  
+  #z_error = rep(z_error_sd, N_total),
+  z_error_obs = z_error_obs,
+
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior
+
+)
+
+print("Stan data list 'dat' created.")
+```
+
+##############################################################################################################################
+Load Model
+##############################################################################################################################
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_OLS.stan')
+stan_file<-"Dalec_analysis_THRequest_OLS.stan"
+
+stan_model_OLS<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+```
+
+##############################################################################################################################
+Run model OLS
+##############################################################################################################################
+
+```{r, include=FALSE}
+# --- Updated sampling call ---
+stan_fit_OLS <- rstan::sampling(
+    object = stan_model_OLS,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(max_treedepth = 20) # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    )
+
+```
+
+##############################################################################################################################
+Get posteriors
+##############################################################################################################################
+```{r}
+print(stan_fit_OLS,
+      pars = c("alpha", "beta", "sigma_e"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_OLS<-rstan::extract(stan_fit_OLS)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+pairs(stan_fit_OLS, pars = c("alpha", "beta", "sigma_e", "z_true_pops"))
+
+```
+
+##############################################################################################################################
+Make Combined Regression Plot
+##############################################################################################################################
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+slp_seq <- seq(from = min(dat$x_obs, na.rm=TRUE), to = max(dat$x_obs, na.rm=TRUE), length.out = 100)
+new_x_data <- data.frame(slp = slp_seq)
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine priors into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+   mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+#https://mjskay.github.io/tidybayes/articles/tidy-brms.html
+
+posterior_params_MS<- stan_fit_MS %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "M-S Model")
+
+
+posterior_params_OLS <- stan_fit_OLS %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "OLS Regression")
+
+# Combine the tidy draws into a single data frame
+combined_draws <- bind_rows(posterior_params_OLS, posterior_params_MS)
+
+
+predictions <- combined_draws %>%
+  # This is the key step: cross-join with the new data for the x-axis
+  tidyr::expand_grid(new_x_data) %>%
+  # Calculate the predicted y value for each draw and each x value
+  dplyr::mutate(predicted_y = alpha + beta * slp)
+
+
+# Summarize the posterior predictions to get the mean line
+mean_predictions <- predictions %>%
+  dplyr::group_by(model, slp) %>%
+  dplyr::summarise(mean_y = mean(predicted_y), .groups = 'drop')
+
+```
+
+
+
+# Regression plots - dashed line is standard regression
+```{r}
+# Assuming the first R chunk is run and the `predictions` data frame is created
+# correctly, with columns `slp`, `predicted_y`, and `model`.
+
+########################################################################################################
+# Regression plots - dashed line is standard regression
+########################################################################################################
+# Assuming the `mean_predictions` data frame is ready.
+
+# Regression plots - dashed line is standard regression
+########################################################################################################
+mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
+obs_df <- data.frame(GA_G = dalech_dat$GA_G, slp = dalech_dat$slp)
+
+regression.plot <- ggplot2::ggplot() +
+  
+  # Plot the observed data points
+  ggplot2::geom_point(
+    data = obs_df,
+    ggplot2::aes(y = GA_G, x = slp),
+    color = mypal[3]
+  ) +
+  
+  # Plot the regression lines using the summarized data
+  ggplot2::geom_line(
+    data = mean_predictions,
+    ggplot2::aes(x = slp, y = mean_y, linetype = model),
+    alpha = 0.5,
+    #color = mypal[1],
+    size = 1
+  ) +
+  
+  ggplot2::theme_bw() +
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank()
+  ) +
+  
+  ggplot2::ylab("GA (mm)") + 
+  ggplot2::xlab("SLP") +
+  
+  # Set the manual scale for linetype
+  ggplot2::scale_linetype_manual(
+    name = "Model Type",
+    values = c("OLS Regression" = "dotted", "M-S Model" = "solid")
+  )
+
+regression.plot
+```
+
+
+Posterior vs. prior values for es
+es ~ lognormal(log(0.1),0.5); //Ensures positive es
+```{r}
+mypal <- ggsci::pal_aaas("default", alpha = 1)(5)
+
+n_prior_draws<-2000
+prior_es<-rlnorm(2000,log(1),0.5)
+
+# Combine into a tidy format
+prior_es_draws_df <- tibble(es_sim=prior_es) %>%
+   mutate(.draw = 1:n_prior_draws, Distribution = "Prior")
+
+
+posterior_es_draws_df <- stan_fit_MS %>%
+    spread_draws(es) %>%
+  mutate(Distribution = "Posterior")
+
+# c. Summarize
+posterior_summary <- posterior_es_draws_df %>%
+  median_qi(es, .width = 0.89) %>% # Use your desired CI width
+  ungroup()
+
+plot_data<-bind_rows(
+  prior_es_draws_df %>% select(es = es_sim, Distribution),
+  posterior_es_draws_df %>% select(es = es, Distribution)
+  
+  
+)
+
+# --- 2. Create the Density Plot ---
+es_density_plot <- ggplot(plot_data, aes(x = es, color = Distribution, fill = Distribution)) +
+  geom_density(alpha = 0.7)+
+  # Labels and Theme
+  labs(
+    title = "Prior vs. Posterior Distribution for es",
+    x = "es Value",
+    y = "Density"
+  ) +
+  scale_color_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  scale_fill_manual(name="Distribution",values=mypal[c(3,4)],labels=c('Posterior', 'Prior')) +
+  
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  
+
+  )
+
+print(es_density_plot)
+
+
+```
+##############################################################################################################################
+Create Stan dat file - MS model - fixed es model, starting at 0.01
+##############################################################################################################################
+
+
+```{r}
+
+dat <- list(
+  N_pops = N_pops, #Number of populations
+
+  z_obs = as.vector(GA), # Use the final observed values
+  N_z_miss = as.integer(GA_N_miss),
+  z_missidx = as.integer(GA_missidx),
+  
+  x_obs = as.vector(slp), 
+  N_x_miss = as.integer(slp_N_miss),
+  x_missidx = as.integer(slp_missidx),
+  
+  #z_error = rep(z_error_sd, N_total),
+  z_error_obs = z_error_obs,
+
+  M = M_mat, #Migration matrix - only 1 for both greenhouse and field data, so need to use it twice.
+  
+  alpha_prior = alpha_prior,
+  beta_prior = beta_prior,
+  es_prior = es_prior,
+  nu_cor = 2,
+  es = 0.01
+  
+
+)
+
+print("Stan data list 'dat' created.")
+
+```
+
+##############################################################################################################################
+Load Model - Fixed es value
+##############################################################################################################################
+
+
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_fixed_es.stan')
+stan_file<-"Dalec_analysis_THRequest_fixed_es.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_MS_es_001 <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+
+```
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+print(stan_fit_MS_es_001,
+      pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e",
+               "half_life"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_MS_es_001<-rstan::extract(stan_fit_MS_es_001)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit_MS_es_001, 
+            pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ))
+
+```
+
+##############################################################################################################################
+Change to es = 10%
+##############################################################################################################################
+
+```{r}
+dat$es <-0.1
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_MS_es_01 <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+
+```
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+print(stan_fit_MS_es_01,
+      pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_MS_es_001<-rstan::extract(stan_fit_MS_es_001)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit_MS_es_01, 
+            pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ))
+
+```
+
+##############################################################################################################################
+Change to es = 100%
+##############################################################################################################################
+
+```{r}
+dat$es <-1
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_MS_es_1 <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+
+```
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+print(stan_fit_MS_es_1,
+      pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_MS_es_1<-rstan::extract(stan_fit_MS_es_1)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit_MS_es_1, 
+            pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ))
+
+```
+
+
+##############################################################################################################################
+Change to es = 2.16
+##############################################################################################################################
+
+```{r}
+dat$es <-2.16
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_MS_es_216 <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+
+```
+
+# Posteriors, inclduing first 5 population specific adaptation matrix (A) parameters
+```{r}
+print(stan_fit_MS_es_216,
+      pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_MS_es_216<-rstan::extract(stan_fit_MS_es_216)
+```
+
+Pairs plot for estimated parameters
+```{r, include=FALSE}
+
+pairs(stan_fit_MS_es_216, 
+            pars = c("alpha", "beta", 
+               "A[1,1]","A[2,2]",
+               "sd_theta",
+               "sd_e"
+               ))
+
+```
+
+########
+
+##############################################################################################################################
+Make Combined Regression Plot for all es runs
+##############################################################################################################################
+
+```{r, include=FALSE}
+# --- 1. Generate sequence of x values for prediction lines/ribbons ---
+slp_seq <- seq(from = min(dat$x_obs, na.rm=TRUE), to = max(dat$x_obs, na.rm=TRUE), length.out = 100)
+new_x_data <- data.frame(slp = slp_seq)
+
+# --- 2. Simulate draws from PRIOR distribution ---
+n_prior_draws <- 100 # Number of faint lines
+alpha_prior_mean <- dat$alpha_prior[1]
+alpha_prior_sd   <- dat$alpha_prior[2]
+beta_prior_mean  <- dat$beta_prior[1]
+beta_prior_sd    <- dat$beta_prior[2]
+
+# Simulate alpha draws for each regime (matrix: draws x regimes)
+prior_alphas <- rnorm(n_prior_draws, alpha_prior_mean, alpha_prior_sd)
+
+# Simulate beta draws
+prior_betas <- rnorm(n_prior_draws, beta_prior_mean, beta_prior_sd)
+
+# Combine priors into a tidy format
+prior_draws_df <- tibble(alpha_sim=prior_alphas) %>%
+   mutate(beta_sim = prior_betas, .draw = 1:n_prior_draws)
+
+# --- 4. Process and Summarize POSTERIOR samples ---
+# (Steps 4a, 4b, 4c: Extract, Predict, Summarize - remain the same as previous version)
+# a. Extract
+#https://mjskay.github.io/tidybayes/articles/tidy-brms.html
+
+posterior_params_MS<- stan_fit_MS %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 2.16")
+
+posterior_params_216<- stan_fit_MS_es_216 %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 2.16")
+
+
+posterior_params_MS_001 <- stan_fit_MS_es_001 %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 0.01")
+
+posterior_params_MS_01 <- stan_fit_MS_es_01 %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 0.1")
+
+
+posterior_params_MS_1 <- stan_fit_MS_es_1 %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 1.0")
+
+# Combine the tidy draws into a single data frame
+combined_draws <- bind_rows(posterior_params_216, posterior_params_MS_001, posterior_params_MS_01, posterior_params_MS_1)
+
+
+predictions <- combined_draws %>%
+  # This is the key step: cross-join with the new data for the x-axis
+  tidyr::expand_grid(new_x_data) %>%
+  # Calculate the predicted y value for each draw and each x value
+  dplyr::mutate(predicted_y = alpha + beta * slp)
+
+
+# Summarize the posterior predictions to get the mean line
+mean_predictions <- predictions %>%
+  dplyr::group_by(model, slp) %>%
+  dplyr::summarise(mean_y = mean(predicted_y), .groups = 'drop')
+
+```
+
+
+
+# Regression plots - dashed line is standard regression
+```{r}
+# Assuming the first R chunk is run and the `predictions` data frame is created
+# correctly, with columns `slp`, `predicted_y`, and `model`.
+
+########################################################################################################
+# Regression plots - dashed line is standard regression
+########################################################################################################
+# Assuming the `mean_predictions` data frame is ready.
+
+# Regression plots - dashed line is standard regression
+########################################################################################################
+mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
+obs_df <- data.frame(GA_G = dalech_dat$GA_G, slp = dalech_dat$slp)
+
+regression.plot <- ggplot2::ggplot() +
+  
+  # Plot the observed data points
+  ggplot2::geom_point(
+    data = obs_df,
+    ggplot2::aes(y = GA_G, x = slp),
+    color = mypal[3]
+  ) +
+  
+  # Plot the regression lines using the summarized data
+  ggplot2::geom_line(
+    data = mean_predictions,
+    ggplot2::aes(x = slp, y = mean_y, linetype = model),
+    alpha = 0.5,
+    #color = mypal[1],
+    size = 1
+  ) +
+  
+  ggplot2::theme_bw() +
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank()
+  ) +
+  
+  ggplot2::ylab("GA (mm)") + 
+  ggplot2::xlab("SLP") +
+  
+  # Set the manual scale for linetype
+  ggplot2::scale_linetype_manual(
+    name = "es Parameter",
+    values = c("es = 2.16" = "solid","es = 0.01" = "dotted", "es = 0.1" = "dotdash","es = 1.0" = "twodash" )
+  )
+
+regression.plot
+```
+

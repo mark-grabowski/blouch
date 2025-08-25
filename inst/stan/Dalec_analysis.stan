@@ -49,6 +49,9 @@ parameters {
   vector[N_x_miss] x_impute; //Iputed x values
   real alpha;
   real beta;
+  real alpha_OLS;
+  real beta_OLS;
+
   //vector[N_regimes] alpha;         // Intercept
   //vector[N_regimes] beta;           // Slope
   real<lower=0> es;      // Individual-level es
@@ -121,6 +124,9 @@ model {
   // Priors
   alpha ~ normal(alpha_prior[1], alpha_prior[2]);
   beta ~ normal(beta_prior[1], beta_prior[2]);
+  alpha_OLS ~ normal(alpha_prior[1], alpha_prior[2]);
+  beta_OLS ~ normal(beta_prior[1], beta_prior[2]);
+
   //es ~ normal(es_prior[1], es_prior[2]) T[0,]; //Prior to implementing hierarchical prior on es; T[0,] truncates the normal distribution at zero, ensuring es remains positive
   //es ~ normal(0,1) T[0,];
   es ~ lognormal(log(0.1),0.5); //Ensures positive es

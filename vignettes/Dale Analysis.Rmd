@@ -91,28 +91,25 @@ dag
 
 Set up data - Complete cases first
 ```{r}
-M_order<-c("S1","S11","S12","S13","S16","S18","S19","S2","S20","S21","S22","S4","S6","S7","S8","S9") #Order of pops in migration matrix
+M_order<-c("S1","S11","S12","S13","S16","S18","S19","S2","S20","S21","S22","S26","S3","S4","S6","S7","S8","S9") #Order of pops in migration matrix
 data_order<-dalech.data$Abbr #Order of data in measurements dataset
 # [1] "S1"  "S2"  "S3"  "S4"  "S6"  "S7"  "S8"  "S9"  "S11" "S12" "S13" "S16" "S18" "S19" "S20" "S21" "S22" "S26"
 
 M_mat_raw <- data.frame(maxs) #Change variable name
 names(M_mat_raw)<-M_order #Put in order given above
+rownames(M_mat_raw)<-M_order
 
 matching_M_pops<-match(data_order,names(M_mat_raw)) #Returns index of pops in M that match order of dataset 
 
-#S3 and S26 missing from Migration dataset
-matching_M_pops<-matching_M_pops[-c(3,18)] #Remove indexes
-dalech_data_subset<-dalech.data[-c(3,18),] #Remove populations missing from M info
+M_mat_reorder<-M_mat_raw[matching_M_pops,matching_M_pops] #Reorder by new index
 
-M_mat_raw_subset<-M_mat_raw[matching_M_pops,matching_M_pops] #Reorder by new index
+N_pops <- nrow(dalech.data) #Get number of populations
 
-N_pops <- nrow(dalech_data_subset) #Get reduced number of populations
-
-M_mat <- M_mat_raw_subset #Create variable that will be used for model
+M_mat <- M_mat_reorder #Create variable that will be used for model
 
 # Ensure M represents proportions INTO i FROM j (rows sum to m_i)
 for(i in 1:N_pops){
-   m_i = sum(M_mat_raw_subset[i, -i]) # Total immigration rate into pop i not including diagonal
+   m_i = sum(M_mat[i, -i]) # Total immigration rate into pop i not including diagonal
    #if (m_i > 1) { # If sum of migration rates end up being greater than 1, scale by 
   #    M_mat[i,-i] <- M_mat_raw[i,-i] / m_i
   #    m_i = 1
@@ -152,22 +149,24 @@ UBASE
 
 # Define data set - GA ~ SLP + Migration Analysis
 ```{r}
-
 dalech_dat <- tibble(
-    pop = dalech_data_subset$Abbr,
-    pop_size = dalech_data_subset$Size, #What is this exactly? Population size of the visitors?
-    pop_n = dalech_data_subset$n, #Number of visits?
-    GA_F = dalech_data_subset$GA_F, #Field
-    GA_F_SE = dalech_data_subset$GASE_F,
-    GA_F_N = dalech_data_subset$N,
-    GA_G = dalech_data_subset$GA, #Greenhouse
-    GA_G_SE = dalech_data_subset$GASE,
-    GA_G_N = dalech_data_subset$N.1,
-    slp = dalech_data_subset$slp,
-    slp_N = dalech_data_subset$n
+    pop = dalech.data$Abbr,
+    pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+    pop_n = dalech.data$n, #Number of visits?
+    GA_F = dalech.data$GA_F, #Field
+    GA_F_SE = dalech.data$GASE_F,
+    GA_F_N = dalech.data$N,
+    GA_G = dalech.data$GA, #Greenhouse
+    GA_G_SE = dalech.data$GASE,
+    GA_G_N = dalech.data$N.1,
+    slp = dalech.data$slp,
+    slp_N = dalech.data$n
 )
 
+```
 
+
+```{r}
 M_mat<-M_mat[complete.cases(dalech_dat),complete.cases(dalech_dat)] #Reduce M matrix to complete cases of data
 dalech_dat<-dalech_dat[complete.cases(dalech_dat),] #Reduce data to just complete cases
 
@@ -1316,82 +1315,20 @@ print(es_density_plot)
 
 ```
 
-
-
-Only using GH data - no field data included
-Set up data - Complete cases first
-```{r}
-M_order<-c("S1","S11","S12","S13","S16","S18","S19","S2","S20","S21","S22","S4","S6","S7","S8","S9") #Order of pops in migration matrix
-data_order<-dalech.data$Abbr #Order of data in measurements dataset
-# [1] "S1"  "S2"  "S3"  "S4"  "S6"  "S7"  "S8"  "S9"  "S11" "S12" "S13" "S16" "S18" "S19" "S20" "S21" "S22" "S26"
-
-M_mat_raw <- data.frame(maxs) #Change variable name
-names(M_mat_raw)<-M_order #Put in order given above
-
-matching_M_pops<-match(data_order,names(M_mat_raw)) #Returns index of pops in M that match order of dataset 
-
-#S3 and S26 missing from Migration dataset
-matching_M_pops<-matching_M_pops[-c(3,18)] #Remove indexes
-dalech_data_subset<-dalech.data[-c(3,18),] #Remove populations missing from M info
-
-M_mat_raw_subset<-M_mat_raw[matching_M_pops,matching_M_pops] #Reorder by new index
-
-N_pops <- nrow(dalech_data_subset) #Get reduced number of populations
-
-M_mat <- M_mat_raw_subset #Create variable that will be used for model
-
-# Ensure M represents proportions INTO i FROM j (rows sum to m_i)
-for(i in 1:N_pops){
-   m_i = sum(M_mat_raw_subset[i, -i]) # Total immigration rate into pop i not including diagonal
-   #if (m_i > 1) { # If sum of migration rates end up being greater than 1, scale by 
-  #    M_mat[i,-i] <- M_mat_raw[i,-i] / m_i
-  #    m_i = 1
-  # }
-   M_mat[i,i] <- -m_i # Set diagonal M[i,i] = -m_i
-}
-
-M_mat<-as.matrix(M_mat)
-
-print(paste("Max off-diagonal M value:", round(max(M_mat[row(M_mat)!=col(M_mat)]),4)))
-print(paste("Range of diagonal M values:", round(min(diag(M_mat)),4), "to", round(max(diag(M_mat)),4)))
-
-
-```
-
-
-Abbr: population abbreviation
-Size: Size of the population estimated in Opedal 2017
-N: number of individuals
-Visitors: type of visitors
-slp: size of the largest visitor. For this I used the Table 2 in Amrbruster 1984 American Journal of Botany 71 (8): 11 49- 1160.
-N: number of blossom measured in the field
-ASD_F: Anther-Stigma distance field measurements
-ASDSE_F: SE of Anther-Stigma distance field measurements
-GA_F: Gland area field measurements
-GASE_F: SE of Gland area field measurements
-UBA_F: Upper bract area field measurements
-UBASE_F: SE of the upper bract area field measurements
-N: number of blossom measured in the greenhouse
-Then same things for the GH measurements
-ASD
-ASDSE
-GA
-GASE
-UBA
-UBASE
+2. TH request - Only using GH data - no field data included, complete cases only
 
 # Define data set - GA ~ SLP + Migration Analysis
 ```{r}
 
 dalech_dat <- tibble(
-    pop = dalech_data_subset$Abbr,
-    pop_size = dalech_data_subset$Size, #What is this exactly? Population size of the visitors?
-    pop_n = dalech_data_subset$n, #Number of visits?
-    GA_G = dalech_data_subset$GA, #Greenhouse
-    GA_G_SE = dalech_data_subset$GASE,
-    GA_G_N = dalech_data_subset$N.1,
-    slp = dalech_data_subset$slp,
-    slp_N = dalech_data_subset$n
+    pop = dalech.data$Abbr,
+    pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+    pop_n = dalech.data$n, #Number of visits?
+    GA_G = dalech.data$GA, #Greenhouse
+    GA_G_SE = dalech.data$GASE,
+    GA_G_N = dalech.data$N.1,
+    slp = dalech.data$slp,
+    slp_N = dalech.data$n
 )
 
 
@@ -1406,7 +1343,6 @@ dalech_dat$slp<- dalech_dat$slp - mean(dalech_dat$slp,na.rm=TRUE) #Mean center X
 #
 
 #Setup data for Stan
-
 GA_comb <-c(dalech_dat$GA_G) #GA in both F and G
 GA_SE_comb <-c(dalech_dat$GA_G_SE) #SE in both F and G
 GA_N_pops_comb<-c(dalech_dat$GA_G_N) #Population sizes in both F and G
@@ -1427,7 +1363,7 @@ pop_idx <- c(1:N_pops) #Population id - for indexing to use the M matrix
 
 #z_error_sd<-0.01
 z_error_obs<-GA_SE_comb*sqrt(GA_N_pops_comb)
-x_error_sd<-0.01
+x_error_sd<-0.0000001
 
 
 ```
@@ -1990,11 +1926,11 @@ matching_M_pops<-match(data_order,names(M_mat_raw)) #Returns index of pops in M 
 
 #S3 and S26 missing from Migration dataset
 matching_M_pops<-matching_M_pops[-c(3,18)] #Remove indexes
-dalech_data_subset<-dalech.data[-c(3,18),] #Remove populations missing from M info
+dalech.data<-dalech.data[-c(3,18),] #Remove populations missing from M info
 
 M_mat_raw_subset<-M_mat_raw[matching_M_pops,matching_M_pops] #Reorder by new index
 
-N_pops <- nrow(dalech_data_subset) #Get reduced number of populations
+N_pops <- nrow(dalech.data) #Get reduced number of populations
 
 M_mat <- M_mat_raw_subset #Create variable that will be used for model
 
@@ -2049,17 +1985,17 @@ For this Thomas can answer better, but I think that the idea is to test how the 
 ```{r, include = FALSE}
 
 dalech_dat <- tibble(
-  pop = dalech_data_subset$Abbr,
-  pop_size = dalech_data_subset$Size, #What is this exactly? Population size of the visitors?
-  pop_n = dalech_data_subset$n, #Number of visits?
-  GA_F = dalech_data_subset$GA_F, #Field
-  GA_F_SE = dalech_data_subset$GASE_F,
-  GA_F_N = dalech_data_subset$N,
-  GA_G = dalech_data_subset$GA, #Greenhouse
-  GA_G_SE = dalech_data_subset$GASE,
-  GA_G_N = dalech_data_subset$N.1,
-  slp = dalech_data_subset$slp,
-  slp_N = dalech_data_subset$n
+  pop = dalech.data$Abbr,
+  pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+  pop_n = dalech.data$n, #Number of visits?
+  GA_F = dalech.data$GA_F, #Field
+  GA_F_SE = dalech.data$GASE_F,
+  GA_F_N = dalech.data$N,
+  GA_G = dalech.data$GA, #Greenhouse
+  GA_G_SE = dalech.data$GASE,
+  GA_G_N = dalech.data$N.1,
+  slp = dalech.data$slp,
+  slp_N = dalech.data$n
 )
 
 
@@ -2692,7 +2628,7 @@ Non-hierarchical priors on all, single es, single sd theta, single sd e
 
 Set up data
 ```{r, include=FALSE}
-N_pops <- nrow(dalech_data_subseta)
+N_pops <- nrow(dalech.dataa)
 
 M_mat_raw <- maxs #Change variable name
 M_mat <- M_mat_raw #Create variable that will be used for model
@@ -2746,17 +2682,17 @@ For this Thomas can answer better, but I think that the idea is to test how the 
 ```{r, include=FALSE}
 
 dalech_dat <- tibble(
-    pop = dalech_data_subseta$Abbr,
-    pop_size = dalech_data_subset$Size, #What is this exactly? Population size of the visitors?
-    pop_n = dalech_data_subset$n, #Number of visits?
-    GA_F = dalech_data_subset$GA_F, #Field
-    GA_F_SE = dalech_data_subset$GASE_F,
-    GA_F_N = dalech_data_subset$N,
-    GA_G = dalech_data_subset$GA, #Greenhouse
-    GA_G_SE = dalech_data_subset$GASE,
-    GA_G_N = dalech_data_subset$N.1,
-    slp = dalech_data_subset$slp,
-    slp_N = dalech_data_subset$n
+    pop = dalech.dataa$Abbr,
+    pop_size = dalech.data$Size, #What is this exactly? Population size of the visitors?
+    pop_n = dalech.data$n, #Number of visits?
+    GA_F = dalech.data$GA_F, #Field
+    GA_F_SE = dalech.data$GASE_F,
+    GA_F_N = dalech.data$N,
+    GA_G = dalech.data$GA, #Greenhouse
+    GA_G_SE = dalech.data$GASE,
+    GA_G_N = dalech.data$N.1,
+    slp = dalech.data$slp,
+    slp_N = dalech.data$n
 )
 
 
