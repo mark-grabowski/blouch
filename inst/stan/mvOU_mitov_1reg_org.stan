@@ -145,6 +145,8 @@ functions {
     array[] int parent_of_node, //Path of nodes from tip to root
     array[] int node_types,
     matrix H_mats,
+    //matrix P_mats,
+    //matrix inv_P_mats,
     matrix Sigma_mats,
     vector theta_mats,
     matrix lambdas_sum_mats){
@@ -249,17 +251,13 @@ data {
   array[n_nodes] int branch_regime_idx;
   array[n_nodes] int parent_of_node;
   array[n_nodes] int node_types;
-
-  vector[n_traits] trait_means;
-  vector[n_traits] trait_sds;
 }
 
 parameters {
   matrix[N,n_traits] y_true;
   vector[n_traits] y_root;
   vector[n_traits] theta_mats;
-  //vector<lower=0.001>[n_traits] lambdas_mats; //Eigenvalues - must be > 0
-  vector<lower=0>[n_traits] half_lives; // in same time units as tree
+  vector<lower=0.001>[n_traits] lambdas_mats; //Eigenvalues - must be > 0
   corr_matrix[n_traits] Omega_Sigma; //Correlation component of Sigma matrix
   vector<lower=0.001>[n_traits] sigma_Sigma; //Standard deviations for Sigma (part of LKJ prior)
   vector<lower=-pi()/2,upper=pi()/2>[n_traits*(n_traits-1)/2] Givens_angles; //Angles for G matrix, Givens rotation
@@ -269,9 +267,7 @@ parameters {
 transformed parameters{
   matrix[n_traits, n_traits] lambdas_sum_mats;
   matrix[n_traits,n_traits] Sigma_mats = diag_matrix(sigma_Sigma) * Omega_Sigma * diag_matrix(sigma_Sigma);   //Original
-
-  vector[n_traits] lambdas_mats = log(2) ./ half_lives;
-
+  //matrix[n_traits,n_traits] H_mats = P_mats * diag_matrix(lambdas_mats) * inv_P_mats; //P * lambdas * P^-1 - Eigenvectors * eigenvales * inverse(Eigenvectors)
 
   for (i in 1:n_traits){//Calculate lambda sums matrix - lambda_i + lambda_j
     for (j in 1:n_traits) {
@@ -291,6 +287,9 @@ transformed parameters{
 
   //Constructing H = Q * T * t(Q)
   matrix[n_traits,n_traits] H_mats = Q * T * Q';
+  //complex_matrix[n_traits,n_traits] P = eigenvectors(H_mats);
+  //matrix[n_traits,n_traits] P_mats = get_real(P);
+  //matrix[n_traits,n_traits] inv_P_mats = inverse(P_mats);
 }
 
 
@@ -301,18 +300,17 @@ model {
       y_obs[i, k] ~ normal(y_true[i, k], y_error[i, k]);
     }
   }
-  //y_root ~ normal(0, 1.0);
-  for(i in 1:n_traits){
-    y_root ~ normal(theta_mats[i], 1.0);
-  }
-  half_lives ~ lognormal(log(0.5), 0.4); // median ~0.5 time units, sensible spread
+  //for (k in 1:n_traits){ //Allowing y_true to be determined by OU model and observation data
+  //  y_true[,k] ~ normal(0, 1.0);
+  //}
+
+  y_root ~ normal(0, 1.0);
   theta_mats ~ normal(0, 1.0);
-  //lambdas_mats ~ lognormal(0.5,0.5); //Normal distribution centered on 1, SD = 0.5; assume positive eigenvalues as in Mitov et al. 2019
-  sigma_Sigma ~ lognormal(1, 0.1); // Centered around true sigma_Sigma values
+  lambdas_mats ~ lognormal(1.0,0.5); //Normal distribution centered on 1, SD = 0.5; assume positive eigenvalues as in Mitov et al. 2019
+  sigma_Sigma ~ lognormal(log(0.7), 0.25); // Centered around true sigma_Sigma values
   Omega_Sigma ~ lkj_corr(2); //4 = Peaked at 0 - extreme correlations less possible
   Givens_angles ~ uniform(-pi()/2,pi()/2);
   T_lower_tri ~ normal(0,0.5);
-
 
   target += calculate_log_likelihood_lp(
     n_nodes,
@@ -326,55 +324,12 @@ model {
     parent_of_node, //Path of nodes from tip to root
     node_types,
     H_mats,
+    //P_mats,
+    //inv_P_mats,
     Sigma_mats,
     theta_mats,
     lambdas_sum_mats);
 
 }
 generated quantities {
-  matrix[n_traits, n_traits] H_mats_original;
-  matrix[n_traits, n_traits] Sigma_mats_original;
-  vector[n_traits] sigma_Sigma_original;
-  vector[n_traits] theta_mats_original;
-  vector[n_traits] y_root_original;
-  matrix[N, n_traits] y_true_original;
-
-  // Back-transform H matrix
-  matrix[n_traits, n_traits] trait_sds_diag = diag_matrix(trait_sds);
-  H_mats_original = trait_sds_diag * H_mats * inverse(trait_sds_diag);
-
-  //Half-lives calculation
-  #matrix[n_traits, n_traits] half_lives = log(2)/H_mats_original;
-
-
-  // Back-transform Sigma matrix
-  Sigma_mats_original = trait_sds_diag * Sigma_mats * trait_sds_diag;
-
-  // Back-transform sigma_Sigma
-  for (k in 1:n_traits) {
-    sigma_Sigma_original[k] = sigma_Sigma[k] * trait_sds[k];
   }
-
-  // Back-transform y_true
-  for (i in 1:N) {
-    for (k in 1:n_traits) {
-      y_true_original[i, k] = y_true[i, k] * trait_sds[k] + trait_means[k];
-    }
-  }
-
-  // Back-transform y_root
-  for (k in 1:n_traits) {
-    y_root_original[k] = y_root[k] * trait_sds[k] + trait_means[k];
-  }
-
-  // Back-transform theta_mats
-  for (k in 1:n_traits) {
-    theta_mats_original[k] = theta_mats[k] * trait_sds[k] + trait_means[k];
-  }
-  matrix[N, n_traits] y_rep;
-  for (i in 1:N) {
-    for (k in 1:n_traits) {
-      y_rep[i,k] = normal_rng(y_true[i,k], y_error[i,k]);
-    }
-  }
-}

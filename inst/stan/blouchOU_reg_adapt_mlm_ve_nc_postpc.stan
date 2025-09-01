@@ -11,7 +11,7 @@ functions {
       n += 1;
   return(n);
   }
-  int[] which_equal(vector x, real y) {
+  array int[] which_equal(vector x, real y) {
     int match_positions[num_matches(x, y)];
     int pos = 1;
     //for (i in 1:size(x)) {
@@ -202,5 +202,5 @@ generated quantities {
   Y_sim_obs[i] = normal_rng(Y_sim[i],Y_error[i]);
   }
 
-    
+
 }
