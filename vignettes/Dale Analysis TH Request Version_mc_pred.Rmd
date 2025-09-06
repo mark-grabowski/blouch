@@ -182,6 +182,8 @@ X <- match(dalech_dat_G$pop, colnames(D_mat))
 D_mat <- D_mat[X, X] #ensuring same order as the data
 
 dalech_dat_G$slp<- dalech_dat_G$slp - mean(dalech_dat_G$slp,na.rm=TRUE) #Mean center X variable
+dalech_dat_G$GA_G<- dalech_dat_G$GA_G - mean(dalech_dat_G$GA_G,na.rm=TRUE) #Mean center Y variable
+
 
 #Setup data for Stan
 GA<-dalech_dat_G$GA_G #GA for Greenhouse only
@@ -207,7 +209,7 @@ pop_idx <- c(1:N_pops) #Population id - for indexing to use the M matrix
 Define priors
 ```{r}
 alpha_prior<-c(mean(GA),2) # Stan model expects 'alpha_prior' name (unless changed in Stan)
-beta_prior<-c(0,1) # Example prior for beta (slope)
+beta_prior<-c(0,0.5) # Example prior for beta (slope)
 es_prior<-c(1.0,0.5) #Half-normal prior
 
 ```
@@ -553,10 +555,10 @@ pairs(stan_fit_MS,
 Parameter estimates for varying es runs
 ##############################################################################################################################
 #stan_fit - original, 
-#stan_fit_es_0.01
 #stan_fit_es_0.1
+#stan_fit_es_0.25
+#stan_fit_es_1
 #stan_fit_es_5
-#stan_fit_es_50
 
 ```{r}
 # --- Setup for Stan ---
@@ -576,53 +578,6 @@ dat <- list(
 print("Stan data list 'dat' created.")
 ```
 
-
-```{r, include=FALSE}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_fixed_es.stan')
-stan_file<-"Dalec_analysis_THRequest_fixed_es.stan"
-
-stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
-
-```
-
-##############################################################################################################################
-Multichain Run
-##############################################################################################################################
-es = 0.01
-```{r, include=FALSE}
-n_chains<-2
-#MigrationSelection Model
-stan_fit_es_0.01 <- rstan::sampling(
-    object = stan_model,
-    data = dat,
-    chains = n_chains,             # Use the specified number of chains
-    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
-    iter = 4000                   # Keep iterations (or increase if needed)
-    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
-    #init = init_list_multichain    # Pass the list of lists
-    #init = "random"
-    )
-```
-
-
-```{r}
-print(stan_fit_es_0.01,
-      pars = c("alpha", "beta", 
-               "es",
-               "A[1,1]","A[2,2]",
-               "sd_theta",
-               "sd_e",
-                "half_life"
-               ), 
-      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
-      digits_summary = 2) # Adjust number of digits if needed
-
-#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
-
-post_es_0.01<-rstan::extract(stan_fit_es_0.01)
-```
-
 es = 0.1
 ```{r, include=FALSE}
 setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
@@ -639,8 +594,54 @@ Multichain Run
 
 ```{r, include=FALSE}
 n_chains<-2
-#MigrationSelection Model
+#MigrationSelection Mod el
 stan_fit_es_0.1 <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+```
+
+
+```{r}
+print(stan_fit_es_0.1,
+      pars = c("alpha", "beta", 
+               "es",
+               "sd_theta",
+               "sd_e",
+                "half_life"
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_es_0.1<-rstan::extract(stan_fit_es_0.1)
+```
+
+es = 0.25
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_fixed_es.stan')
+stan_file<-"Dalec_analysis_THRequest_fixed_es.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_es_0.25 <- rstan::sampling(
     object = stan_model,
     data = dat,
     chains = n_chains,             # Use the specified number of chains
@@ -655,7 +656,7 @@ stan_fit_es_0.1 <- rstan::sampling(
 
 
 ```{r}
-print(stan_fit_es_0.1,
+print(stan_fit_es_0.25,
       pars = c("alpha", "beta", 
                "es",
                "sd_theta",
@@ -668,7 +669,56 @@ print(stan_fit_es_0.1,
 
 #rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
 
-post_es_0.1<-rstan::extract(stan_fit_es_0.1)
+post_es_0.25<-rstan::extract(stan_fit_es_0.25)
+```
+
+
+es = 1
+```{r, include=FALSE}
+setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_fixed_es.stan')
+stan_file<-"Dalec_analysis_THRequest_fixed_es.stan"
+
+stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
+
+```
+
+##############################################################################################################################
+Multichain Run
+##############################################################################################################################
+
+```{r, include=FALSE}
+n_chains<-2
+#MigrationSelection Model
+stan_fit_es_1 <- rstan::sampling(
+    object = stan_model,
+    data = dat,
+    chains = n_chains,             # Use the specified number of chains
+    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
+    iter = 4000                   # Keep iterations (or increase if needed)
+    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
+    #init = init_list_multichain    # Pass the list of lists
+    #init = "random"
+    )
+```
+
+
+
+```{r}
+print(stan_fit_es_1,
+      pars = c("alpha", "beta", 
+               "es",
+               "sd_theta",
+               "sd_e",
+                "half_life"
+
+               ), 
+      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
+      digits_summary = 2) # Adjust number of digits if needed
+
+#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
+
+post_es_1<-rstan::extract(stan_fit_es_1)
 ```
 
 
@@ -707,7 +757,6 @@ stan_fit_es_5 <- rstan::sampling(
 print(stan_fit_es_5,
       pars = c("alpha", "beta", 
                "es",
-               "A[1,1]","A[2,2]",
                "sd_theta",
                "sd_e",
                 "half_life"
@@ -719,105 +768,6 @@ print(stan_fit_es_5,
 #rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
 
 post_es_5<-rstan::extract(stan_fit_es_5)
-```
-
-
-es = 50
-```{r, include=FALSE}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_fixed_es.stan')
-stan_file<-"Dalec_analysis_THRequest_fixed_es.stan"
-
-stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
-
-```
-
-##############################################################################################################################
-Multichain Run
-##############################################################################################################################
-
-```{r, include=FALSE}
-n_chains<-2
-#MigrationSelection Model
-stan_fit_es_50 <- rstan::sampling(
-    object = stan_model,
-    data = dat,
-    chains = n_chains,             # Use the specified number of chains
-    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
-    iter = 4000                   # Keep iterations (or increase if needed)
-    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
-    #init = init_list_multichain    # Pass the list of lists
-    #init = "random"
-    )
-```
-
-
-
-```{r}
-print(stan_fit_es_50,
-      pars = c("alpha", "beta", 
-               "es",
-               "sd_theta",
-               "sd_e",
-                "half_life"
-
-               ), 
-      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
-      digits_summary = 2) # Adjust number of digits if needed
-
-#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
-
-post_es_50<-rstan::extract(stan_fit_es_50)
-```
-
-
-
-es = 1.42
-```{r, include=FALSE}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/Dalec_analysis_THRequest_fixed_es.stan')
-stan_file<-"Dalec_analysis_THRequest_fixed_es.stan"
-
-stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
-
-```
-
-##############################################################################################################################
-Multichain Run
-##############################################################################################################################
-
-```{r, include=FALSE}
-n_chains<-2
-#MigrationSelection Model
-stan_fit_es_1.42 <- rstan::sampling(
-    object = stan_model,
-    data = dat,
-    chains = n_chains,             # Use the specified number of chains
-    cores = min(n_chains, parallel::detectCores()), # Use available cores up to n_chains
-    iter = 4000                   # Keep iterations (or increase if needed)
-    #control = list(adapt_delta = 0.9,max_treedepth = 15), # Keep control parameters
-    #init = init_list_multichain    # Pass the list of lists
-    #init = "random"
-    )
-```
-
-
-
-```{r}
-print(stan_fit_es_1.42,
-      pars = c("alpha", "beta", 
-               "es",
-               "sd_theta",
-               "sd_e",
-                "half_life"
-
-               ), 
-      probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
-      digits_summary = 2) # Adjust number of digits if needed
-
-#rstan::traceplot(stan_fit, pars = c("beta","alpha","theta[1]","es","sd_theta[1]","sd_e[1]"))
-
-post_es_50<-rstan::extract(stan_fit_es_50)
 ```
 
 
@@ -938,30 +888,30 @@ posterior_params_MS<- stan_fit_MS %>%
     spread_draws(alpha,beta) %>%
     mutate(model = "M-S Model")
 
-posterior_params_es_0.01 <- stan_fit_es_0.01 %>%
-    spread_draws(alpha,beta) %>%
-    mutate(model = "es = 0.01")
-
 posterior_params_es_0.1 <- stan_fit_es_0.1 %>%
     spread_draws(alpha,beta) %>%
     mutate(model = "es = 0.1")
+
+posterior_params_es_0.25 <- stan_fit_es_0.25 %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 0.25")
+
+posterior_params_es_1 <- stan_fit_es_1 %>%
+    spread_draws(alpha,beta) %>%
+    mutate(model = "es = 1")
 
 posterior_params_es_5 <- stan_fit_es_5 %>%
     spread_draws(alpha,beta) %>%
     mutate(model = "es = 5")
 
-posterior_params_es_50 <- stan_fit_es_50 %>%
-    spread_draws(alpha,beta) %>%
-    mutate(model = "es = 50")
-
 
 posterior_params_bayes_OLS <- stan_fit_OLS %>%
     spread_draws(alpha,beta) %>%
-    mutate(model = "Bayesian OLS Regression")
+    mutate(model = "Bayesian Regression")
 
 # Combine the tidy draws into a single data frame
-combined_draws <- bind_rows(posterior_params_bayes_OLS, posterior_params_MS, posterior_params_es_0.01, posterior_params_es_0.1,
-                            posterior_params_es_5, posterior_params_es_50)
+combined_draws <- bind_rows(posterior_params_bayes_OLS, posterior_params_MS, posterior_params_es_0.1, posterior_params_es_0.25,
+                            posterior_params_es_1, posterior_params_es_5)
 
 
 predictions <- combined_draws %>%
@@ -1024,7 +974,7 @@ regression.plot <- ggplot2::ggplot() +
     ggplot2::aes(x = slp, y = mean_y, linetype = model),
     alpha = 0.5,
     color = mypal,
-    size = 1
+    linewidth = 1
   ) +
     # Plot the regression lines using the summarized data
   ggplot2::geom_abline(
@@ -1032,7 +982,7 @@ regression.plot <- ggplot2::ggplot() +
     intercept = OLS.output$coefficients[1],
     slope = OLS.output$coefficients[2],
     alpha = 0.5,
-    size = 2
+    linewidth = 2
   ) +
   
   ggplot2::theme_bw() +
@@ -1052,10 +1002,21 @@ regression.plot <- ggplot2::ggplot() +
 
 regression.plot
 ```
+
+
+
 ```{r}
 library(ggplot2)
 library(dplyr) # For the pipe operator %>%
 library(ggsci) # For the color palette
+
+# Regression plots - dashed line is standard regression
+########################################################################################################
+
+obs_df <- data.frame(GA_G = dalech_dat_G$GA_G, slp = dalech_dat_G$slp)
+
+
+
 
 # --- 1. Generate sequence of x values for prediction lines/ribbons ---
 slp_seq <- seq(from = min(dat$x_obs, na.rm=TRUE), to = max(dat$x_obs, na.rm=TRUE), length.out = 100)
@@ -1076,23 +1037,23 @@ mypal <- ggsci::pal_aaas("default", alpha = 1)(6)
 
 # Create a manual color scale with all your models and the OLS line
 model_colors <- c(
-  "Bayesian OLS Regression" = mypal[1],
+  "Bayesian Regression" = mypal[1],
   "M-S Model" = mypal[2],
-  "es = 0.01" = mypal[3],
-  "es = 0.1" = mypal[4],
-  "es = 5" = mypal[5],
-  "es = 50" = mypal[6],
+  "es = 0.1" = mypal[3],
+  "es = 0.25" = mypal[4],
+  "es = 1" = mypal[5],
+  "es = 5" = mypal[6],
   "OLS Regression" = "black" # Use a distinct color for OLS
 )
 
 # Create a manual linetype scale
 model_linetypes <- c(
-  "Bayesian OLS Regression" = "solid",
+  "Bayesian Regression" = "solid",
   "M-S Model" = "solid",
-  "es = 0.01" = "dashed",
   "es = 0.1" = "dashed",
+  "es = 0.25" = "dashed",
+  "es = 1" = "dashed",
   "es = 5" = "dashed",
-  "es = 50" = "dashed",
   "OLS Regression" = "dotted"
 )
 
@@ -1107,7 +1068,7 @@ regression.plot <- ggplot2::ggplot() +
   # Plot all the regression lines from your Stan models
   ggplot2::geom_line(
     data = mean_predictions,
-    ggplot2::aes(x = slp, y = mean_y, color = model, linetype = model),
+    ggplot2::aes(x = slp, y = mean_y, color = model),
     size = 1
   ) +
   
@@ -1118,7 +1079,6 @@ regression.plot <- ggplot2::ggplot() +
       intercept = intercept,
       slope = slope,
       color = model,
-      linetype = model
     ),
     alpha = 0.5,
     size = 2
@@ -1126,7 +1086,7 @@ regression.plot <- ggplot2::ggplot() +
   
   # Apply the manual scales for color and linetype
   ggplot2::scale_color_manual(values = model_colors) +
-  ggplot2::scale_linetype_manual(values = model_linetypes) +
+  #ggplot2::scale_linetype_manual(values = model_linetypes) +
   
   ggplot2::theme_bw() +
   ggplot2::theme(
@@ -1192,7 +1152,7 @@ posterior_params_es_50 <- stan_fit_es_50 %>%
 
 posterior_params_bayes_OLS <- stan_fit_OLS %>%
     spread_draws(alpha,beta) %>%
-    mutate(model = "Bayesian OLS Regression")
+    mutate(model = "Bayesian Regression")
 
 # Combine the tidy draws into a single data frame
 combined_draws <- bind_rows(posterior_params_bayes_OLS, posterior_params_MS, posterior_params_es_0.01, posterior_params_es_0.1,
@@ -1235,7 +1195,7 @@ mypal <- ggsci::pal_npg("nrc", alpha = 1)(5)
 
 # Create a manual color scale with all your models and the OLS line
 model_colors <- c(
-  "Bayesian OLS Regression" = mypal[1],
+  "Bayesian Regression" = mypal[1],
   "M-S Model" = mypal[2],
   "es = 0.01" = mypal[3],
   "es = 5" = mypal[4],
@@ -1245,7 +1205,7 @@ model_colors <- c(
 
 # Create a manual linetype scale
 model_linetypes <- c(
-  "Bayesian OLS Regression" = "solid",
+  "Bayesian Regression" = "solid",
   "M-S Model" = "solid",
   "es = 0.01" = "dotted",
   "es = 5" = "dotted",
