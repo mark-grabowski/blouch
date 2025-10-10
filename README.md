@@ -35,7 +35,7 @@ preliminary analysis will be the same.
 
 ## Instalation Instructions
 
-First, you must install rstan, the R interface to the probabilistic programming language for statistical inference Stan. Stan allows estimation of Bayesian models using Markov chain Monte Carlo (MCMC) methods based on the Hamiltonian Monte Carlo sampler.
+First, you must install *RStan*, the R interface to the probabilistic programming language for statistical inference Stan. Stan allows estimation of Bayesian models using Markov chain Monte Carlo (MCMC) methods based on the Hamiltonian Monte Carlo sampler.
 
 The latest version can be found here:
 
