@@ -50,7 +50,7 @@ devtools::install_github("mark-grabowski/blouch")
 library(blouch)
 ```
 
-*Blouch* was recently updated to work with the latest version or RStan (2.36.0.9000).
+*Blouch* was recently updated to work with the latest version of RStan (2.36.0.9000).
 
 ## Documentation
 
