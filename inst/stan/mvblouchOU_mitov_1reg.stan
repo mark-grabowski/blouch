@@ -1,7 +1,8 @@
 //mvBlouch mvOU - Mitov approach - fixed predictors model - 2025
 //Multivariate OU model accounts for measurement error on X and/or Y variables
 //After Bartoszek et al. 2012; Clavel et al. 2015; Mitov et al. 2019
-//Single regime version,
+//Earlier version, fixed H, fixed Sigma
+
 functions {
    matrix compute_Phi(real branch_length, matrix H_mat){
     return matrix_exp(-H_mat * branch_length);

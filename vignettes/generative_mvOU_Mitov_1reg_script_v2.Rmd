@@ -1,5 +1,5 @@
 ---
-title: "Generative mvOUOU Mitov Approach Script - 1reg"
+title: "Generative mvOUOU Mitov Approach Script - 1reg - Testing Code"
 output: html_notebook
 editor_options: 
   chunk_output_type: console
@@ -409,8 +409,11 @@ This helps you:
 1.  **Understand the implications of your prior choices**: Are they placing mass where you expect? Are they too broad or too narrow?
 2.  **Diagnose potential issues**: For instance, if a scale parameter prior allows for extremely small values, it can lead to numerical instability.
 
+These prior simulations are using the priors in Stan, but because y was standardized above, need to be back-transformed to norla space to allow comparison with the true values
 
-Building G, Q, and T matrices as in Stan implementation
+
+
+Building G, Q, and T matrices as in Stan implementation - just helper functions
 ```{r}
 build_G<- function(n_traits, i, j, angle){
     G <- diag(n_traits)
@@ -450,7 +453,7 @@ buld_lower_tri_T<-function(n_traits, T_lower_tri){
 ```
 
 
-
+Set True Values
 ```{r}
 # Load required packages
 set.seed(123)
@@ -461,31 +464,47 @@ n_traits <- 2
 # ------------------
 # Simulated "true" values from your setup - using the scaled versions
 true_vals <- list(
-  y_root = (true_y_root - trait_means)/trait_sds,
-  #lambda = c(true_H_mats[[1]][1,1],true_H_mats[[1]][1,2]),
-  theta = c((true_theta_mat[1,1] - trait_means[1])/trait_sds[1],(true_theta_mat[2,1] - trait_means[2])/trait_sds[2]), 
-  H = diag(1/trait_sds) %*% true_H_mats[[1]] %*% diag(trait_sds),
-  half_lives = c(log(2)/H[1,1],log(2)/H[2,2]),
-  true_sigma_Sigma = true_sigma_Sigma/trait_sds,
-  true_Omega_Sigma = true_Omega_Sigma,
-  Sigma = diag(1/trait_sds) %*% true_Sigmas[[1]] %*% diag(1/trait_sds)
+  y_root = true_y_root,
+  theta = true_theta_mat,
+  H = true_H_mats[[1]],
+  half_lives = true_half_lives[[1]],
+  sigma_Sigma = true_sigma_Sigma,
+  Omega_Sigma = true_Omega_Sigma,
+  Sigma = true_Sigmas[[1]]
 )
 
+```
+
+
+########################################################################################################
+Set Priors
+########################################################################################################
+
+```{r}
 ########
 #Priors
 ########
-true_theta_mats_sim <-cbind(rnorm(n=n_sims, 0, 1),rnorm(n=n_sims, 0, 1))
-y_root_sim <- cbind(rnorm(n=n_sims, 0, 2),rnorm(n=n_sims, 0, 2))
+
+#Half-lives
+half_lives_sim <- cbind(rlnorm(n=n_sims,log(0.5), 0.4),rlnorm(n=n_sims,log(0.5), 0.4)); #median ~0.5 time units, 
+
+#Thetas
+theta_mats_sim_scaled <-cbind(rnorm(n=n_sims, 0, 2.0),rnorm(n=n_sims, 0, 2.0))
+theta_mats_sim_org<-sweep(sweep(theta_mats_sim_scaled,2,trait_sds,"*"),2,trait_means,"+")
+
+#Y_roots
+y_root_sim_scaled <- cbind(rnorm(n=n_sims,mean(theta_mats_sim_scaled) , 2.0),rnorm(n=n_sims, mean(theta_mats_sim_scaled), 2.0))
+y_root_sim_org <-sweep(sweep(y_root_sim_scaled,2,trait_sds,"*"),2,trait_means,"+")
+
 
 # Calculate H priors
 Givens_angles <- runif(n=n_sims,-pi/2,pi/2);
 T_lower_tri <- rnorm(n=n_sims,0,0.5);
 #lambdas_mats_sim <- cbind(rlnorm(n=n_sims, 0.5, 0.5),rlnorm(n=n_sims, 0.5, 0.5))
-half_lives_sim <- cbind(rlnorm(n=n_sims,log(0.5), 0.4),rlnorm(n=n_sims,log(0.5), 0.4)); #median ~0.5 time units, sensible spread
-lambdas_mats_sim <- cbind(log(2)/half_lives_sim[,1],log(2)/half_lives_sim[,2])
+#Half lives and lambdas do not change between scaled and unscaled datasets
 
-#e^1 = 2.72
-#e^0 = 1
+#Calculating lambdas (diagonal of H)
+lambdas_mats_sim <- cbind(log(2)/half_lives_sim[,1],log(2)/half_lives_sim[,2])
 
 #Constructing Q
 Q_list<-list()
@@ -493,53 +512,63 @@ for (i in 1:n_sims) {
   Q_list[[i]] <- build_Q(n_traits, Givens_angles[i])
 }
 
-
 #Constructing T
 T_lower_tri_list <- list()
-
 for (i in 1:n_sims) {
   T_lower_tri_list[[i]] <- buld_lower_tri_T(n_traits, T_lower_tri[i]) #Lower tri
   diag(T_lower_tri_list[[i]])<-lambdas_mats_sim[i,] #Diagonal o lambdas
 }
 
 #/Constructing H = Q * T * t(Q)
-true_H_mats_sims <-list()
+H_mats_sims_scaled <-list()
 for (i in 1:n_sims) {
-  true_H_mats_sims[[i]] <- Q_list[[i]] %*% T_lower_tri_list[[i]] %*% t(Q_list[[i]]) #Matrix multiplication
+  H_mats_sims_scaled[[i]] <- Q_list[[i]] %*% T_lower_tri_list[[i]] %*% t(Q_list[[i]]) #Matrix multiplication
   }
 
 
-H_off_diagonals<-sapply(true_H_mats_sims, function(H){
+H_off_diagonals_scaled<-sapply(H_mats_sims_scaled, function(H){
   c(H[1,2])})
-max(H_off_diagonals) #Off diagonals are not 0
-min(H_off_diagonals) #Off diagonals are not 0
+max(H_off_diagonals_scaled) #Off diagonals are not 0
+min(H_off_diagonals_scaled) #Off diagonals are not 0
 
+
+H_mats_sims_org <-list()
+D<-diag(trait_sds)
+for (i in 1:n_sims) {
+  H_mats_sims_org[[i]] <- D %*% H_mats_sims_scaled[[i]] %*% ginv(D)
+  }
 
 
 #Calculate Sigma priors
-true_Omega_Sigma_sim <- rlkjcorr(n_sims, K = n_traits, eta = 2) #Bigger eta = more density to identity matrix, no correlation
-true_sigma_Sigma_sim <- cbind(rlnorm(n=n_sims,1,0.1),rlnorm(n=n_sims,1,0.1)) #Mean around true values - 
+Omega_Sigma_sim <- rlkjcorr(n_sims, K = n_traits, eta = 2) #Bigger eta = more density to identity matrix, no correlation - no rescaling needed
+sigma_Sigma_sim_scaled <- cbind(rlnorm(n=n_sims,1,0.5),rlnorm(n=n_sims,1,0.25)) #Mean around true values - 
 #exp(1) = 2.72 - lognormal distribution
+sigma_Sigma_sim_org<-sweep(sigma_Sigma_sim_scaled,2,trait_sds,"*")
 
 
-# Compute full Sigma matrices
-Sigma_mats_sim <- lapply(1:n_sims, function(i) {
-  D <- diag(true_sigma_Sigma_sim[i, ])
-  D %*% true_Omega_Sigma_sim[i,,] %*% D
+
+# Compute full Sigma matrices - on original scale
+Sigma_mats_sim_org <- lapply(1:n_sims, function(i) {
+  D <- diag(sigma_Sigma_sim_org[i, ])
+  D %*% Omega_Sigma_sim[i,,] %*% D
 })
 
-Sigma_11 <- sapply(Sigma_mats_sim, function(S) S[1, 1])
-Sigma_22 <- sapply(Sigma_mats_sim, function(S) S[2, 2])
-Sigma_12 <- sapply(Sigma_mats_sim, function(S) S[1, 2])
 
-H_11 <- sapply(true_H_mats_sims, function(S) S[1, 1])
-H_22 <- sapply(true_H_mats_sims, function(S) S[2, 2])
-H_12 <- sapply(true_H_mats_sims, function(S) S[1, 2])
+H_11 <- sapply(H_mats_sims_org, function(S) S[1, 1])
+H_22 <- sapply(H_mats_sims_org, function(S) S[2, 2])
+H_12 <- sapply(H_mats_sims_org, function(S) S[1, 2])
+H_21 <- sapply(H_mats_sims_org, function(S) S[2, 1])
 
+Sigma_11 <- sapply(Sigma_mats_sim_org, function(S) S[1, 1])
+Sigma_22 <- sapply(Sigma_mats_sim_org, function(S) S[2, 2])
+Sigma_12 <- sapply(Sigma_mats_sim_org, function(S) S[1, 2])
+Sigma_21 <- sapply(Sigma_mats_sim_org, function(S) S[2, 1])
 
+```
 
+```{r}
 # ------------------
-# Plotting function
+# Prior Plotting function
 plot_prior <- function(samples, true_value, title, xlab = "Value") {
   df <- data.frame(value = samples)
     ggplot(df, aes(x = value, fill=mypal[1])) +
@@ -558,34 +587,33 @@ mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
 
 # ------------------
 # Plot each prior with true values
-plot_prior(y_root_sim[,1], true_vals$y_root[1], "Prior: y_root[1]")
-plot_prior(y_root_sim[,2], true_vals$y_root[2], "Prior: y_root[2]")
+plot_prior(theta_mats_sim_org[,1], t(true_vals$theta)[1], "Prior: theta[1]")
+plot_prior(theta_mats_sim_org[,2], t(true_vals$theta)[2], "Prior: theta[2]")
 
-#plot_prior(lambdas_mats_sim[, 1], true_vals$lambda[1], "Prior: lambda[1]")
-#plot_prior(lambdas_mats_sim[, 2], true_vals$lambda[2], "Prior: lambda[2]")
+plot_prior(y_root_sim_org[,1], true_vals$y_root[1], "Prior: y_root[1]")
+plot_prior(y_root_sim_org[,2], true_vals$y_root[2], "Prior: y_root[2]")
 
-plot_prior(half_lives_sim[, 1], true_vals$half_lives[1], "Prior: half_lives[1]")
-plot_prior(half_lives_sim[, 2], true_vals$half_lives[2], "Prior: half_lives[2]")
+plot_prior(half_lives_sim[, 1], true_vals$half_lives[1,1], "Prior: half_lives[1]")
+plot_prior(half_lives_sim[, 2], true_vals$half_lives[2,2], "Prior: half_lives[2]")
 
 # H matrix plots
 plot_prior(H_11, true_vals$H[1, 1], "Prior: H[1,1]")
 plot_prior(H_22, true_vals$H[2, 2], "Prior: H[2,2]")
-plot_prior(H_12, true_vals$H[1, 2], "Prior: H[2,2]")
+plot_prior(H_12, true_vals$H[1, 2], "Prior: H[1,2]")
+plot_prior(H_21, true_vals$H[2, 1], "Prior: H[2,1]")
 
-plot_prior(true_theta_mats_sim[,1], true_vals$theta[1], "Prior: theta[1]")
-plot_prior(true_theta_mats_sim[,2], true_vals$theta[2], "Prior: theta[2]")
+#sigma Sigma
+plot_prior(sigma_Sigma_sim_org[, 1], true_vals$sigma_Sigma[1], "Prior: true_sigma_Sigma[1]")
+plot_prior(sigma_Sigma_sim_org[, 2], true_vals$sigma_Sigma[2], "Prior: true_sigma_Sigma[2]")
 
+#Omega Sigma
+plot_prior(Omega_Sigma_sim[,1,2], true_vals$Omega_Sigma[1,2], "Prior: true_Omega_Sigma[1,2]")#, xlim = c(0,5))
 
-plot_prior(true_sigma_Sigma_sim[, 1], true_vals$true_sigma_Sigma[1], "Prior: true_sigma_Sigma[1]")
-plot_prior(true_sigma_Sigma_sim[, 2], true_vals$true_sigma_Sigma[2], "Prior: true_sigma_Sigma[2]")
-
-plot_prior(true_Omega_Sigma_sim[,1,2], true_vals$true_Omega_Sigma[1,2], "Prior: true_Omega_Sigma[1,2]")#, xlim = c(0,5))
-plot_prior(true_Omega_Sigma_sim[,2,1], true_vals$true_Omega_Sigma[2,1], "Prior: true_Omega_Sigma[2,1]")#, xlim = c(0,5))
-
-
+#Sigmas
 plot_prior(Sigma_11, true_vals$Sigma[1, 1], "Prior: Sigma[1,1]")
-plot_prior(Sigma_12, true_vals$Sigma[1, 2], "Prior: Sigma[1,2]")
 plot_prior(Sigma_22, true_vals$Sigma[2, 2], "Prior: Sigma[2,2]")
+plot_prior(Sigma_12, true_vals$Sigma[1, 2], "Prior: Sigma[1,2]")
+plot_prior(Sigma_21, true_vals$Sigma[2, 1], "Prior: Sigma[2,2]")
 
 
 ```
@@ -598,15 +626,6 @@ Compile model
 setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
 rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvOU_mitov_1reg.stan')
 stan_file<-"mvOU_mitov_1reg.stan"
-
-stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
-```
-
-Original priors
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvOU_mitov_1reg_org.stan')
-stan_file<-"mvOU_mitov_1reg_org.stan"
 
 stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
 ```
@@ -643,7 +662,6 @@ stan_fit <- rstan::sampling(
 print(stan_fit,
       pars = c("H_mats",
                "H_mats_original",
-               "lambdas_mats",
                "half_lives",
                "Sigma_mats",
                "Sigma_mats_original",
@@ -669,7 +687,7 @@ y_rep <- rstan::extract(stan_fit, pars="y_rep")$y_rep
 bayesplot::ppc_dens_overlay(simulated_tip_values_scaled[,1], y_rep[1:50,,1])
 ```
 
-
+# Pairs plot
 ```{r}
 traceplot(stan_fit, pars = "lp__") #to check if any chain is stuck.
 
@@ -688,6 +706,8 @@ mcmc_pairs(stan_fit,
 
 ```
 
+
+# Code for plotting posteriors vs. priors
 ```{r}
 library(tidyverse)
 library(tidybayes)
@@ -714,302 +734,150 @@ plot_prior_post <- function(df, title, true_val = NULL) {
   return(p)
 }
 
-# ------------------
+```
+
 # Extract posterior draws with tidybayes
-post_df <- stan_fit %>% spread_draws(
-  `theta_mats_original[1]`, `theta_mats_original[2]`,
-  `sigma_Sigma_original[1]`, `sigma_Sigma_original[2]`,
-  `Omega_Sigma[1,2]`,
-  `y_root_original[1]`, `y_root_original[2]`,
-  `H_mats_original[1,1]`, `H_mats_original[2,2]`, `H_mats_original[1,2]`,`H_mats_original[2,1]`,
-  `half_lives[1]`, `half_lives[2]`
-)
-
-#Keeping on standardized scale for comparison with priors, which are on standardized scale
-post_df <- stan_fit %>% spread_draws(
-  `theta_mats_original[1]`, `theta_mats_original[2]`,
-  `sigma_Sigma_original[1]`, `sigma_Sigma_original[2]`,
-  `Omega_Sigma[1,2]`,
-  `y_root_original[1]`, `y_root_original[2]`,
-  `H_mats_original[1,1]`, `H_mats_original[2,2]`, `H_mats_original[1,2]`,`H_mats_original[2,1]`,
-  `half_lives[1]`, `half_lives[2]`
-)
-
-
+```{r}
 # ------------------
+post_df <- stan_fit %>% spread_draws(
+  `theta_mats_original[1]`, `theta_mats_original[2]`,
+  `sigma_Sigma_original[1]`, `sigma_Sigma_original[2]`,
+  `Omega_Sigma[1,2]`,
+  `y_root_original[1]`, `y_root_original[2]`,
+  `H_mats_original[1,1]`, `H_mats_original[2,2]`, `H_mats_original[1,2]`,`H_mats_original[2,1]`,
+  `half_lives[1]`, `half_lives[2]`
+)
+
+```
 # Build prior vs posterior dataframes
+```{r}
+# ------------------
 #Half lives
 #half_lives ~ lognormal(log(0.5), 0.4); // median ~0.5 time units, sensible spread
 halflife1_df <- tibble(
-  value = c(rlnorm(n_sims, log(0.5),0.4), post_df$`half_lives[1]`),
+  value = c(half_lives_sim[,1], post_df$`half_lives[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 halflife2_df <- tibble(
-  value = c(rlnorm(n_sims, log(0.5),0.4), post_df$`half_lives[2]`),
+  value = c(half_lives_sim[,2], post_df$`half_lives[2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 # Theta
 theta1_df <- tibble(
-  value = c(rnorm(n_sims, 0, 1), post_df$`theta_mats_original[1]`),
+  value = c(theta_mats_sim_org[,1], post_df$`theta_mats_original[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 theta2_df <- tibble(
-  value = c(rnorm(n_sims, 0, 1), post_df$`theta_mats_original[2]`),
+  value = c(theta_mats_sim_org[,2], post_df$`theta_mats_original[2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 # y_root
 yroot1_df <- tibble(
-  value = c(rnorm(n_sims, mean(post_df$`theta_mats_original[1]`) , 1), post_df$`y_root_original[1]`),
+  value = c(y_root_sim_org[,1], post_df$`y_root_original[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 yroot2_df <- tibble(
-  value = c(rnorm(n_sims, mean(post_df$`theta_mats_original[2]`), 1), post_df$`y_root_original[2]`),
+  value = c(y_root_sim_org[,2], post_df$`y_root_original[2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 # sigma_Sigma_original
 sigma1_df <- tibble(
-  value = c(rlnorm(n_sims, 1.0, 0.5), post_df$`sigma_Sigma_original[1]`),
+  value = c(sigma_Sigma_sim_org[,1], post_df$`sigma_Sigma_original[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 sigma2_df <- tibble(
-  value = c(rlnorm(n_sims, 1.0, 0.5), post_df$`sigma_Sigma_original[2]`),
+  value = c(sigma_Sigma_sim_org[,1], post_df$`sigma_Sigma_original[2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 # Omega_Sigma correlation
 omega12_df <- tibble(
-  value = c(rethinking::rlkjcorr(n_sims, K = 2, eta = 2)[,1,2],
+  value = c(Omega_Sigma_sim[,1,2],
             post_df$`Omega_Sigma[1,2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
-
-# Omega_Sigma correlation
-omega12_df <- tibble(
-  value = c(rethinking::rlkjcorr(n_sims, K = 2, eta = 2)[,1,2],
-            post_df$`Omega_Sigma[1,2]`),
-  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
-)
-
 
 # H matrix
-lambda1_df <- tibble(
-  value = c(rlnorm(n_sims, -0.5, 0.5), post_df$`H_mats_original[1,1]`),
+H11_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[1, 1]
+})
+  
+H22_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[2, 2]
+})
+H12_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[1, 2]
+})
+H21_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[2, 1]
+})
+  
+H11_df <- tibble(
+  value = c(H11_sims_org, post_df$`H_mats_original[1,1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
-lambda2_df <- tibble(
-  value = c(rlnorm(n_sims, -0.5, 0.5), post_df$`H_mats_original[2,2]`),
-  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
-)
-hoffdiag_12_df <- tibble(
-  value = c(rnorm(n_sims, 0, 0.5), post_df$`H_mats_original[1,2]`),
+H22_df <- tibble(
+  value = c(H22_sims_org, post_df$`H_mats_original[2,2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
-hoffdiag_21_df <- tibble(
-  value = c(rnorm(n_sims, 0, 0.5), post_df$`H_mats_original[2,1]`),
+H12_df <- tibble(
+  value = c(H12_sims_org, post_df$`H_mats_original[1,2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
+H21_df <- tibble(
+  value = c(H21_sims_org, post_df$`H_mats_original[2,1]`),
+  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
+)
+```
+
+
+```{r}
 # ------------------
 # Make plots with true values
 
-# Simulated "true" values from your setup - scaling these to make them comparable
-#true_vals <- list(
-#  y_root = (true_y_root - trait_means)/trait_sds,
-#  lambda = c(true_H_mats[[1]][1,1],true_H_mats[[1]][1,2]),
-#  theta = c((true_theta_mat[1,1] - trait_means[1])/trait_sds[1],(true_theta_mat[2,1] - trait_means[2])/trait_sds[2]), 
-#  H = diag(1/trait_sds) %*% true_H_mats[[1]] %*% diag(trait_sds),
-#  true_sigma_Sigma = true_sigma_Sigma/trait_sds,
-#  true_Omega_Sigma = true_Omega_Sigma,
-#  Sigma = diag(1/trait_sds) %*% true_Sigmas[[1]] %*% diag(1/trait_sds)
-#)
+#true_vals set above
+plot_prior_post(halflife1_df, "Halflife[1]", true_val = true_vals$half_lives[1,1])
+plot_prior_post(halflife2_df, "Halflife[2]", true_val = true_vals$half_lives[2,2])
 
-true_vals <- list(
-  y_root = true_y_root,
-  lambda = c(true_H_mats[[1]][1,1],true_H_mats[[1]][1,2]),
-  theta = c(true_theta_mat[1,1],true_theta_mat[2,1]),
-  sigma_Sigma = true_sigma_Sigma,
-  Omega_Sigma = true_Omega_Sigma,
-  Sigma = true_Sigmas
-)
-
-plot_prior_post(theta1_df, "Theta[1]", true_val = true_vals$theta[1])
-plot_prior_post(theta2_df, "Theta[2]", true_val = true_vals$theta[2])
+plot_prior_post(theta1_df, "Theta[1]", true_val = true_vals$theta[1,1])
+plot_prior_post(theta2_df, "Theta[2]", true_val = true_vals$theta[2,1])
 
 plot_prior_post(yroot1_df, "y_root[1]", true_val = true_vals$y_root[1])
 plot_prior_post(yroot2_df, "y_root[2]", true_val = true_vals$y_root[2])
 
-plot_prior_post(sigma1_df, "sigma_Sigma[1]", true_val = true_vals$true_sigma_Sigma[1])
-plot_prior_post(sigma2_df, "sigma_Sigma[2]", true_val = true_vals$true_sigma_Sigma[2])
+plot_prior_post(sigma1_df, "sigma_Sigma[1]", true_val = true_vals$sigma_Sigma[1])
+plot_prior_post(sigma2_df, "sigma_Sigma[2]", true_val = true_vals$sigma_Sigma[2])
 
-plot_prior_post(omega12_df, "Omega_Sigma[1,1]", true_val = true_vals$true_Omega_Sigma[1,1])
-plot_prior_post(omega12_df, "Omega_Sigma[2,2]", true_val = true_vals$true_Omega_Sigma[2,2])
+plot_prior_post(omega12_df, "Omega_Sigma[1,2]", true_val = true_vals$Omega_Sigma[1,2])
 
-plot_prior_post(lambda1_df, "H[1,1]", true_val = true_vals$H[1,1])
-plot_prior_post(lambda2_df, "H[2,2]", true_val = true_vals$H[2,2])
-plot_prior_post(hoffdiag_df, "H[1,2]", true_val = true_vals$H[1,2])
-
-
-```
-
-```{r}
-# Required packages
-library(posterior)   # as_draws_df / as_draws_array helpers
-library(bayesplot)   # mcmc_* plotting
-library(ggplot2)
-library(dplyr)
-
-# If your stan fit is named differently, replace stan_fit below
-draws_array <- as_draws_array(stan_fit)   # draws: iterations x chains x parameters
-draws_df    <- as_draws_df(stan_fit)      # tidy draws (iter, chain, variables)
-draws_mat   <- as_draws_matrix(stan_fit)  # matrix: iterations * chains x vars
-
-# --- TRUE values (from your simulator) ---
-# adjust these object names if your environment uses different ones
-true_H  <- true_H_mats[[1]]        # matrix n_traits x n_traits for regime 1
-true_S  <- true_Sigmas[[1]]        # Sigma (raw units) for regime 1
-true_theta <- as.numeric(true_theta_mat[,1])  # vector length n_traits
-true_yroot <- as.numeric(true_y_root)         # vector length n_traits
-
-# Convenience: named list of true scalar values matching Stan parameter names used in plots
-true_vals <- list(
-  "H_mats[1,1]" = true_H[1,1],
-  "H_mats[1,2]" = true_H[1,2],
-  "H_mats[2,1]" = true_H[2,1],
-  "H_mats[2,2]" = true_H[2,2],
-  # original-scale Sigma (if Stan reports Sigma_mats_original[...])
-  "Sigma_mats_original[1,1]" = true_S[1,1],
-  "Sigma_mats_original[1,2]" = true_S[1,2],
-  "Sigma_mats_original[2,2]" = true_S[2,2],
-  # original-scale theta and root:
-  "theta_mats_original[1]" = true_theta[1],
-  "theta_mats_original[2]" = true_theta[2],
-  "y_root_original[1]" = true_yroot[1],
-  "y_root_original[2]" = true_yroot[2]
-)
-
-# ---------------------------
-# 1) Traceplots + density with true value lines
-# ---------------------------
-pars_trace <- c("H_mats[1,1]","H_mats[2,2]","H_mats[1,2]","Sigma_mats_original[1,1]",
-                "Omega_Sigma[1,2]","theta_mats_original[1]")
-
-# Trace plot (multiple parameters)
-p_trace <- mcmc_trace(draws_array, pars = pars_trace)
-print(p_trace)
-
-# Density overlays with true vertical lines
-p_dens <- mcmc_dens_overlay(draws_array, pars = pars_trace)
-# add true value vertical lines
-p_dens + 
-  geom_vline(data = data.frame(param = names(true_vals), val = unlist(true_vals)),
-             aes(xintercept = val),
-             linetype = "dashed", color = "red", size = 0.6, inherit.aes = FALSE)
-
-# ---------------------------
-# 2) Posterior intervals / areas with true values shown
-# ---------------------------
-pars_intervals <- c("H_mats[1,1]", "H_mats[1,2]", "H_mats[2,2]",
-                    "Sigma_mats_original[1,1]", "Sigma_mats_original[2,2]",
-                    "Omega_Sigma[1,2]", "theta_mats_original[1]", "theta_mats_original[2]")
-
-p_area <- mcmc_areas(draws_array, pars = pars_intervals, prob = 0.95) +
-  theme_minimal() +
-  ggtitle("Posterior intervals (95%) with true values")
-
-# Overlay true values as points on x axis by adding vertical lines per param
-# Build df of true vals for the subset of plotted params
-tv_plot <- data.frame(param = pars_intervals, val = unlist(true_vals[pars_intervals]))
-# Add dashed vertical lines for each true val
-for(i in seq_len(nrow(tv_plot))){
-  p_area <- p_area + geom_vline(xintercept = tv_plot$val[i], linetype="dashed", color="red", size=0.5)
-}
-print(p_area)
-
-# ---------------------------
-# 3) Pairwise scatter for key tradeoffs and mark true pair as red point
-# ---------------------------
-pars_pairs <- c("H_mats[1,1]", "Sigma_mats_original[1,1]", "lambdas_mats[1]")
-mcmc_pairs(draws_array, pars = pars_pairs,
-           off_diag_args = list(size = 1, alpha = 0.3)) +
-  ggtitle("Pairs: H vs Sigma vs lambda (posterior)") +
-  theme_minimal()
-# Note: to overlay the true point, extract posterior draws and add with geom_point:
-# compute true vector
-true_pair <- data.frame(
-  x = true_vals[["H_mats[1,1]"]],
-  y = true_vals[["Sigma_mats_original[1,1]"]],
-  z = NA
-)
-# mcmc_pairs returns ggplot object; adding a single 2D point per panel is trickier —
-# instead use scatter of posterior means to compare or use custom ggplot below for a single pair:
-ggplot(data = as.data.frame(draws_mat)[, c("H_mats[1,1]", "Sigma_mats_original[1,1]")],
-       aes(x = `H_mats[1,1]`, y = `Sigma_mats_original[1,1]`)) +
-  geom_point(alpha = 0.03, size = 0.8) +
-  geom_point(data = data.frame(H = true_vals[["H_mats[1,1]"]], S = true_vals[["Sigma_mats_original[1,1]"]]),
-             aes(x = H, y = S), color = "red", size = 3) +
-  labs(x = "H_mats[1,1]", y = "Sigma_mats_original[1,1]", title = "Posterior cloud with true value (red)")
-
-# ---------------------------
-# 4) Posterior predictive check (PPC)
-#    If you have posterior predictions for tips (yrep), use ppc functions.
-#    If not, you can simulate yrep from posterior samples of parameters.
-# ---------------------------
-
-# If your model produced yrep or y_true draws accessible via stan object, use them directly.
-# Example: variable 'yrep' with dims draws x N x trait (adjust varname if different)
-if("yrep[1,1]" %in% colnames(draws_mat)){
-  # extract a subset of yrep for trait1 (first 200 posterior draws)
-  idx_yrep <- grep("^yrep\\[", colnames(draws_mat))
-  # this part depends on how yrep is named; user may need to adjust
-  yrep_mat <- posterior::subset_draws(as_draws_matrix(stan_fit), variable = "yrep")[, , drop = FALSE]
-  # Example simple PPC for trait 1 using first 200 draws (user might need to adapt shape)
-  ppc_dens_overlay(y = simulated_tip_values_scaled[,1], yrep = yrep_mat[1:200, , 1])
-} else {
-  message("No 'yrep' variable found in stan_fit. To run PPC, either save yrep in Stan or simulate posterior predictive draws in R.")
-  # Quick: simulate posterior predictive for tip 1 using posterior draws of y_true if available
-  if("y_true[1,1]" %in% colnames(draws_mat)){
-    ytrue_draws <- as.data.frame(draws_mat)[, grep("^y_true\\[", colnames(draws_mat))]
-    # pick a tip index (1) and create density overlay
-    ytrue_tip1 <- ytrue_draws[, "y_true[1,1]"]
-    ppc_dens_overlay(y = simulated_tip_values_scaled[,1], yrep = matrix(ytrue_tip1[1:2000], nrow=200, byrow=TRUE))
-  }
-}
-
-# ---------------------------
-# 5) Numeric comparison table: posterior medians vs true
-# ---------------------------
-post_summary <- summarise_draws(as_draws_df(stan_fit), c("H_mats[1,1]","H_mats[1,2]","H_mats[2,2]",
-                                                       "Sigma_mats_original[1,1]","Sigma_mats_original[1,2]","Sigma_mats_original[2,2]",
-                                                       "theta_mats_original[1]","theta_mats_original[2]"),
-                               fun = list(median = ~median(.x), sd = ~sd(.x), `2.5%` = ~quantile(.x,0.025), `97.5%` = ~quantile(.x,0.975)))
-# add true values
-post_summary <- post_summary %>%
-  mutate(true = c(true_vals[["H_mats[1,1]"]], true_vals[["H_mats[1,2]"]], true_vals[["H_mats[2,2]"]],
-                  true_vals[["Sigma_mats_original[1,1]"]], true_vals[["Sigma_mats_original[1,2]"]], true_vals[["Sigma_mats_original[2,2]"]],
-                  true_vals[["theta_mats_original[1]"]], true_vals[["theta_mats_original[2]"]]))
-print(post_summary)
-
-# END
+plot_prior_post(H11_df, "H[1,1]", true_val = true_vals$H[1,1])
+plot_prior_post(H22_df, "H[2,2]", true_val = true_vals$H[2,2])
+plot_prior_post(H12_df, "H[1,2]", true_val = true_vals$H[1,2])
+plot_prior_post(H21_df, "H[2,1]", true_val = true_vals$H[2,1])
 
 ```
 
+#########################################################################################################################
+# User Set H matix options
+#########################################################################################################################
 
-
-
-# Simulate Data following Mitov approach
-Using diagonal H matrix, diagonal Sigma
-True values: Root: 2,6; Thetas: 3,8; H: Diagonal, 2, 2; Sigma: Diagonal: 
+# Simulate Data following Mitov approach - single regime
+Diagonal H matrix, diagonal Sigma
+True values: Root: 2,6; Thetas: 3,8; H: Diagonal, 1.0, 2.0; Sigma: Diagonal: 0.5, 1.0
 
 ```{r}
-true_y_root<-c(2,6) #Ancestral values for two traits
+#Ancestral values for two traits
+true_y_root<-c(2,6) 
 n_regs <- 1 #One_regime
 
+#Theta construction
 true_theta_mat<-data.frame(matrix(c( #Theta matrix - for optima traits are evolving towards, one value in each regime
               3,8), nrow = 2, byrow = TRUE))
 
@@ -1019,18 +887,19 @@ rownames(true_theta_mat)<-c("Trait1","Trait2")
 #true_H_mat_reg1<-matrix(c(2,0, #H Matrix - 
               #0,2), nrow = 2, byrow = TRUE)
 
-#Diagonal 
-true_H_mat_reg1<-matrix(c(2,0, #H Matrix - 
-              0,2), nrow = 2, byrow = TRUE)
+#H matrix construction - upper triangular is positive - if x2 is positive, pushes x1 towards optimum, if x2 is negative, pushes x1 away from optima - here it is positive - theta - x2, where theta is bigger than x2
+true_H_mat_reg1<-matrix(c(1.0,0,
+              0,2.0), nrow = 2, byrow = TRUE)
 
 
 true_H_mats<-list(true_H_mat_reg1)
 
 true_half_lives <- lapply(true_H_mats, function(H){log(2)/H})
 
+#Sigma construction
 true_sigma_Sigma <- c(0.5,1.0)  # Fixed scales
-true_Omega_Sigma <- matrix(c(1, 0.2,
-                        0.2, 1), nrow = 2)
+true_Omega_Sigma <- matrix(c(1, 0,
+                        0, 1), nrow = 2)
 
 true_Sigma_reg1 <- diag(true_sigma_Sigma) %*% true_Omega_Sigma %*% diag(true_sigma_Sigma)
 
@@ -1287,20 +1156,14 @@ y_error_matrix <- matrix(rep(y_error_scaled, each = N), nrow = N, ncol = length(
 simulated_tip_values_scaled[1:5, ]   # first 5 rows
 y_error_matrix[1:5, ]                # first 5 rows
 
-
-# Original theta values (one per trait)
-true_theta_mat
-theta_true <- c(3, 8)
-
-
-# Standardize theta (element-wise)
-theta_std <- (theta_true - trait_means) / trait_sds
-y_root_std <- (true_y_root - trait_means) / trait_sds
-
-
 #parent_of_node - get parents of all nodes
 #children_of_node_list - get immediate children of all parents
 children_of_node_matrix<-matrix(unlist(children_of_node_list),ncol=2,byrow=TRUE)
+
+#Set user defined H matix - fills columns first - 0s or 1s, where 1s are parameters to be estimated
+user_H <- matrix(c(1,0
+                   ,0,1),nrow = 2, ncol =2)
+
 
 dat <- list(
   N = N,
@@ -1318,8 +1181,8 @@ dat <- list(
   parent_of_node = parent_of_node,
   node_types = node_types,
   trait_means = trait_means, #Scaled data
-  trait_sds = trait_sds
-
+  trait_sds = trait_sds,
+  user_H = user_H #Set to allow for upper diagonal estimation
   )
 
 ```
@@ -1333,7 +1196,11 @@ This helps you:
 1.  **Understand the implications of your prior choices**: Are they placing mass where you expect? Are they too broad or too narrow?
 2.  **Diagnose potential issues**: For instance, if a scale parameter prior allows for extremely small values, it can lead to numerical instability.
 
+These prior simulations are using the priors in Stan, but because y was standardized above, need to be back-transformed to norla space to allow comparison with the true values
 
+
+
+Building G, Q, and T matrices as in Stan implementation - just helper functions
 ```{r}
 build_G<- function(n_traits, i, j, angle){
     G <- diag(n_traits)
@@ -1359,7 +1226,7 @@ build_Q<-function(n_traits, Givens_angles){ #Iterate through Givens_angles to up
   }
 
 buld_lower_tri_T<-function(n_traits, T_lower_tri){
-    T_lt <- diag(n_traits) #Start with identity matrix for Q
+    T_lt <- diag(n_traits) #Start with identity matrix for T
     pos <- 1
     for(j in 1:(n_traits-1)){ #Controls columns
       for(i in (j+1):n_traits){ #Controls rows
@@ -1373,43 +1240,58 @@ buld_lower_tri_T<-function(n_traits, T_lower_tri){
 ```
 
 
-Below is R code to do this. I'll assume `n_traits = 2` as per your simulation setup, and use standard `ggplot2` for plotting.
+Set True Values
 ```{r}
 # Load required packages
 set.seed(123)
 
 n_sims <- 50000
 n_traits <- 2
-H <- diag(1/trait_sds) %*% true_H_mats[[1]] %*% diag(trait_sds)
 
 # ------------------
 # Simulated "true" values from your setup - using the scaled versions
 true_vals <- list(
-  y_root = (true_y_root - trait_means)/trait_sds,
-  #lambda = c(true_H_mats[[1]][1,1],true_H_mats[[1]][1,2]),
-  theta = c((true_theta_mat[1,1] - trait_means[1])/trait_sds[1],(true_theta_mat[2,1] - trait_means[2])/trait_sds[2]), 
-  H = diag(1/trait_sds) %*% true_H_mats[[1]] %*% diag(trait_sds),
-  half_lives = c(log(2)/H[1,1],log(2)/H[2,2]),
-  true_sigma_Sigma = true_sigma_Sigma/trait_sds,
-  true_Omega_Sigma = true_Omega_Sigma,
-  Sigma = diag(1/trait_sds) %*% true_Sigmas[[1]] %*% diag(1/trait_sds)
+  y_root = true_y_root,
+  theta = true_theta_mat,
+  H = true_H_mats[[1]],
+  half_lives = true_half_lives[[1]],
+  sigma_Sigma = true_sigma_Sigma,
+  Omega_Sigma = true_Omega_Sigma,
+  Sigma = true_Sigmas[[1]]
 )
 
+```
+
+
+########################################################################################################
+Set Priors
+########################################################################################################
+
+```{r}
 ########
 #Priors
 ########
-true_theta_mats_sim <-cbind(rnorm(n=n_sims, 0, 1),rnorm(n=n_sims, 0, 1))
-y_root_sim <- cbind(rnorm(n=n_sims, 0, 2),rnorm(n=n_sims, 0, 2))
+
+#Half-lives
+half_lives_sim <- cbind(rlnorm(n=n_sims,log(0.5), 0.4),rlnorm(n=n_sims,log(0.5), 0.4)); #median ~0.5 time units, 
+
+#Thetas
+theta_mats_sim_scaled <-cbind(rnorm(n=n_sims, 0, 2.0),rnorm(n=n_sims, 0, 2.0))
+theta_mats_sim_org<-sweep(sweep(theta_mats_sim_scaled,2,trait_sds,"*"),2,trait_means,"+")
+
+#Y_roots
+y_root_sim_scaled <- cbind(rnorm(n=n_sims,mean(theta_mats_sim_scaled) , 2.0),rnorm(n=n_sims, mean(theta_mats_sim_scaled), 2.0))
+y_root_sim_org <-sweep(sweep(y_root_sim_scaled,2,trait_sds,"*"),2,trait_means,"+")
+
 
 # Calculate H priors
 Givens_angles <- runif(n=n_sims,-pi/2,pi/2);
 T_lower_tri <- rnorm(n=n_sims,0,0.5);
 #lambdas_mats_sim <- cbind(rlnorm(n=n_sims, 0.5, 0.5),rlnorm(n=n_sims, 0.5, 0.5))
-half_lives_sim <- cbind(rlnorm(n=n_sims,log(0.5), 0.4),rlnorm(n=n_sims,log(0.5), 0.4)); #median ~0.5 time units, sensible spread
-lambdas_mats_sim <- cbind(log(2)/half_lives_sim[,1],log(2)/half_lives_sim[,2])
+#Half lives and lambdas do not change between scaled and unscaled datasets
 
-#e^1 = 2.72
-#e^0 = 1
+#Calculating lambdas (diagonal of H)
+lambdas_mats_sim <- cbind(log(2)/half_lives_sim[,1],log(2)/half_lives_sim[,2])
 
 #Constructing Q
 Q_list<-list()
@@ -1417,53 +1299,58 @@ for (i in 1:n_sims) {
   Q_list[[i]] <- build_Q(n_traits, Givens_angles[i])
 }
 
-
 #Constructing T
 T_lower_tri_list <- list()
-
 for (i in 1:n_sims) {
   T_lower_tri_list[[i]] <- buld_lower_tri_T(n_traits, T_lower_tri[i]) #Lower tri
   diag(T_lower_tri_list[[i]])<-lambdas_mats_sim[i,] #Diagonal o lambdas
 }
 
 #/Constructing H = Q * T * t(Q)
-true_H_mats_sims <-list()
+H_mats_sims_scaled <-list()
 for (i in 1:n_sims) {
-  true_H_mats_sims[[i]] <- Q_list[[i]] %*% T_lower_tri_list[[i]] %*% t(Q_list[[i]]) #Matrix multiplication
+  H_mats_sims_scaled[[i]] <- Q_list[[i]] %*% T_lower_tri_list[[i]] %*% t(Q_list[[i]]) #Matrix multiplication
   }
 
 
-H_off_diagonals<-sapply(true_H_mats_sims, function(H){
-  c(H[1,2])})
-max(H_off_diagonals) #Off diagonals are not 0
-min(H_off_diagonals) #Off diagonals are not 0
 
+H_mats_sims_org <-list()
+D<-diag(trait_sds)
+for (i in 1:n_sims) {
+  H_mats_sims_org[[i]] <- D %*% H_mats_sims_scaled[[i]] %*% ginv(D)
+  }
 
 
 #Calculate Sigma priors
-true_Omega_Sigma_sim <- rlkjcorr(n_sims, K = n_traits, eta = 2) #Bigger eta = more density to identity matrix, no correlation
-true_sigma_Sigma_sim <- cbind(rlnorm(n=n_sims,1,0.1),rlnorm(n=n_sims,1,0.1)) #Mean around true values - 
+Omega_Sigma_sim <- rlkjcorr(n_sims, K = n_traits, eta = 2) #Bigger eta = more density to identity matrix, no correlation - no rescaling needed
+sigma_Sigma_sim_scaled <- cbind(rlnorm(n=n_sims,1,0.5),rlnorm(n=n_sims,1,0.25)) #Mean around true values - 
 #exp(1) = 2.72 - lognormal distribution
+sigma_Sigma_sim_org<-sweep(sigma_Sigma_sim_scaled,2,trait_sds,"*")
 
 
-# Compute full Sigma matrices
-Sigma_mats_sim <- lapply(1:n_sims, function(i) {
-  D <- diag(true_sigma_Sigma_sim[i, ])
-  D %*% true_Omega_Sigma_sim[i,,] %*% D
+
+# Compute full Sigma matrices - on original scale
+Sigma_mats_sim_org <- lapply(1:n_sims, function(i) {
+  D <- diag(sigma_Sigma_sim_org[i, ])
+  D %*% Omega_Sigma_sim[i,,] %*% D
 })
 
-Sigma_11 <- sapply(Sigma_mats_sim, function(S) S[1, 1])
-Sigma_22 <- sapply(Sigma_mats_sim, function(S) S[2, 2])
-Sigma_12 <- sapply(Sigma_mats_sim, function(S) S[1, 2])
 
-H_11 <- sapply(true_H_mats_sims, function(S) S[1, 1])
-H_22 <- sapply(true_H_mats_sims, function(S) S[2, 2])
-H_12 <- sapply(true_H_mats_sims, function(S) S[1, 2])
+H_11 <- sapply(H_mats_sims_org, function(S) S[1, 1])
+H_22 <- sapply(H_mats_sims_org, function(S) S[2, 2])
+H_12 <- sapply(H_mats_sims_org, function(S) S[1, 2])
+H_21 <- sapply(H_mats_sims_org, function(S) S[2, 1])
 
+Sigma_11 <- sapply(Sigma_mats_sim_org, function(S) S[1, 1])
+Sigma_22 <- sapply(Sigma_mats_sim_org, function(S) S[2, 2])
+Sigma_12 <- sapply(Sigma_mats_sim_org, function(S) S[1, 2])
+Sigma_21 <- sapply(Sigma_mats_sim_org, function(S) S[2, 1])
 
+```
 
+```{r}
 # ------------------
-# Plotting function
+# Prior Plotting function
 plot_prior <- function(samples, true_value, title, xlab = "Value") {
   df <- data.frame(value = samples)
     ggplot(df, aes(x = value, fill=mypal[1])) +
@@ -1482,55 +1369,45 @@ mypal <- ggsci::pal_aaas("default", alpha = 1)(3)
 
 # ------------------
 # Plot each prior with true values
-plot_prior(y_root_sim[,1], true_vals$y_root[1], "Prior: y_root[1]")
-plot_prior(y_root_sim[,2], true_vals$y_root[2], "Prior: y_root[2]")
+plot_prior(theta_mats_sim_org[,1], t(true_vals$theta)[1], "Prior: theta[1]")
+plot_prior(theta_mats_sim_org[,2], t(true_vals$theta)[2], "Prior: theta[2]")
 
-#plot_prior(lambdas_mats_sim[, 1], true_vals$lambda[1], "Prior: lambda[1]")
-#plot_prior(lambdas_mats_sim[, 2], true_vals$lambda[2], "Prior: lambda[2]")
+plot_prior(y_root_sim_org[,1], true_vals$y_root[1], "Prior: y_root[1]")
+plot_prior(y_root_sim_org[,2], true_vals$y_root[2], "Prior: y_root[2]")
 
-plot_prior(half_lives_sim[, 1], true_vals$half_lives[1], "Prior: half_lives[1]")
-plot_prior(half_lives_sim[, 2], true_vals$half_lives[2], "Prior: half_lives[2]")
+plot_prior(half_lives_sim[, 1], true_vals$half_lives[1,1], "Prior: half_lives[1]")
+plot_prior(half_lives_sim[, 2], true_vals$half_lives[2,2], "Prior: half_lives[2]")
 
 # H matrix plots
 plot_prior(H_11, true_vals$H[1, 1], "Prior: H[1,1]")
 plot_prior(H_22, true_vals$H[2, 2], "Prior: H[2,2]")
-plot_prior(H_12, true_vals$H[1, 2], "Prior: H[2,2]")
+plot_prior(H_12, true_vals$H[1, 2], "Prior: H[1,2]")
+plot_prior(H_21, true_vals$H[2, 1], "Prior: H[2,1]")
 
-plot_prior(true_theta_mats_sim[,1], true_vals$theta[1], "Prior: theta[1]")
-plot_prior(true_theta_mats_sim[,2], true_vals$theta[2], "Prior: theta[2]")
+#sigma Sigma
+plot_prior(sigma_Sigma_sim_org[, 1], true_vals$sigma_Sigma[1], "Prior: true_sigma_Sigma[1]")
+plot_prior(sigma_Sigma_sim_org[, 2], true_vals$sigma_Sigma[2], "Prior: true_sigma_Sigma[2]")
 
+#Omega Sigma
+plot_prior(Omega_Sigma_sim[,1,2], true_vals$Omega_Sigma[1,2], "Prior: true_Omega_Sigma[1,2]")#, xlim = c(0,5))
 
-plot_prior(true_sigma_Sigma_sim[, 1], true_vals$true_sigma_Sigma[1], "Prior: true_sigma_Sigma[1]")
-plot_prior(true_sigma_Sigma_sim[, 2], true_vals$true_sigma_Sigma[2], "Prior: true_sigma_Sigma[2]")
-
-plot_prior(true_Omega_Sigma_sim[,1,2], true_vals$true_Omega_Sigma[1,2], "Prior: true_Omega_Sigma[1,2]")#, xlim = c(0,5))
-plot_prior(true_Omega_Sigma_sim[,2,1], true_vals$true_Omega_Sigma[2,1], "Prior: true_Omega_Sigma[2,1]")#, xlim = c(0,5))
-
-
+#Sigmas
 plot_prior(Sigma_11, true_vals$Sigma[1, 1], "Prior: Sigma[1,1]")
-plot_prior(Sigma_12, true_vals$Sigma[1, 2], "Prior: Sigma[1,2]")
 plot_prior(Sigma_22, true_vals$Sigma[2, 2], "Prior: Sigma[2,2]")
+plot_prior(Sigma_12, true_vals$Sigma[1, 2], "Prior: Sigma[1,2]")
+plot_prior(Sigma_21, true_vals$Sigma[2, 1], "Prior: Sigma[2,2]")
 
 
 ```
 
-###########################################################################################################################
+#########################################################################################################################
 Compile model
-###########################################################################################################################
+#########################################################################################################################
 
 ```{r}
 setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvOU_mitov_1reg.stan')
-stan_file<-"mvOU_mitov_1reg.stan"
-
-stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
-```
-
-Original priors
-```{r}
-setwd('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/')
-rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvOU_mitov_1reg_org.stan')
-stan_file<-"mvOU_mitov_1reg_org.stan"
+rstan::stanc('/Users/markgrabowski/Documents/Academic/Research/Current Projects/Blouch Project/Blouch Github Site/blouch/inst/stan/mvOU_mitov_1reg_user_H.stan')
+stan_file<-"mvOU_mitov_1reg_user_H.stan"
 
 stan_model<-rstan::stan_model(file=stan_file) # Compile the Stan model (this takes time the first time)
 ```
@@ -1549,7 +1426,7 @@ stan_fit <- rstan::sampling(
 
 ```
 
-
+Real run
 ```{r}
 stan_fit <- rstan::sampling(
     object = stan_model,
@@ -1562,14 +1439,11 @@ stan_fit <- rstan::sampling(
 
 ```
 
-
-
-# Posteriors
+# Look at Posteriors
 ```{r}
 print(stan_fit,
       pars = c("H_mats",
                "H_mats_original",
-               "lambdas_mats",
                "half_lives",
                "Sigma_mats",
                "Sigma_mats_original",
@@ -1580,8 +1454,6 @@ print(stan_fit,
               "theta_mats_original",
                "y_root",
               "y_root_original"
-               ,"y_true",
-              "y_true_original"
                ), 
       probs = c(0.025, 0.25, 0.5, 0.75, 0.975), # Default quantiles
       digits_summary = 2) # Adjust number of digits if needed
@@ -1593,49 +1465,31 @@ post<-rstan::extract(stan_fit)
 
 Posterior predictive check - compare original y with simulated y
 ```{r}
-
 y_rep <- rstan::extract(stan_fit, pars="y_rep")$y_rep
 bayesplot::ppc_dens_overlay(simulated_tip_values_scaled[,1], y_rep[1:50,,1])
-
 ```
 
-```{r}
-library(tidybayes)
-
-posterior_yrep <- spread_draws(stan_fit, y_rep[i,k]) %>%
-  mutate(trait = paste0("Trait", k))
-
-# Compare observed and replicated distributions
-posterior_yrep %>%
-  filter(k == 1) %>%
-  ggplot(aes(x = y_rep, group = .iteration)) +
-  geom_density(alpha = 0.1, color = "blue") +
-  geom_density(data = data.frame(y_obs = Trait1),
-               aes(x = y_obs), color = "red", linewidth = 1.2) +
-  labs(title = "Posterior Predictive Check - Trait 1",
-       x = "Value", y = "Density")
-
-```
-
-
+# Pairs plot
 ```{r}
 traceplot(stan_fit, pars = "lp__") #to check if any chain is stuck.
 
 library(bayesplot)
 
 mcmc_pairs(stan_fit,
-           pars = c("true_H_mats[1,1]", "true_H_mats[2,2]", "Sigma_mats[1,2]", 
-                    "true_sigma_Sigma[1]","true_sigma_Sigma[2]",
-                    "Sigma_mats[1,1]", "Sigma_mats[1,2]", "Sigma_mats[2,2]",
+           pars = c("H_mats_original[1,1]", "H_mats_original[2,2]", "Sigma_mats_original[1,2]", 
+                    "sigma_Sigma_original[1]","sigma_Sigma_original[2]",
+                    "Sigma_mats_original[1,1]", "Sigma_mats_original[1,2]", "Sigma_mats_original[2,2]",
 
-                    "true_theta_mats[1]","true_theta_mats[2]", 
-                   "true_Omega_Sigma[1,1]", "true_Omega_Sigma[2,1]","true_Omega_Sigma[1,2]","true_Omega_Sigma[2,2]",
+                    "theta_mats_original[1]","theta_mats_original[2]", 
+                   "Omega_Sigma[1,1]", "Omega_Sigma[2,1]","Omega_Sigma[1,2]","Omega_Sigma[2,2]",
                     "lp__" # Always include lp__ to see if divergences cluster with low likelihood
                     ),
            diag_fun = "dens", off_diag_fun = "scatter", np = nuts_params(stan_fit))
 
 ```
 
+
+# Code for plotting posteriors vs. priors
 ```{r}
 library(tidyverse)
 library(tidybayes)
@@ -1662,242 +1516,135 @@ plot_prior_post <- function(df, title, true_val = NULL) {
   return(p)
 }
 
-# ------------------
+```
+
 # Extract posterior draws with tidybayes
+```{r}
+# ------------------
 post_df <- stan_fit %>% spread_draws(
-  `true_theta_mats[1]`, `true_theta_mats[2]`,
-  `true_sigma_Sigma[1]`, `true_sigma_Sigma[2]`,
-  `true_Omega_Sigma[1,2]`,
-  `y_root[1]`, `y_root[2]`,
-  `true_H_mats[1,1]`, `true_H_mats[2,2]`, `true_H_mats[1,2]`
+  `theta_mats_original[1]`, `theta_mats_original[2]`,
+  `sigma_Sigma_original[1]`, `sigma_Sigma_original[2]`,
+  `Omega_Sigma[1,2]`,
+  `y_root_original[1]`, `y_root_original[2]`,
+  `H_mats_original[1,1]`, `H_mats_original[2,2]`, `H_mats_original[1,2]`,`H_mats_original[2,1]`,
+  `half_lives[1]`, `half_lives[2]`
 )
 
-# ------------------
+```
 # Build prior vs posterior dataframes
+```{r}
+# ------------------
+#Half lives
+#half_lives ~ lognormal(log(0.5), 0.4); // median ~0.5 time units, sensible spread
+halflife1_df <- tibble(
+  value = c(half_lives_sim[,1], post_df$`half_lives[1]`),
+  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
+)
+
+halflife2_df <- tibble(
+  value = c(half_lives_sim[,2], post_df$`half_lives[2]`),
+  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
+)
 
 # Theta
 theta1_df <- tibble(
-  value = c(rnorm(n_sims, 0, 1), post_df$`true_theta_mats[1]`),
+  value = c(theta_mats_sim_org[,1], post_df$`theta_mats_original[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 theta2_df <- tibble(
-  value = c(rnorm(n_sims, 0, 1), post_df$`true_theta_mats[2]`),
+  value = c(theta_mats_sim_org[,2], post_df$`theta_mats_original[2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 # y_root
 yroot1_df <- tibble(
-  value = c(rnorm(n_sims, 0, 2), post_df$`y_root[1]`),
-  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
-)
-yroot2_df <- tibble(
-  value = c(rnorm(n_sims, 0, 2), post_df$`y_root[2]`),
+  value = c(y_root_sim_org[,1], post_df$`y_root_original[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
-# true_sigma_Sigma
+yroot2_df <- tibble(
+  value = c(y_root_sim_org[,2], post_df$`y_root_original[2]`),
+  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
+)
+
+# sigma_Sigma_original
 sigma1_df <- tibble(
-  value = c(rlnorm(n_sims, 1.0, 0.5), post_df$`true_sigma_Sigma[1]`),
+  value = c(sigma_Sigma_sim_org[,1], post_df$`sigma_Sigma_original[1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 sigma2_df <- tibble(
-  value = c(rlnorm(n_sims, 1.0, 0.5), post_df$`true_sigma_Sigma[2]`),
+  value = c(sigma_Sigma_sim_org[,1], post_df$`sigma_Sigma_original[2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
-# true_Omega_Sigma correlation
+# Omega_Sigma correlation
 omega12_df <- tibble(
-  value = c(rethinking::rlkjcorr(n_sims, K = 2, eta = 2)[,1,2],
-            post_df$`true_Omega_Sigma[1,2]`),
+  value = c(Omega_Sigma_sim[,1,2],
+            post_df$`Omega_Sigma[1,2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
 # H matrix
-lambda1_df <- tibble(
-  value = c(rlnorm(n_sims, -0.5, 0.5), post_df$`true_H_mats[1,1]`),
+H11_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[1, 1]
+})
+  
+H22_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[2, 2]
+})
+H12_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[1, 2]
+})
+H21_sims_org <- sapply(H_mats_sims_org, function(mat) {
+  mat[2, 1]
+})
+  
+H11_df <- tibble(
+  value = c(H11_sims_org, post_df$`H_mats_original[1,1]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
-lambda2_df <- tibble(
-  value = c(rlnorm(n_sims, -0.5, 0.5), post_df$`true_H_mats[2,2]`),
-  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
-)
-hoffdiag_df <- tibble(
-  value = c(rnorm(n_sims, 0, 0.5), post_df$`true_H_mats[1,2]`),
+H22_df <- tibble(
+  value = c(H22_sims_org, post_df$`H_mats_original[2,2]`),
   source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
 )
 
+H12_df <- tibble(
+  value = c(H12_sims_org, post_df$`H_mats_original[1,2]`),
+  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
+)
+
+H21_df <- tibble(
+  value = c(H21_sims_org, post_df$`H_mats_original[2,1]`),
+  source = rep(c("Prior", "Posterior"), c(n_sims, nrow(post_df)))
+)
+```
+
+
+```{r}
 # ------------------
 # Make plots with true values
 
-# Simulated "true" values from your setup - using the scaled versions
-true_vals <- list(
-  y_root = (true_y_root - trait_means)/trait_sds,
-  lambda = c(true_H_mats[[1]][1,1],true_H_mats[[1]][1,2]),
-  theta = c((true_theta_mat[1,1] - trait_means[1])/trait_sds[1],(true_theta_mat[2,1] - trait_means[2])/trait_sds[2]), 
-  H = diag(1/trait_sds) %*% true_H_mats[[1]] %*% diag(trait_sds),
-  true_sigma_Sigma = true_sigma_Sigma/trait_sds,
-  true_Omega_Sigma = true_Omega_Sigma,
-  Sigma = diag(1/trait_sds) %*% true_Sigmas[[1]] %*% diag(1/trait_sds)
-)
+#true_vals set above
+plot_prior_post(halflife1_df, "Halflife[1]", true_val = true_vals$half_lives[1,1])
+plot_prior_post(halflife2_df, "Halflife[2]", true_val = true_vals$half_lives[2,2])
 
-
-plot_prior_post(theta1_df, "Theta[1]", true_val = true_vals$theta[1])
-plot_prior_post(theta2_df, "Theta[2]", true_val = true_vals$theta[2])
+plot_prior_post(theta1_df, "Theta[1]", true_val = true_vals$theta[1,1])
+plot_prior_post(theta2_df, "Theta[2]", true_val = true_vals$theta[2,1])
 
 plot_prior_post(yroot1_df, "y_root[1]", true_val = true_vals$y_root[1])
-p_yroot2 <- plot_prior_post(yroot2_df, "y_root[2]", true_val = true_vals$y_root[2])
+plot_prior_post(yroot2_df, "y_root[2]", true_val = true_vals$y_root[2])
 
-p_sigma1 <- plot_prior_post(sigma1_df, "sigma_Sigma[1]", true_val = true_vals$true_sigma_Sigma[1])
-p_sigma2 <- plot_prior_post(sigma2_df, "sigma_Sigma[2]", true_val = true_vals$true_sigma_Sigma[2])
+plot_prior_post(sigma1_df, "sigma_Sigma[1]", true_val = true_vals$sigma_Sigma[1])
+plot_prior_post(sigma2_df, "sigma_Sigma[2]", true_val = true_vals$sigma_Sigma[2])
 
-p_omega12 <- plot_prior_post(omega12_df, "Omega_Sigma[1,2]", true_val = true_vals$true_Omega_Sigma[1,2])
+plot_prior_post(omega12_df, "Omega_Sigma[1,2]", true_val = true_vals$Omega_Sigma[1,2])
 
-p_lambda1 <- plot_prior_post(lambda1_df, "H[1,1]", true_val = true_vals$H[1,1])
-p_lambda2 <- plot_prior_post(lambda2_df, "H[2,2]", true_val = true_vals$H[2,2])
-p_hoffdiag <- plot_prior_post(hoffdiag_df, "H[1,2]", true_val = true_vals$H[1,2])
-
-
-```
-
-```{r}
-# Required packages
-library(posterior)   # as_draws_df / as_draws_array helpers
-library(bayesplot)   # mcmc_* plotting
-library(ggplot2)
-library(dplyr)
-
-# If your stan fit is named differently, replace stan_fit below
-draws_array <- as_draws_array(stan_fit)   # draws: iterations x chains x parameters
-draws_df    <- as_draws_df(stan_fit)      # tidy draws (iter, chain, variables)
-draws_mat   <- as_draws_matrix(stan_fit)  # matrix: iterations * chains x vars
-
-# --- TRUE values (from your simulator) ---
-# adjust these object names if your environment uses different ones
-true_H  <- true_H_mats[[1]]        # matrix n_traits x n_traits for regime 1
-true_S  <- true_Sigmas[[1]]        # Sigma (raw units) for regime 1
-true_theta <- as.numeric(true_theta_mat[,1])  # vector length n_traits
-true_yroot <- as.numeric(true_y_root)         # vector length n_traits
-
-# Convenience: named list of true scalar values matching Stan parameter names used in plots
-true_vals <- list(
-  "H_mats[1,1]" = true_H[1,1],
-  "H_mats[1,2]" = true_H[1,2],
-  "H_mats[2,1]" = true_H[2,1],
-  "H_mats[2,2]" = true_H[2,2],
-  # original-scale Sigma (if Stan reports Sigma_mats_original[...])
-  "Sigma_mats_original[1,1]" = true_S[1,1],
-  "Sigma_mats_original[1,2]" = true_S[1,2],
-  "Sigma_mats_original[2,2]" = true_S[2,2],
-  # original-scale theta and root:
-  "theta_mats_original[1]" = true_theta[1],
-  "theta_mats_original[2]" = true_theta[2],
-  "y_root_original[1]" = true_yroot[1],
-  "y_root_original[2]" = true_yroot[2]
-)
-
-# ---------------------------
-# 1) Traceplots + density with true value lines
-# ---------------------------
-pars_trace <- c("H_mats[1,1]","H_mats[2,2]","H_mats[1,2]","Sigma_mats_original[1,1]",
-                "Omega_Sigma[1,2]","theta_mats_original[1]")
-
-# Trace plot (multiple parameters)
-p_trace <- mcmc_trace(draws_array, pars = pars_trace)
-print(p_trace)
-
-# Density overlays with true vertical lines
-p_dens <- mcmc_dens_overlay(draws_array, pars = pars_trace)
-# add true value vertical lines
-p_dens + 
-  geom_vline(data = data.frame(param = names(true_vals), val = unlist(true_vals)),
-             aes(xintercept = val),
-             linetype = "dashed", color = "red", size = 0.6, inherit.aes = FALSE)
-
-# ---------------------------
-# 2) Posterior intervals / areas with true values shown
-# ---------------------------
-pars_intervals <- c("H_mats[1,1]", "H_mats[1,2]", "H_mats[2,2]",
-                    "Sigma_mats_original[1,1]", "Sigma_mats_original[2,2]",
-                    "Omega_Sigma[1,2]", "theta_mats_original[1]", "theta_mats_original[2]")
-
-p_area <- mcmc_areas(draws_array, pars = pars_intervals, prob = 0.95) +
-  theme_minimal() +
-  ggtitle("Posterior intervals (95%) with true values")
-
-# Overlay true values as points on x axis by adding vertical lines per param
-# Build df of true vals for the subset of plotted params
-tv_plot <- data.frame(param = pars_intervals, val = unlist(true_vals[pars_intervals]))
-# Add dashed vertical lines for each true val
-for(i in seq_len(nrow(tv_plot))){
-  p_area <- p_area + geom_vline(xintercept = tv_plot$val[i], linetype="dashed", color="red", size=0.5)
-}
-print(p_area)
-
-# ---------------------------
-# 3) Pairwise scatter for key tradeoffs and mark true pair as red point
-# ---------------------------
-pars_pairs <- c("H_mats[1,1]", "Sigma_mats_original[1,1]", "lambdas_mats[1]")
-mcmc_pairs(draws_array, pars = pars_pairs,
-           off_diag_args = list(size = 1, alpha = 0.3)) +
-  ggtitle("Pairs: H vs Sigma vs lambda (posterior)") +
-  theme_minimal()
-# Note: to overlay the true point, extract posterior draws and add with geom_point:
-# compute true vector
-true_pair <- data.frame(
-  x = true_vals[["H_mats[1,1]"]],
-  y = true_vals[["Sigma_mats_original[1,1]"]],
-  z = NA
-)
-# mcmc_pairs returns ggplot object; adding a single 2D point per panel is trickier —
-# instead use scatter of posterior means to compare or use custom ggplot below for a single pair:
-ggplot(data = as.data.frame(draws_mat)[, c("H_mats[1,1]", "Sigma_mats_original[1,1]")],
-       aes(x = `H_mats[1,1]`, y = `Sigma_mats_original[1,1]`)) +
-  geom_point(alpha = 0.03, size = 0.8) +
-  geom_point(data = data.frame(H = true_vals[["H_mats[1,1]"]], S = true_vals[["Sigma_mats_original[1,1]"]]),
-             aes(x = H, y = S), color = "red", size = 3) +
-  labs(x = "H_mats[1,1]", y = "Sigma_mats_original[1,1]", title = "Posterior cloud with true value (red)")
-
-# ---------------------------
-# 4) Posterior predictive check (PPC)
-#    If you have posterior predictions for tips (yrep), use ppc functions.
-#    If not, you can simulate yrep from posterior samples of parameters.
-# ---------------------------
-
-# If your model produced yrep or y_true draws accessible via stan object, use them directly.
-# Example: variable 'yrep' with dims draws x N x trait (adjust varname if different)
-if("yrep[1,1]" %in% colnames(draws_mat)){
-  # extract a subset of yrep for trait1 (first 200 posterior draws)
-  idx_yrep <- grep("^yrep\\[", colnames(draws_mat))
-  # this part depends on how yrep is named; user may need to adjust
-  yrep_mat <- posterior::subset_draws(as_draws_matrix(stan_fit), variable = "yrep")[, , drop = FALSE]
-  # Example simple PPC for trait 1 using first 200 draws (user might need to adapt shape)
-  ppc_dens_overlay(y = simulated_tip_values_scaled[,1], yrep = yrep_mat[1:200, , 1])
-} else {
-  message("No 'yrep' variable found in stan_fit. To run PPC, either save yrep in Stan or simulate posterior predictive draws in R.")
-  # Quick: simulate posterior predictive for tip 1 using posterior draws of y_true if available
-  if("y_true[1,1]" %in% colnames(draws_mat)){
-    ytrue_draws <- as.data.frame(draws_mat)[, grep("^y_true\\[", colnames(draws_mat))]
-    # pick a tip index (1) and create density overlay
-    ytrue_tip1 <- ytrue_draws[, "y_true[1,1]"]
-    ppc_dens_overlay(y = simulated_tip_values_scaled[,1], yrep = matrix(ytrue_tip1[1:2000], nrow=200, byrow=TRUE))
-  }
-}
-
-# ---------------------------
-# 5) Numeric comparison table: posterior medians vs true
-# ---------------------------
-post_summary <- summarise_draws(as_draws_df(stan_fit), c("H_mats[1,1]","H_mats[1,2]","H_mats[2,2]",
-                                                       "Sigma_mats_original[1,1]","Sigma_mats_original[1,2]","Sigma_mats_original[2,2]",
-                                                       "theta_mats_original[1]","theta_mats_original[2]"),
-                               fun = list(median = ~median(.x), sd = ~sd(.x), `2.5%` = ~quantile(.x,0.025), `97.5%` = ~quantile(.x,0.975)))
-# add true values
-post_summary <- post_summary %>%
-  mutate(true = c(true_vals[["H_mats[1,1]"]], true_vals[["H_mats[1,2]"]], true_vals[["H_mats[2,2]"]],
-                  true_vals[["Sigma_mats_original[1,1]"]], true_vals[["Sigma_mats_original[1,2]"]], true_vals[["Sigma_mats_original[2,2]"]],
-                  true_vals[["theta_mats_original[1]"]], true_vals[["theta_mats_original[2]"]]))
-print(post_summary)
-
-# END
+plot_prior_post(H11_df, "H[1,1]", true_val = true_vals$H[1,1])
+plot_prior_post(H22_df, "H[2,2]", true_val = true_vals$H[2,2])
+plot_prior_post(H12_df, "H[1,2]", true_val = true_vals$H[1,2])
+plot_prior_post(H21_df, "H[2,1]", true_val = true_vals$H[2,1])
 
 ```
+
+
 

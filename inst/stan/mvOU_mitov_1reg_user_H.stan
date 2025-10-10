@@ -81,6 +81,8 @@ functions {
     // For small k, inverse() is OK; if k larger consider more stable solvers
     matrix[k*k, k*k] Linv = inverse(Lbig);
     vector[k*k] vecVinf = Linv * vecS;
+    //vector[k*k] vecVinf = mdivide_left(Lbig, vecS);
+
 
     // reshape vecVinf -> V_inf
     matrix[k, k] Vinf;
@@ -164,6 +166,7 @@ functions {
     array[n_post_order_path_nodes] vector[n_traits] m_kernals = rep_array(rep_vector(0.0,n_traits),n_post_order_path_nodes);
     array[n_post_order_path_nodes] real r_kernals = rep_array(0.0, n_post_order_path_nodes);
 
+
     for(i in 1:n_post_order_path_nodes){ //Loop through nodes in postorder
       int current_node = post_order_path_nodes[i]; //Get current node in postorder path
       int parent = parent_of_node[current_node]; //Get current node's parent
@@ -173,6 +176,7 @@ functions {
       vector[n_traits] omega;
       matrix[n_traits,n_traits] V_i;
       matrix[n_traits,n_traits] inv_V_i;
+      matrix[n_traits,n_traits] L_Vi;
 
       matrix[n_traits,n_traits] A_i = rep_matrix(0.0, n_traits, n_traits);
       vector[n_traits] b_i = rep_vector(0.0, n_traits);
@@ -209,6 +213,9 @@ functions {
         //  lambdas_sum_mats);
 
         inv_V_i = inverse(V_i);
+        //L_Vi = cholesky_decompose(V_i);
+        //inv_V_i = mdivide_left_tri_low(L_Vi, identity_matrix(n_traits));
+
         A_i = -0.5 * inv_V_i;
         b_i = inv_V_i* omega;
         C_i = -0.5 * Phi' *inv_V_i * Phi;
@@ -229,7 +236,11 @@ functions {
         vector[n_traits] m_i = m_kernals[current_node];
         real r_i = r_kernals[current_node];
         matrix[n_traits,n_traits] AL = A_i + L_i;
+
         matrix[n_traits,n_traits] inv_AL = inverse(AL);
+        //matrix[n_traits,n_traits] L_AL = cholesky_decompose(AL);
+        //matrix[n_traits,n_traits] inv_AL = mdivide_left_tri_low(L_AL, identity_matrix(n_traits));
+
         L_kernals[parent] += C_i - 0.25 * E_i * inv_AL * E_i';
         m_kernals[parent] += d_i - 0.5 * E_i * inv_AL * (b_i + m_i);
         r_kernals[parent] += f_i + r_i + (n_traits/2) * log(2*pi())
@@ -264,6 +275,9 @@ data {
 
   vector[n_traits] trait_means;
   vector[n_traits] trait_sds;
+
+  matrix[n_traits,n_traits] user_H;
+
 }
 
 parameters {
@@ -276,12 +290,12 @@ parameters {
   vector<lower=0.001>[n_traits] sigma_Sigma; //Standard deviations for Sigma (part of LKJ prior)
   vector<lower=-pi()/2,upper=pi()/2>[n_traits*(n_traits-1)/2] Givens_angles; //Angles for G matrix, Givens rotation
   vector[n_traits * (n_traits - 1) / 2] T_lower_tri;
+  matrix[n_traits, n_traits] H_raw;
 }
 
 transformed parameters{
   matrix[n_traits, n_traits] lambdas_sum_mats;
   matrix[n_traits,n_traits] Sigma_mats = diag_matrix(sigma_Sigma) * Omega_Sigma * diag_matrix(sigma_Sigma);   //Original
-
   vector[n_traits] lambdas_mats = log(2) ./ half_lives;
 
 
@@ -291,18 +305,31 @@ transformed parameters{
     }
   }
 
+
   //Constructing Q - Givens rotations
-  matrix[n_traits,n_traits] Q = build_Q(n_traits, Givens_angles);
+  //matrix[n_traits,n_traits] Q = build_Q(n_traits, Givens_angles);
 
   //Constructing T - lower tri + Givens rotations = assymetric H
-  matrix[n_traits,n_traits] T = buld_lower_tri_T(n_traits, T_lower_tri); //Build T and assign lower tri values
+  //matrix[n_traits,n_traits] T = buld_lower_tri_T(n_traits, T_lower_tri); //Build T and assign lower tri values
 
-  for (i in 1:n_traits){
-    T[i,i] = lambdas_mats[i]; //Assign diagonal of T
-  }
+  //for (i in 1:n_traits){
+  //  T[i,i] = lambdas_mats[i]; //Assign diagonal of T
+  //}
 
   //Constructing H = Q * T * t(Q)
-  matrix[n_traits,n_traits] H_mats = Q * T * Q';
+  //matrix[n_traits,n_traits] H_mats = Q * T * Q';
+  matrix[n_traits,n_traits] H_mats;
+
+  for(i in 1:n_traits){ //Set diagonal
+    H_mats[i,i] = lambdas_mats[i];
+  }
+
+  for (i in 1:n_traits) {
+    for (j in 1:n_traits) {
+      if (i != j && user_H[i,j] == 1)
+        H_mats[i,j] = H_raw[i,j];// * sqrt(lambdas_mats[i] * lambdas_mats[j]);
+    }
+  }
 }
 
 
@@ -314,7 +341,7 @@ model {
     }
   }
   for(i in 1:n_traits){
-    y_root[i] ~ normal(theta_mats[i], 2.0);
+    y_root[i] ~ normal(0, 3.0);
   }
   half_lives ~ lognormal(log(0.5), 0.4); // median ~0.5 time units, sensible spread
   theta_mats ~ normal(0, 2.0);
@@ -323,6 +350,14 @@ model {
   Givens_angles ~ uniform(-pi()/2,pi()/2);
   T_lower_tri ~ normal(0,0.5);
 
+  // Priors for off-diagonals (only those you actually use)
+  for (i in 1:n_traits){
+    for (j in 1:n_traits){
+      if (i != j && user_H[i,j] == 1){
+        H_raw[i,j] ~ normal(0, 0.25);
+        }
+    }
+  }
 
   target += calculate_log_likelihood_lp(
     n_nodes,
