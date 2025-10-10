@@ -49,12 +49,8 @@ Then install *Blouch*
 devtools::install_github("mark-grabowski/blouch")
 library(blouch)
 ```
-Note that the development version of *Blouch*, via the branch 'dev-fixes-blouch1.0', currently has the most up to date version and will be merged with the main branch shortly.
 
-``` r
-devtools::install_github("mark-grabowski/blouch@dev-fixes-blouch1.0")
-library(blouch)
-```
+*Blouch* was recently updated to work with the latest version or RStan (2.36.0.9000).
 
 ## Documentation
 
