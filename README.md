@@ -35,7 +35,7 @@ preliminary analysis will be the same.
 
 ## Instalation Instructions
 
-To install the R and Stan functions associated with Blouch from github,
+To install the R and Stan functions associated with *Blouch* from github,
 first install the package devtools:
 
 ``` r
@@ -43,10 +43,16 @@ install.packages("devtools", repos = "https://cran.ma.imperial.ac.uk/")
 library(devtools)
 ```
 
-Then install Blouch
+Then install *Blouch*
 
 ``` r
 devtools::install_github("mark-grabowski/blouch")
+library(blouch)
+```
+Note that the development version of *Blouch*, via the branch 'dev-fixes-blouch1.0', currently has the most up to date version and will be merged with the main branch shortly.
+
+``` r
+devtools::install_github("mark-grabowski/blouch@dev-fixes-blouch1.0")
 library(blouch)
 ```
 
