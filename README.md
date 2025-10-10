@@ -35,8 +35,15 @@ preliminary analysis will be the same.
 
 ## Instalation Instructions
 
-To install the R and Stan functions associated with *Blouch* from github,
-first install the package devtools:
+First, you must install rstan, the R interface to the probabilistic programming language for statistical inference Stan. Stan allows estimation of Bayesian models using Markov chain Monte Carlo (MCMC) methods based on the Hamiltonian Monte Carlo sampler.
+
+The latest version can be found here:
+
+``` r
+https://stan-dev.r-universe.dev/rstan
+```
+
+To install the R and Stan functions associated with *Blouch* from github, first install the package devtools:
 
 ``` r
 install.packages("devtools", repos = "https://cran.ma.imperial.ac.uk/")
