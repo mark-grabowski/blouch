@@ -8,8 +8,8 @@
 <title>Basic Model Walkthrough • blouch</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Basic Model Walkthrough">
 </head>
 <body>
@@ -32,8 +32,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (in press)</a></li>
-    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (in press)</a></li>
+<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (2024)</a></li>
+    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (2024)</a></li>
     <li><a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic Models</a></li>
     <li><a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-Optima Models</a></li>
     <li><a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models</a></li>
@@ -64,7 +64,7 @@
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-10-07</h4>
+            <h4 data-toc-skip class="date">2025-10-10</h4>
       
 
       <div class="d-none name"><code>Basic_Models-Examples.Rmd</code></div>
@@ -198,19 +198,19 @@ results. We will set the intercept (alpha term) to 2 and the slope to
 <span><span class="co">#&gt; lm(formula = Y ~ X, data = df)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;       Min        1Q    Median        3Q       Max </span></span>
-<span><span class="co">#&gt; -0.246070 -0.068079  0.004247  0.073474  0.209155 </span></span>
+<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span><span class="co">#&gt; -0.24649 -0.07102  0.01074  0.06763  0.20870 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept) 2.011709   0.016915  118.93   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; X           0.255806   0.004821   53.06   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; (Intercept) 2.012895   0.016895  119.14   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; X           0.255665   0.004815   53.09   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.1063 on 48 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.9832, Adjusted R-squared:  0.9829 </span></span>
-<span><span class="co">#&gt; F-statistic:  2815 on 1 and 48 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<span><span class="co">#&gt; Residual standard error: 0.1062 on 48 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.9833, Adjusted R-squared:  0.9829 </span></span>
+<span><span class="co">#&gt; F-statistic:  2819 on 1 and 48 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="simulating-measurement-error">Simulating measurement error<a class="anchor" aria-label="anchor" href="#simulating-measurement-error"></a>
@@ -402,12 +402,12 @@ effect model blouchOU_direct.</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         mean se_mean   sd 2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl      0.19       0 0.12 0.06 0.11 0.16 0.23  0.52  1514    1</span></span>
-<span><span class="co">#&gt; vy      0.02       0 0.01 0.01 0.01 0.02 0.02  0.03  1477    1</span></span>
-<span><span class="co">#&gt; optima  1.99       0 0.04 1.91 1.97 1.99 2.01  2.06  2161    1</span></span>
-<span><span class="co">#&gt; beta[1] 0.26       0 0.01 0.24 0.25 0.26 0.26  0.28  2954    1</span></span>
+<span><span class="co">#&gt; hl      0.17       0 0.11 0.05 0.10 0.14 0.20  0.48  1359    1</span></span>
+<span><span class="co">#&gt; vy      0.02       0 0.01 0.01 0.01 0.01 0.02  0.03  1360    1</span></span>
+<span><span class="co">#&gt; optima  2.00       0 0.03 1.93 1.98 2.00 2.02  2.06  2457    1</span></span>
+<span><span class="co">#&gt; beta[1] 0.25       0 0.01 0.24 0.25 0.25 0.26  0.27  2892    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:05:18 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:03:07 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -625,18 +625,18 @@ we make a quick plot of the results.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -0.76992 -0.27359 -0.00789  0.26336  0.78072 </span></span>
+<span><span class="co">#&gt; -0.77885 -0.27641 -0.00452  0.26688  0.78742 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  1.90741    0.05335  35.750  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; X            0.18523    0.04809   3.852 0.000347 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  1.91125    0.05324  35.902  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; X            0.17768    0.04798   3.703 0.000549 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.3353 on 48 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.2361, Adjusted R-squared:  0.2202 </span></span>
-<span><span class="co">#&gt; F-statistic: 14.84 on 1 and 48 DF,  p-value: 0.000347</span></span></code></pre></div>
+<span><span class="co">#&gt; Residual standard error: 0.3345 on 48 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.2222, Adjusted R-squared:  0.206 </span></span>
+<span><span class="co">#&gt; F-statistic: 13.71 on 1 and 48 DF,  p-value: 0.0005492</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="simulating-measurement-error-1">Simulating measurement error<a class="anchor" aria-label="anchor" href="#simulating-measurement-error-1"></a>
@@ -823,13 +823,13 @@ evolutionary regression, beta_e, following Hansen et al. (2008)</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           mean se_mean   sd 2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.12       0 0.06 0.04 0.08 0.11 0.15  0.26  1541    1</span></span>
-<span><span class="co">#&gt; vy        0.14       0 0.04 0.08 0.11 0.13 0.16  0.23  1656    1</span></span>
-<span><span class="co">#&gt; optima    1.92       0 0.08 1.75 1.87 1.92 1.97  2.08  2730    1</span></span>
-<span><span class="co">#&gt; beta[1]   0.21       0 0.09 0.06 0.15 0.21 0.27  0.40  1481    1</span></span>
-<span><span class="co">#&gt; beta_e[1] 0.17       0 0.07 0.05 0.13 0.17 0.22  0.31  1557    1</span></span>
+<span><span class="co">#&gt; hl        0.13       0 0.06 0.05 0.09 0.12 0.15  0.28  1571    1</span></span>
+<span><span class="co">#&gt; vy        0.14       0 0.04 0.08 0.11 0.13 0.16  0.24  1696    1</span></span>
+<span><span class="co">#&gt; optima    1.93       0 0.08 1.77 1.87 1.93 1.98  2.09  2083    1</span></span>
+<span><span class="co">#&gt; beta[1]   0.19       0 0.08 0.04 0.13 0.19 0.24  0.36  1521    1</span></span>
+<span><span class="co">#&gt; beta_e[1] 0.15       0 0.06 0.03 0.11 0.15 0.19  0.28  1435    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:06:25 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:03:57 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1050,19 +1050,19 @@ that term.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;       Min        1Q    Median        3Q       Max </span></span>
-<span><span class="co">#&gt; -0.221461 -0.068536  0.006533  0.054644  0.165903 </span></span>
+<span><span class="co">#&gt; -0.225960 -0.073477  0.005321  0.051772  0.179728 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  1.97980    0.01389  142.56   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; XsXd         0.35163    0.01018   34.54   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; XsXa         0.24355    0.01586   15.36   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  1.98009    0.01400  141.44   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; XsXd         0.35013    0.01026   34.12   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; XsXa         0.24041    0.01599   15.04   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.09757 on 47 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.9702, Adjusted R-squared:  0.9689 </span></span>
-<span><span class="co">#&gt; F-statistic: 764.9 on 2 and 47 DF,  p-value: &lt; 2.2e-16</span></span>
+<span><span class="co">#&gt; Residual standard error: 0.09835 on 47 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.9694, Adjusted R-squared:  0.9681 </span></span>
+<span><span class="co">#&gt; F-statistic: 743.9 on 2 and 47 DF,  p-value: &lt; 2.2e-16</span></span>
 <span></span>
 <span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">df</span>,<span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X.Xd</span>,y<span class="op">=</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -1075,19 +1075,19 @@ that term.</p>
 <span><span class="co">#&gt; lm(formula = Y ~ X.Xd, data = df)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span><span class="co">#&gt; -0.5619 -0.1213  0.0120  0.1801  0.4515 </span></span>
+<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span><span class="co">#&gt; -0.56229 -0.13116  0.02604  0.18251  0.45325 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  1.99185    0.03366   59.18   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; X.Xd         0.36485    0.02462   14.82   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  1.99199    0.03334   59.74   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; X.Xd         0.36318    0.02439   14.89   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.2369 on 48 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.8206, Adjusted R-squared:  0.8169 </span></span>
-<span><span class="co">#&gt; F-statistic: 219.6 on 1 and 48 DF,  p-value: &lt; 2.2e-16</span></span>
+<span><span class="co">#&gt; Residual standard error: 0.2346 on 48 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.822,  Adjusted R-squared:  0.8183 </span></span>
+<span><span class="co">#&gt; F-statistic: 221.7 on 1 and 48 DF,  p-value: &lt; 2.2e-16</span></span>
 <span></span>
 <span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">df</span>,<span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">X.Xa</span>,y<span class="op">=</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -1101,18 +1101,18 @@ that term.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -1.06519 -0.32135 -0.05254  0.24757  1.26458 </span></span>
+<span><span class="co">#&gt; -1.06677 -0.31078 -0.05275  0.24435  1.26835 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  2.02437    0.07029  28.802  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; X.Xa         0.28987    0.08032   3.609 0.000732 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  2.02447    0.07002  28.913  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; X.Xa         0.28654    0.08002   3.581 0.000796 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.4959 on 48 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.2134, Adjusted R-squared:  0.197 </span></span>
-<span><span class="co">#&gt; F-statistic: 13.02 on 1 and 48 DF,  p-value: 0.0007319</span></span></code></pre></div>
+<span><span class="co">#&gt; Residual standard error: 0.4941 on 48 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.2108, Adjusted R-squared:  0.1944 </span></span>
+<span><span class="co">#&gt; F-statistic: 12.82 on 1 and 48 DF,  p-value: 0.0007964</span></span></code></pre></div>
 <p>Next we will simulate measurement error - we will use a standard
 deviation of measurement error of 0.01, which we will provide to
 <em>Blouch</em> as a vector (X_error and Y_error), and use the rnorm
@@ -1274,7 +1274,11 @@ here.</p>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
-<span><span class="co">#&gt; Also defined by 'rethinking'</span></span></code></pre></div>
+<span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
+<span><span class="co">#&gt; Warning: There were 1 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
+<span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
+<span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
 <p>Here the results include, in order, the direct effect regression, the
 optimal regression, and finally beta_e, the evolutionary regression,
 following Hansen et al. (2008)</p>
@@ -1285,14 +1289,14 @@ following Hansen et al. (2008)</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           mean se_mean   sd 2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.12       0 0.07 0.04 0.08 0.10 0.14  0.31  1066    1</span></span>
-<span><span class="co">#&gt; vy        0.01       0 0.00 0.00 0.00 0.01 0.01  0.01  2517    1</span></span>
-<span><span class="co">#&gt; optima    1.99       0 0.03 1.93 1.97 1.99 2.01  2.05  2812    1</span></span>
-<span><span class="co">#&gt; beta[1]   0.35       0 0.01 0.33 0.34 0.35 0.35  0.37  4299    1</span></span>
-<span><span class="co">#&gt; beta[2]   0.30       0 0.04 0.24 0.27 0.29 0.32  0.42  1134    1</span></span>
-<span><span class="co">#&gt; beta_e[1] 0.25       0 0.02 0.20 0.23 0.25 0.26  0.29  1885    1</span></span>
+<span><span class="co">#&gt; hl        0.13       0 0.08 0.04 0.08 0.10 0.15  0.33   794    1</span></span>
+<span><span class="co">#&gt; vy        0.01       0 0.00 0.00 0.01 0.01 0.01  0.01  1201    1</span></span>
+<span><span class="co">#&gt; optima    1.99       0 0.03 1.93 1.97 1.99 2.01  2.05  2504    1</span></span>
+<span><span class="co">#&gt; beta[1]   0.34       0 0.01 0.32 0.34 0.34 0.35  0.36  3894    1</span></span>
+<span><span class="co">#&gt; beta[2]   0.29       0 0.05 0.23 0.26 0.28 0.31  0.42   607    1</span></span>
+<span><span class="co">#&gt; beta_e[1] 0.24       0 0.02 0.19 0.22 0.24 0.25  0.28  1964    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:07:41 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:04:52 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1478,7 +1482,7 @@ Comparative Data. Systematic Biology. 63:902–918.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

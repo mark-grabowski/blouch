@@ -8,8 +8,8 @@
 <title>Varying Effects and Multilevel Models Walkthrough • blouch</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Varying Effects and Multilevel Models Walkthrough">
 </head>
 <body>
@@ -32,8 +32,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (in press)</a></li>
-    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (in press)</a></li>
+<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (2024)</a></li>
+    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (2024)</a></li>
     <li><a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic Models</a></li>
     <li><a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-Optima Models</a></li>
     <li><a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models</a></li>
@@ -64,7 +64,7 @@
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-10-07</h4>
+            <h4 data-toc-skip class="date">2025-10-10</h4>
       
 
       <div class="d-none name"><code>Varying_Effects_Models-Examples.Rmd</code></div>
@@ -220,19 +220,19 @@ Trees phylogeny</p>
 <span><span class="co">#&gt; lm(formula = Y ~ X, data = df)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -1.40684  0.08761  0.21911  0.31485  0.49026 </span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -1.4073  0.1177  0.2180  0.3100  0.4898 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  1.76428    0.08319   21.21  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; X            0.24933    0.02371   10.52 4.76e-14 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  1.76546    0.08346   21.15  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; X            0.24919    0.02379   10.47 5.42e-14 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.5228 on 48 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.6973, Adjusted R-squared:  0.691 </span></span>
-<span><span class="co">#&gt; F-statistic: 110.6 on 1 and 48 DF,  p-value: 4.761e-14</span></span>
+<span><span class="co">#&gt; Residual standard error: 0.5245 on 48 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.6957, Adjusted R-squared:  0.6893 </span></span>
+<span><span class="co">#&gt; F-statistic: 109.7 on 1 and 48 DF,  p-value: 5.418e-14</span></span>
 <span></span>
 <span><span class="co">################################################################################################################</span></span>
 <span><span class="co">#Simulate errors </span></span>
@@ -366,14 +366,14 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           mean se_mean   sd 2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.18       0 0.10 0.06 0.11 0.16 0.22  0.43   588 1.01</span></span>
-<span><span class="co">#&gt; vy        0.02       0 0.01 0.01 0.01 0.02 0.02  0.03   701 1.01</span></span>
-<span><span class="co">#&gt; optima[1] 2.00       0 0.04 1.90 1.97 2.00 2.02  2.07  1617 1.00</span></span>
-<span><span class="co">#&gt; optima[2] 0.98       0 0.13 0.67 0.92 1.00 1.06  1.18   745 1.01</span></span>
-<span><span class="co">#&gt; beta[1,1] 0.26       0 0.01 0.24 0.25 0.26 0.27  0.28  2404 1.00</span></span>
-<span><span class="co">#&gt; beta[2,1] 0.12       0 0.03 0.06 0.10 0.12 0.15  0.19  2360 1.00</span></span>
+<span><span class="co">#&gt; hl        0.16       0 0.09 0.05 0.10 0.14 0.19  0.36   692    1</span></span>
+<span><span class="co">#&gt; vy        0.02       0 0.01 0.01 0.01 0.01 0.02  0.03   875    1</span></span>
+<span><span class="co">#&gt; optima[1] 2.01       0 0.04 1.93 1.99 2.01 2.03  2.08  1785    1</span></span>
+<span><span class="co">#&gt; optima[2] 1.00       0 0.11 0.78 0.95 1.01 1.06  1.16   632    1</span></span>
+<span><span class="co">#&gt; beta[1,1] 0.26       0 0.01 0.24 0.25 0.26 0.26  0.27  2756    1</span></span>
+<span><span class="co">#&gt; beta[2,1] 0.12       0 0.03 0.06 0.10 0.12 0.14  0.18  2447    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:15:54 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:53:58 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -541,22 +541,22 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;             mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl          0.20    0.01 0.13  0.06  0.12 0.17 0.24  0.57   485 1.01</span></span>
-<span><span class="co">#&gt; vy          0.02    0.00 0.01  0.01  0.01 0.02 0.02  0.04   519 1.01</span></span>
-<span><span class="co">#&gt; optima_bar  1.48    0.01 0.39  0.69  1.23 1.48 1.73  2.27  1968 1.00</span></span>
-<span><span class="co">#&gt; beta_bar[1] 0.13    0.00 0.15 -0.23  0.05 0.15 0.22  0.39  1175 1.00</span></span>
+<span><span class="co">#&gt; hl          0.16    0.00 0.09  0.05  0.10 0.14 0.19  0.36   517    1</span></span>
+<span><span class="co">#&gt; vy          0.02    0.00 0.01  0.01  0.01 0.01 0.02  0.03   702    1</span></span>
+<span><span class="co">#&gt; optima_bar  1.49    0.01 0.36  0.78  1.25 1.50 1.73  2.21  2253    1</span></span>
+<span><span class="co">#&gt; beta_bar[1] 0.13    0.00 0.16 -0.25  0.04 0.15 0.22  0.42  1158    1</span></span>
 <span><span class="co">#&gt; Rho[1,1]    1.00     NaN 0.00  1.00  1.00 1.00 1.00  1.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; Rho[1,2]    0.08    0.01 0.32 -0.56 -0.14 0.08 0.32  0.68  1922 1.00</span></span>
-<span><span class="co">#&gt; Rho[2,1]    0.08    0.01 0.32 -0.56 -0.14 0.08 0.32  0.68  1922 1.00</span></span>
-<span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1562 1.00</span></span>
-<span><span class="co">#&gt; sigma[1]    0.87    0.01 0.42  0.33  0.57 0.77 1.08  1.93  1508 1.00</span></span>
-<span><span class="co">#&gt; sigma[2]    0.34    0.01 0.32  0.05  0.12 0.22 0.44  1.21  1154 1.00</span></span>
-<span><span class="co">#&gt; optima[1]   1.99    0.00 0.05  1.89  1.97 2.00 2.02  2.08  1108 1.00</span></span>
-<span><span class="co">#&gt; optima[2]   0.94    0.01 0.17  0.49  0.89 0.97 1.04  1.16   466 1.00</span></span>
-<span><span class="co">#&gt; beta[1,1]   0.26    0.00 0.01  0.24  0.25 0.26 0.27  0.28  1863 1.00</span></span>
-<span><span class="co">#&gt; beta[2,1]   0.13    0.00 0.03  0.07  0.11 0.13 0.15  0.20  1335 1.00</span></span>
+<span><span class="co">#&gt; Rho[1,2]    0.07    0.01 0.32 -0.56 -0.16 0.08 0.31  0.65  2026    1</span></span>
+<span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.32 -0.56 -0.16 0.08 0.31  0.65  2026    1</span></span>
+<span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  2007    1</span></span>
+<span><span class="co">#&gt; sigma[1]    0.85    0.01 0.42  0.32  0.54 0.77 1.05  1.90  1481    1</span></span>
+<span><span class="co">#&gt; sigma[2]    0.33    0.01 0.31  0.04  0.12 0.22 0.42  1.21  1101    1</span></span>
+<span><span class="co">#&gt; optima[1]   2.01    0.00 0.04  1.94  1.99 2.01 2.03  2.09  1501    1</span></span>
+<span><span class="co">#&gt; optima[2]   0.98    0.01 0.12  0.69  0.93 1.00 1.05  1.16   480    1</span></span>
+<span><span class="co">#&gt; beta[1,1]   0.26    0.00 0.01  0.24  0.25 0.26 0.26  0.27  1704    1</span></span>
+<span><span class="co">#&gt; beta[2,1]   0.13    0.00 0.03  0.06  0.11 0.13 0.15  0.20  1277    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:16:42 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:54:38 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -569,7 +569,7 @@ Non centered</p>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
-<span><span class="co">#&gt; Warning: There were 48 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; Warning: There were 105 divergent transitions after warmup. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
@@ -580,22 +580,22 @@ Non centered</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;            mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl         0.20    0.00 0.13  0.06  0.12 0.17 0.25  0.55   729 1.00</span></span>
-<span><span class="co">#&gt; vy         0.02    0.00 0.01  0.01  0.01 0.02 0.02  0.04   790 1.00</span></span>
-<span><span class="co">#&gt; optima_bar 1.48    0.01 0.37  0.74  1.25 1.48 1.71  2.23   673 1.01</span></span>
-<span><span class="co">#&gt; beta_bar   0.13    0.01 0.15 -0.24  0.05 0.15 0.22  0.38   428 1.00</span></span>
+<span><span class="co">#&gt; hl         0.18    0.00 0.12  0.05  0.11 0.15 0.21  0.48   802 1.01</span></span>
+<span><span class="co">#&gt; vy         0.02    0.00 0.01  0.01  0.01 0.02 0.02  0.03   716 1.01</span></span>
+<span><span class="co">#&gt; optima_bar 1.49    0.01 0.36  0.77  1.26 1.50 1.71  2.21  1341 1.00</span></span>
+<span><span class="co">#&gt; beta_bar   0.14    0.01 0.14 -0.20  0.06 0.16 0.23  0.40   545 1.01</span></span>
 <span><span class="co">#&gt; Rho[1,1]   1.00     NaN 0.00  1.00  1.00 1.00 1.00  1.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; Rho[1,2]   0.06    0.01 0.32 -0.56 -0.16 0.06 0.30  0.67  1387 1.00</span></span>
-<span><span class="co">#&gt; Rho[2,1]   0.06    0.01 0.32 -0.56 -0.16 0.06 0.30  0.67  1387 1.00</span></span>
-<span><span class="co">#&gt; Rho[2,2]   1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1723 1.00</span></span>
-<span><span class="co">#&gt; sigma[1]   0.87    0.01 0.42  0.33  0.57 0.78 1.09  1.87  1365 1.00</span></span>
-<span><span class="co">#&gt; sigma[2]   0.32    0.01 0.27  0.04  0.12 0.22 0.43  1.03   638 1.00</span></span>
-<span><span class="co">#&gt; optima[1]  2.00    0.00 0.05  1.89  1.97 2.00 2.03  2.09  1989 1.00</span></span>
-<span><span class="co">#&gt; optima[2]  0.94    0.01 0.18  0.45  0.88 0.98 1.04  1.16   975 1.00</span></span>
-<span><span class="co">#&gt; beta[1,1]  0.26    0.00 0.01  0.24  0.25 0.26 0.27  0.28  1906 1.00</span></span>
-<span><span class="co">#&gt; beta[2,1]  0.13    0.00 0.03  0.06  0.11 0.13 0.15  0.20  1487 1.00</span></span>
+<span><span class="co">#&gt; Rho[1,2]   0.07    0.01 0.32 -0.55 -0.16 0.07 0.31  0.67  2151 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,1]   0.07    0.01 0.32 -0.55 -0.16 0.07 0.31  0.67  2151 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,2]   1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  2090 1.00</span></span>
+<span><span class="co">#&gt; sigma[1]   0.86    0.01 0.39  0.35  0.57 0.78 1.06  1.87  1612 1.00</span></span>
+<span><span class="co">#&gt; sigma[2]   0.28    0.01 0.22  0.04  0.11 0.20 0.37  0.89   557 1.01</span></span>
+<span><span class="co">#&gt; optima[1]  2.01    0.00 0.04  1.93  1.99 2.01 2.03  2.10  2041 1.00</span></span>
+<span><span class="co">#&gt; optima[2]  0.96    0.01 0.18  0.53  0.91 0.99 1.05  1.16   899 1.00</span></span>
+<span><span class="co">#&gt; beta[1,1]  0.26    0.00 0.01  0.24  0.25 0.26 0.26  0.27  2082 1.00</span></span>
+<span><span class="co">#&gt; beta[2,1]  0.13    0.00 0.03  0.06  0.10 0.13 0.15  0.19  2163 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:21:27 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:57:55 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -732,19 +732,19 @@ optima but single alpha parameter</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -0.61464 -0.13609  0.07935  0.16463  0.61405 </span></span>
+<span><span class="co">#&gt; -0.58019 -0.13482  0.05096  0.17655  0.63596 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  2.08980    0.06595  31.685  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; Xs1          0.14188    0.04400   3.224   0.0023 ** </span></span>
-<span><span class="co">#&gt; Xs2          0.58046    0.05540  10.477 6.97e-14 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  2.08767    0.06645   31.42  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; Xs1          0.14455    0.04433    3.26  0.00207 ** </span></span>
+<span><span class="co">#&gt; Xs2          0.57920    0.05582   10.38  9.6e-14 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.2857 on 47 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.7804, Adjusted R-squared:  0.771 </span></span>
-<span><span class="co">#&gt; F-statistic: 83.49 on 2 and 47 DF,  p-value: 3.389e-16</span></span>
+<span><span class="co">#&gt; Residual standard error: 0.2878 on 47 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.7782, Adjusted R-squared:  0.7687 </span></span>
+<span><span class="co">#&gt; F-statistic: 82.44 on 2 and 47 DF,  p-value: 4.282e-16</span></span>
 <span></span>
 <span><span class="co">################################################################################################################</span></span>
 <span></span>
@@ -794,17 +794,17 @@ dat file for Stan. Here “Z_direct” is the number of predictors, and
 <span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           mean se_mean   sd 2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.19       0 0.11 0.07 0.12 0.16 0.23  0.46   764    1</span></span>
-<span><span class="co">#&gt; vy        0.01       0 0.01 0.01 0.01 0.01 0.01  0.02   784    1</span></span>
-<span><span class="co">#&gt; optima[1] 2.05       0 0.04 1.97 2.03 2.05 2.08  2.13  1641    1</span></span>
-<span><span class="co">#&gt; optima[2] 1.13       0 0.15 0.77 1.05 1.14 1.22  1.38  1098    1</span></span>
-<span><span class="co">#&gt; beta[1,1] 0.21       0 0.02 0.16 0.20 0.21 0.23  0.26  1719    1</span></span>
-<span><span class="co">#&gt; beta[1,2] 0.34       0 0.03 0.28 0.32 0.34 0.36  0.40  2226    1</span></span>
-<span><span class="co">#&gt; beta[2,1] 0.17       0 0.08 0.00 0.12 0.17 0.23  0.33  2273    1</span></span>
-<span><span class="co">#&gt; beta[2,2] 0.24       0 0.07 0.10 0.20 0.24 0.29  0.38  1912    1</span></span>
+<span><span class="co">#&gt;           mean se_mean   sd  2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
+<span><span class="co">#&gt; hl        0.19    0.00 0.11  0.07 0.12 0.16 0.23  0.48   481    1</span></span>
+<span><span class="co">#&gt; vy        0.01    0.00 0.01  0.01 0.01 0.01 0.01  0.03   546    1</span></span>
+<span><span class="co">#&gt; optima[1] 2.04    0.00 0.04  1.95 2.02 2.04 2.07  2.12  1300    1</span></span>
+<span><span class="co">#&gt; optima[2] 1.12    0.01 0.15  0.77 1.04 1.14 1.22  1.38   908    1</span></span>
+<span><span class="co">#&gt; beta[1,1] 0.23    0.00 0.02  0.18 0.21 0.23 0.24  0.28  1745    1</span></span>
+<span><span class="co">#&gt; beta[1,2] 0.33    0.00 0.03  0.27 0.31 0.33 0.36  0.40  2395    1</span></span>
+<span><span class="co">#&gt; beta[2,1] 0.16    0.00 0.08 -0.01 0.11 0.16 0.22  0.32  3462    1</span></span>
+<span><span class="co">#&gt; beta[2,2] 0.24    0.00 0.07  0.09 0.19 0.24 0.28  0.38  2136    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:22:21 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:58:40 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -932,19 +932,19 @@ Predictor<a class="anchor" aria-label="anchor" href="#multlevel-multi-optima-ada
 <span><span class="co">#&gt; lm(formula = Y ~ X, data = df)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
-<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span><span class="co">#&gt; -1.0413  0.0198  0.2015  0.3198  0.4192 </span></span>
+<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span><span class="co">#&gt; -1.04921  0.02806  0.21072  0.32032  0.44138 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  1.73203    0.07808  22.183  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; X            0.19727    0.07037   2.803  0.00728 ** </span></span>
+<span><span class="co">#&gt; (Intercept)  1.73316    0.07813  22.183  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; X            0.19485    0.07042   2.767  0.00801 ** </span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.4906 on 48 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.1407, Adjusted R-squared:  0.1228 </span></span>
-<span><span class="co">#&gt; F-statistic: 7.858 on 1 and 48 DF,  p-value: 0.007278</span></span>
+<span><span class="co">#&gt; Residual standard error: 0.491 on 48 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.1376, Adjusted R-squared:  0.1196 </span></span>
+<span><span class="co">#&gt; F-statistic: 7.656 on 1 and 48 DF,  p-value: 0.008011</span></span>
 <span></span>
 <span><span class="co">################################################################################################################</span></span>
 <span></span>
@@ -1076,14 +1076,14 @@ Effects</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           mean se_mean   sd  2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.17       0 0.09  0.05 0.11 0.15 0.22  0.40   701    1</span></span>
-<span><span class="co">#&gt; vy        0.01       0 0.01  0.00 0.01 0.01 0.02  0.03  1551    1</span></span>
-<span><span class="co">#&gt; optima[1] 1.98       0 0.05  1.87 1.95 1.98 2.01  2.09  2529    1</span></span>
-<span><span class="co">#&gt; optima[2] 0.85       0 0.13  0.55 0.79 0.86 0.93  1.05   790    1</span></span>
-<span><span class="co">#&gt; beta[1,1] 0.26       0 0.05  0.18 0.23 0.25 0.29  0.40   968    1</span></span>
-<span><span class="co">#&gt; beta[2,1] 0.16       0 0.13 -0.11 0.06 0.16 0.25  0.42  1335    1</span></span>
+<span><span class="co">#&gt; hl        0.19       0 0.10  0.06 0.11 0.16 0.23  0.43   664    1</span></span>
+<span><span class="co">#&gt; vy        0.02       0 0.01  0.01 0.01 0.01 0.02  0.03  1568    1</span></span>
+<span><span class="co">#&gt; optima[1] 1.98       0 0.05  1.88 1.95 1.98 2.02  2.09  1482    1</span></span>
+<span><span class="co">#&gt; optima[2] 0.86       0 0.14  0.50 0.79 0.88 0.94  1.07  1059    1</span></span>
+<span><span class="co">#&gt; beta[1,1] 0.26       0 0.06  0.18 0.23 0.25 0.29  0.41   798    1</span></span>
+<span><span class="co">#&gt; beta[2,1] 0.11       0 0.14 -0.15 0.02 0.11 0.20  0.40  1968    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:23:40 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:59:40 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1257,10 +1257,13 @@ Effects, look at the results, and rstan::extract the posterior</p>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
-<span><span class="co">#&gt; Warning: There were 250 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; Warning: There were 167 divergent transitions after warmup. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
-<span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
+<span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span>
+<span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
+<span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span></code></pre></div>
 <div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.adapt.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"optima_bar"</span>,<span class="st">"beta_bar"</span>,<span class="st">"Rho"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_adapt_mlm_ve.</span></span>
@@ -1268,22 +1271,22 @@ Effects, look at the results, and rstan::extract the posterior</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;             mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl          0.21    0.01 0.14  0.06  0.12 0.18 0.27  0.59   348    1</span></span>
-<span><span class="co">#&gt; vy          0.01    0.00 0.01  0.00  0.01 0.01 0.02  0.03   600    1</span></span>
-<span><span class="co">#&gt; optima[1]   1.99    0.00 0.06  1.87  1.95 1.98 2.02  2.11   943    1</span></span>
-<span><span class="co">#&gt; optima[2]   0.78    0.01 0.21  0.20  0.71 0.82 0.91  1.04   403    1</span></span>
-<span><span class="co">#&gt; beta[1,1]   0.28    0.00 0.08  0.18  0.23 0.26 0.31  0.50   395    1</span></span>
-<span><span class="co">#&gt; beta[2,1]   0.21    0.01 0.15 -0.10  0.12 0.21 0.30  0.52   591    1</span></span>
-<span><span class="co">#&gt; sigma[1]    0.92    0.01 0.41  0.37  0.62 0.85 1.12  1.94  1520    1</span></span>
-<span><span class="co">#&gt; sigma[2]    0.29    0.01 0.30  0.02  0.08 0.18 0.38  1.05   902    1</span></span>
-<span><span class="co">#&gt; optima_bar  1.45    0.01 0.37  0.72  1.22 1.44 1.69  2.22  1351    1</span></span>
-<span><span class="co">#&gt; beta_bar[1] 0.23    0.00 0.15 -0.08  0.15 0.24 0.32  0.53  1078    1</span></span>
+<span><span class="co">#&gt; hl          0.22    0.01 0.15  0.06  0.12 0.17 0.27  0.66   266 1.01</span></span>
+<span><span class="co">#&gt; vy          0.02    0.00 0.01  0.00  0.01 0.01 0.02  0.04   812 1.00</span></span>
+<span><span class="co">#&gt; optima[1]   1.99    0.00 0.06  1.87  1.95 1.98 2.02  2.11   962 1.00</span></span>
+<span><span class="co">#&gt; optima[2]   0.79    0.01 0.22  0.15  0.73 0.84 0.92  1.05   312 1.01</span></span>
+<span><span class="co">#&gt; beta[1,1]   0.28    0.00 0.08  0.18  0.23 0.25 0.30  0.51   308 1.01</span></span>
+<span><span class="co">#&gt; beta[2,1]   0.16    0.01 0.17 -0.16  0.05 0.16 0.25  0.48   579 1.00</span></span>
+<span><span class="co">#&gt; sigma[1]    0.91    0.01 0.43  0.37  0.59 0.82 1.12  1.99  1254 1.00</span></span>
+<span><span class="co">#&gt; sigma[2]    0.31    0.01 0.32  0.02  0.10 0.20 0.40  1.24   787 1.00</span></span>
+<span><span class="co">#&gt; optima_bar  1.45    0.01 0.37  0.74  1.21 1.45 1.70  2.17  1449 1.00</span></span>
+<span><span class="co">#&gt; beta_bar[1] 0.22    0.01 0.15 -0.11  0.14 0.22 0.31  0.53   857 1.00</span></span>
 <span><span class="co">#&gt; Rho[1,1]    1.00     NaN 0.00  1.00  1.00 1.00 1.00  1.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; Rho[1,2]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
-<span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
-<span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1682    1</span></span>
+<span><span class="co">#&gt; Rho[1,2]    0.11    0.01 0.43 -0.70 -0.20 0.11 0.46  0.85   900 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,1]    0.11    0.01 0.43 -0.70 -0.20 0.11 0.46  0.85   900 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00   683 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:25:53 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 00:00:51 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1296,7 +1299,7 @@ Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
-<span><span class="co">#&gt; Warning: There were 6 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; Warning: There were 4 divergent transitions after warmup. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span></code></pre></div>
@@ -1307,22 +1310,22 @@ Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;             mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl          0.21    0.01 0.14  0.06  0.12 0.18 0.27  0.59   348    1</span></span>
-<span><span class="co">#&gt; vy          0.01    0.00 0.01  0.00  0.01 0.01 0.02  0.03   600    1</span></span>
-<span><span class="co">#&gt; optima[1]   1.99    0.00 0.06  1.87  1.95 1.98 2.02  2.11   943    1</span></span>
-<span><span class="co">#&gt; optima[2]   0.78    0.01 0.21  0.20  0.71 0.82 0.91  1.04   403    1</span></span>
-<span><span class="co">#&gt; beta[1,1]   0.28    0.00 0.08  0.18  0.23 0.26 0.31  0.50   395    1</span></span>
-<span><span class="co">#&gt; beta[2,1]   0.21    0.01 0.15 -0.10  0.12 0.21 0.30  0.52   591    1</span></span>
-<span><span class="co">#&gt; sigma[1]    0.92    0.01 0.41  0.37  0.62 0.85 1.12  1.94  1520    1</span></span>
-<span><span class="co">#&gt; sigma[2]    0.29    0.01 0.30  0.02  0.08 0.18 0.38  1.05   902    1</span></span>
-<span><span class="co">#&gt; optima_bar  1.45    0.01 0.37  0.72  1.22 1.44 1.69  2.22  1351    1</span></span>
-<span><span class="co">#&gt; beta_bar[1] 0.23    0.00 0.15 -0.08  0.15 0.24 0.32  0.53  1078    1</span></span>
+<span><span class="co">#&gt; hl          0.22    0.01 0.15  0.06  0.12 0.17 0.27  0.66   266 1.01</span></span>
+<span><span class="co">#&gt; vy          0.02    0.00 0.01  0.00  0.01 0.01 0.02  0.04   812 1.00</span></span>
+<span><span class="co">#&gt; optima[1]   1.99    0.00 0.06  1.87  1.95 1.98 2.02  2.11   962 1.00</span></span>
+<span><span class="co">#&gt; optima[2]   0.79    0.01 0.22  0.15  0.73 0.84 0.92  1.05   312 1.01</span></span>
+<span><span class="co">#&gt; beta[1,1]   0.28    0.00 0.08  0.18  0.23 0.25 0.30  0.51   308 1.01</span></span>
+<span><span class="co">#&gt; beta[2,1]   0.16    0.01 0.17 -0.16  0.05 0.16 0.25  0.48   579 1.00</span></span>
+<span><span class="co">#&gt; sigma[1]    0.91    0.01 0.43  0.37  0.59 0.82 1.12  1.99  1254 1.00</span></span>
+<span><span class="co">#&gt; sigma[2]    0.31    0.01 0.32  0.02  0.10 0.20 0.40  1.24   787 1.00</span></span>
+<span><span class="co">#&gt; optima_bar  1.45    0.01 0.37  0.74  1.21 1.45 1.70  2.17  1449 1.00</span></span>
+<span><span class="co">#&gt; beta_bar[1] 0.22    0.01 0.15 -0.11  0.14 0.22 0.31  0.53   857 1.00</span></span>
 <span><span class="co">#&gt; Rho[1,1]    1.00     NaN 0.00  1.00  1.00 1.00 1.00  1.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; Rho[1,2]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
-<span><span class="co">#&gt; Rho[2,1]    0.07    0.01 0.45 -0.77 -0.28 0.07 0.42  0.84  1022    1</span></span>
-<span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00  1682    1</span></span>
+<span><span class="co">#&gt; Rho[1,2]    0.11    0.01 0.43 -0.70 -0.20 0.11 0.46  0.85   900 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,1]    0.11    0.01 0.43 -0.70 -0.20 0.11 0.46  0.85   900 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,2]    1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00   683 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:25:53 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 00:00:51 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1461,19 +1464,19 @@ regime per trait</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -0.93155 -0.21355  0.02408  0.20233  0.83227 </span></span>
+<span><span class="co">#&gt; -1.02751 -0.21102 -0.03682  0.23857  1.05531 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  2.04855    0.08586   23.86   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; XsXd         0.29710    0.02281   13.03   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; XsXa         0.29441    0.01812   16.25   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  2.13127    0.08930   23.87   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; XsXd         0.31563    0.02372   13.31   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; XsXa         0.28442    0.01884   15.10   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 0.3719 on 47 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.9352, Adjusted R-squared:  0.9324 </span></span>
-<span><span class="co">#&gt; F-statistic: 339.1 on 2 and 47 DF,  p-value: &lt; 2.2e-16</span></span>
+<span><span class="co">#&gt; Residual standard error: 0.3868 on 47 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.9312, Adjusted R-squared:  0.9283 </span></span>
+<span><span class="co">#&gt; F-statistic:   318 on 2 and 47 DF,  p-value: &lt; 2.2e-16</span></span>
 <span></span>
 <span><span class="co">################################################################################################################</span></span></code></pre></div>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
@@ -1667,16 +1670,16 @@ Varying Effects</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           mean se_mean   sd  2.5%  25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.16       0 0.08  0.06 0.10 0.14 0.19  0.38   873    1</span></span>
-<span><span class="co">#&gt; vy        0.01       0 0.01  0.00 0.00 0.01 0.02  0.05  2620    1</span></span>
-<span><span class="co">#&gt; optima[1] 1.81       0 0.14  1.53 1.73 1.82 1.90  2.07  2917    1</span></span>
-<span><span class="co">#&gt; optima[2] 1.47       0 0.21  1.04 1.32 1.47 1.62  1.88  3307    1</span></span>
-<span><span class="co">#&gt; beta[1,1] 0.24       0 0.03  0.18 0.22 0.24 0.25  0.30  4302    1</span></span>
-<span><span class="co">#&gt; beta[1,2] 0.39       0 0.05  0.33 0.36 0.38 0.41  0.53   890    1</span></span>
-<span><span class="co">#&gt; beta[2,1] 0.16       0 0.05  0.06 0.12 0.16 0.19  0.26  2772    1</span></span>
-<span><span class="co">#&gt; beta[2,2] 0.10       0 0.08 -0.06 0.04 0.10 0.15  0.25  3406    1</span></span>
+<span><span class="co">#&gt; hl        0.14       0 0.08  0.05 0.09 0.12 0.17  0.35   965    1</span></span>
+<span><span class="co">#&gt; vy        0.02       0 0.01  0.00 0.00 0.01 0.02  0.05  2523    1</span></span>
+<span><span class="co">#&gt; optima[1] 1.94       0 0.14  1.65 1.85 1.94 2.03  2.19  2256    1</span></span>
+<span><span class="co">#&gt; optima[2] 1.39       0 0.21  0.99 1.25 1.39 1.53  1.80  2887    1</span></span>
+<span><span class="co">#&gt; beta[1,1] 0.23       0 0.03  0.18 0.21 0.23 0.25  0.29  4613    1</span></span>
+<span><span class="co">#&gt; beta[1,2] 0.37       0 0.05  0.32 0.34 0.36 0.39  0.50   993    1</span></span>
+<span><span class="co">#&gt; beta[2,1] 0.16       0 0.05  0.06 0.13 0.16 0.20  0.26  2800    1</span></span>
+<span><span class="co">#&gt; beta[2,2] 0.11       0 0.07 -0.05 0.06 0.11 0.16  0.25  3708    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:33:20 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 00:04:53 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1899,58 +1902,7 @@ dat file for Stan. Here “Z_adaptive” is the number of predictors, and
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
 <span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
 <span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
-<span><span class="co">#&gt; Warning: There were 330 divergent transitions after warmup. See</span></span>
-<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
-<span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
-<span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span>
-<span><span class="co">#&gt; Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.</span></span>
-<span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
-<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#bulk-ess</span></span>
-<span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
-<span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
-<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span></code></pre></div>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"Rho"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_adapt_mlm_ve.</span></span>
-<span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
-<span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.20    0.01 0.17  0.06  0.11 0.15 0.22  0.65   469 1.00</span></span>
-<span><span class="co">#&gt; vy        0.02    0.00 0.02  0.00  0.00 0.01 0.02  0.06  1640 1.00</span></span>
-<span><span class="co">#&gt; optima[1] 1.86    0.01 0.18  1.54  1.74 1.86 1.98  2.21   212 1.01</span></span>
-<span><span class="co">#&gt; optima[2] 1.59    0.02 0.34  0.85  1.40 1.61 1.81  2.16   388 1.01</span></span>
-<span><span class="co">#&gt; beta[1,1] 0.24    0.00 0.03  0.18  0.22 0.24 0.26  0.30  1388 1.00</span></span>
-<span><span class="co">#&gt; beta[1,2] 0.42    0.01 0.11  0.32  0.36 0.39 0.43  0.70   474 1.00</span></span>
-<span><span class="co">#&gt; beta[2,1] 0.18    0.00 0.06  0.05  0.15 0.19 0.22  0.28  1119 1.01</span></span>
-<span><span class="co">#&gt; beta[2,2] 0.11    0.01 0.09 -0.05  0.05 0.12 0.17  0.30   183 1.01</span></span>
-<span><span class="co">#&gt; sigma[1]  0.54    0.02 0.39  0.06  0.23 0.43 0.76  1.53   592 1.00</span></span>
-<span><span class="co">#&gt; sigma[2]  0.26    0.01 0.30  0.01  0.06 0.15 0.34  1.11   432 1.01</span></span>
-<span><span class="co">#&gt; sigma[3]  0.50    0.02 0.38  0.08  0.22 0.40 0.68  1.49   419 1.00</span></span>
-<span><span class="co">#&gt; Rho[1,1]  1.00     NaN 0.00  1.00  1.00 1.00 1.00  1.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; Rho[1,2]  0.03    0.02 0.32 -0.54 -0.23 0.02 0.28  0.63   396 1.01</span></span>
-<span><span class="co">#&gt; Rho[1,3]  0.05    0.01 0.30 -0.54 -0.16 0.04 0.26  0.64  1037 1.00</span></span>
-<span><span class="co">#&gt; Rho[2,1]  0.03    0.02 0.32 -0.54 -0.23 0.02 0.28  0.63   396 1.01</span></span>
-<span><span class="co">#&gt; Rho[2,2]  1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00   977 1.00</span></span>
-<span><span class="co">#&gt; Rho[2,3]  0.05    0.02 0.31 -0.55 -0.20 0.06 0.29  0.61   294 1.01</span></span>
-<span><span class="co">#&gt; Rho[3,1]  0.05    0.01 0.30 -0.54 -0.16 0.04 0.26  0.64  1037 1.00</span></span>
-<span><span class="co">#&gt; Rho[3,2]  0.05    0.02 0.31 -0.55 -0.20 0.06 0.29  0.61   294 1.01</span></span>
-<span><span class="co">#&gt; Rho[3,3]  1.00    0.00 0.00  1.00  1.00 1.00 1.00  1.00   853 1.00</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:36:19 2024.</span></span>
-<span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
-<span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
-<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
-<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span><span class="op">)</span></span></code></pre></div>
-<p>Now we run the non-centered version of the Multilevel Multi-optima
-Direct Effect Adaptive Model with Varying Effects</p>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_adapt_mlm_ve_nc</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
-<span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
-<span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
-<span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
-<span><span class="co">#&gt; Warning: There were 251 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; Warning: There were 360 divergent transitions after warmup. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
 <span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
 <span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span>
@@ -1963,6 +1915,54 @@ Direct Effect Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
 <span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
 <span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span></code></pre></div>
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"Rho"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_adapt_mlm_ve.</span></span>
+<span><span class="co">#&gt; 2 chains, each with iter=2000; warmup=1000; thin=1; </span></span>
+<span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;            mean se_mean   sd  2.5%   25%   50%  75% 97.5% n_eff Rhat</span></span>
+<span><span class="co">#&gt; hl         0.17    0.01 0.12  0.05  0.09  0.13 0.21  0.50   207 1.01</span></span>
+<span><span class="co">#&gt; vy         0.02    0.00 0.02  0.00  0.01  0.01 0.02  0.07    27 1.08</span></span>
+<span><span class="co">#&gt; optima[1]  2.05    0.01 0.15  1.74  1.95  2.05 2.15  2.35   223 1.01</span></span>
+<span><span class="co">#&gt; optima[2]  1.44    0.07 0.43  0.61  1.18  1.43 1.68  2.41    40 1.05</span></span>
+<span><span class="co">#&gt; beta[1,1]  0.24    0.01 0.03  0.18  0.22  0.24 0.26  0.31    35 1.06</span></span>
+<span><span class="co">#&gt; beta[1,2]  0.38    0.00 0.07  0.31  0.34  0.36 0.40  0.57   355 1.01</span></span>
+<span><span class="co">#&gt; beta[2,1]  0.18    0.01 0.07  0.05  0.14  0.18 0.23  0.32    47 1.04</span></span>
+<span><span class="co">#&gt; beta[2,2]  0.15    0.01 0.08 -0.02  0.09  0.15 0.20  0.29   205 1.01</span></span>
+<span><span class="co">#&gt; sigma[1]   0.71    0.02 0.41  0.11  0.40  0.65 0.93  1.68   695 1.01</span></span>
+<span><span class="co">#&gt; sigma[2]   0.25    0.02 0.30  0.01  0.06  0.14 0.33  1.18   350 1.00</span></span>
+<span><span class="co">#&gt; sigma[3]   0.44    0.01 0.36  0.07  0.20  0.32 0.56  1.44   760 1.01</span></span>
+<span><span class="co">#&gt; Rho[1,1]   1.00     NaN 0.00  1.00  1.00  1.00 1.00  1.00   NaN  NaN</span></span>
+<span><span class="co">#&gt; Rho[1,2]   0.03    0.02 0.32 -0.59 -0.18  0.02 0.27  0.63   262 1.01</span></span>
+<span><span class="co">#&gt; Rho[1,3]   0.08    0.01 0.29 -0.51 -0.13  0.09 0.29  0.62  1278 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,1]   0.03    0.02 0.32 -0.59 -0.18  0.02 0.27  0.63   262 1.01</span></span>
+<span><span class="co">#&gt; Rho[2,2]   1.00    0.00 0.00  1.00  1.00  1.00 1.00  1.00   391 1.00</span></span>
+<span><span class="co">#&gt; Rho[2,3]  -0.01    0.02 0.31 -0.55 -0.26 -0.01 0.23  0.58   303 1.01</span></span>
+<span><span class="co">#&gt; Rho[3,1]   0.08    0.01 0.29 -0.51 -0.13  0.09 0.29  0.62  1278 1.00</span></span>
+<span><span class="co">#&gt; Rho[3,2]  -0.01    0.02 0.31 -0.55 -0.26 -0.01 0.23  0.58   303 1.01</span></span>
+<span><span class="co">#&gt; Rho[3,3]   1.00    0.00 0.00  1.00  1.00  1.00 1.00  1.00   969 1.00</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 00:06:24 2025.</span></span>
+<span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
+<span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
+<span><span class="co">#&gt; convergence, Rhat=1).</span></span>
+<span><span class="va">post</span><span class="op">&lt;-</span><span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanfit-method-extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve</span><span class="op">)</span></span></code></pre></div>
+<p>Now we run the non-centered version of the Multilevel Multi-optima
+Direct Effect Adaptive Model with Varying Effects</p>
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span><span class="op">&lt;-</span> <span class="fu">rstan</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/rstan/reference/stanmodel-method-sampling.html" class="external-link">sampling</a></span><span class="op">(</span>object <span class="op">=</span> <span class="fu">blouch</span><span class="fu">:::</span><span class="va">stanmodels</span><span class="op">$</span><span class="va">blouchOU_reg_direct_adapt_mlm_ve_nc</span>,data <span class="op">=</span> <span class="va">dat</span>,chains <span class="op">=</span> <span class="fl">2</span>,cores<span class="op">=</span><span class="fl">2</span>,iter<span class="op">=</span><span class="fl">2000</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
+<span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
+<span><span class="co">#&gt; Found more than one class "stanfit" in cache; using the first, from namespace 'rstan'</span></span>
+<span><span class="co">#&gt; Also defined by 'rethinking'</span></span>
+<span><span class="co">#&gt; Warning: There were 156 divergent transitions after warmup. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span></span>
+<span><span class="co">#&gt; to find out why this is a problem and how to eliminate them.</span></span>
+<span><span class="co">#&gt; Warning: Examine the pairs() plot to diagnose sampling problems</span></span>
+<span><span class="co">#&gt; Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.</span></span>
+<span><span class="co">#&gt; Running the chains for more iterations may help. See</span></span>
+<span><span class="co">#&gt; https://mc-stan.org/misc/warnings.html#tail-ess</span></span></code></pre></div>
 <div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit.reg.direct.adapt.mlm.ve.nc</span>,pars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hl"</span>,<span class="st">"vy"</span>,<span class="st">"optima"</span>,<span class="st">"beta"</span>,<span class="st">"sigma"</span>,<span class="st">"L_Rho"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Inference for Stan model: blouchOU_reg_direct_adapt_mlm_ve_nc.</span></span>
@@ -1970,28 +1970,28 @@ Direct Effect Adaptive Model with Varying Effects</p>
 <span><span class="co">#&gt; post-warmup draws per chain=1000, total post-warmup draws=2000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;            mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl         0.20    0.01 0.15  0.07  0.11 0.16 0.23  0.60   404 1.00</span></span>
-<span><span class="co">#&gt; vy         0.02    0.00 0.02  0.00  0.01 0.01 0.02  0.06  1610 1.00</span></span>
-<span><span class="co">#&gt; optima[1]  1.86    0.01 0.16  1.54  1.75 1.85 1.96  2.19   382 1.01</span></span>
-<span><span class="co">#&gt; optima[2]  1.59    0.01 0.29  0.93  1.44 1.60 1.78  2.12  1194 1.00</span></span>
-<span><span class="co">#&gt; beta[1,1]  0.24    0.00 0.03  0.18  0.22 0.24 0.26  0.29  1148 1.00</span></span>
-<span><span class="co">#&gt; beta[1,2]  0.42    0.00 0.10  0.32  0.36 0.39 0.44  0.67   451 1.00</span></span>
-<span><span class="co">#&gt; beta[2,1]  0.19    0.00 0.06  0.07  0.15 0.19 0.22  0.29   316 1.01</span></span>
-<span><span class="co">#&gt; beta[2,2]  0.13    0.00 0.09 -0.05  0.08 0.14 0.19  0.30   720 1.00</span></span>
-<span><span class="co">#&gt; sigma[1]   0.49    0.01 0.39  0.03  0.22 0.39 0.66  1.47   673 1.00</span></span>
-<span><span class="co">#&gt; sigma[2]   0.26    0.03 0.31  0.00  0.05 0.14 0.35  1.03    87 1.02</span></span>
-<span><span class="co">#&gt; sigma[3]   0.41    0.03 0.28  0.08  0.20 0.33 0.57  1.00    66 1.03</span></span>
+<span><span class="co">#&gt; hl         0.16    0.00 0.14  0.05  0.09 0.12 0.18  0.56  1023 1.00</span></span>
+<span><span class="co">#&gt; vy         0.01    0.00 0.01  0.00  0.01 0.01 0.02  0.05  1591 1.00</span></span>
+<span><span class="co">#&gt; optima[1]  2.03    0.00 0.16  1.68  1.93 2.03 2.13  2.34  1142 1.00</span></span>
+<span><span class="co">#&gt; optima[2]  1.40    0.01 0.34  0.71  1.19 1.42 1.64  1.99  1118 1.00</span></span>
+<span><span class="co">#&gt; beta[1,1]  0.24    0.00 0.03  0.19  0.22 0.24 0.26  0.29   998 1.00</span></span>
+<span><span class="co">#&gt; beta[1,2]  0.38    0.00 0.09  0.31  0.34 0.36 0.39  0.61  1110 1.00</span></span>
+<span><span class="co">#&gt; beta[2,1]  0.18    0.00 0.06  0.06  0.14 0.19 0.22  0.28  1422 1.00</span></span>
+<span><span class="co">#&gt; beta[2,2]  0.15    0.00 0.08 -0.01  0.10 0.15 0.20  0.31   871 1.00</span></span>
+<span><span class="co">#&gt; sigma[1]   0.66    0.01 0.42  0.09  0.38 0.57 0.86  1.76   874 1.00</span></span>
+<span><span class="co">#&gt; sigma[2]   0.21    0.01 0.24  0.01  0.05 0.12 0.28  0.96   553 1.01</span></span>
+<span><span class="co">#&gt; sigma[3]   0.35    0.03 0.29  0.05  0.16 0.26 0.45  1.29   122 1.01</span></span>
 <span><span class="co">#&gt; L_Rho[1,1] 1.00     NaN 0.00  1.00  1.00 1.00 1.00  1.00   NaN  NaN</span></span>
 <span><span class="co">#&gt; L_Rho[1,2] 0.00     NaN 0.00  0.00  0.00 0.00 0.00  0.00   NaN  NaN</span></span>
 <span><span class="co">#&gt; L_Rho[1,3] 0.00     NaN 0.00  0.00  0.00 0.00 0.00  0.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; L_Rho[2,1] 0.10    0.02 0.40 -0.66 -0.21 0.15 0.41  0.78   349 1.01</span></span>
-<span><span class="co">#&gt; L_Rho[2,2] 0.90    0.00 0.11  0.61  0.87 0.93 0.98  1.00   792 1.00</span></span>
+<span><span class="co">#&gt; L_Rho[2,1] 0.06    0.01 0.41 -0.72 -0.25 0.06 0.39  0.79  2089 1.00</span></span>
+<span><span class="co">#&gt; L_Rho[2,2] 0.90    0.00 0.12  0.56  0.86 0.95 0.99  1.00   694 1.00</span></span>
 <span><span class="co">#&gt; L_Rho[2,3] 0.00     NaN 0.00  0.00  0.00 0.00 0.00  0.00   NaN  NaN</span></span>
-<span><span class="co">#&gt; L_Rho[3,1] 0.09    0.01 0.40 -0.66 -0.20 0.06 0.40  0.81   997 1.01</span></span>
-<span><span class="co">#&gt; L_Rho[3,2] 0.09    0.01 0.39 -0.70 -0.18 0.09 0.38  0.78  1142 1.00</span></span>
-<span><span class="co">#&gt; L_Rho[3,3] 0.80    0.01 0.17  0.40  0.70 0.84 0.94  0.99   185 1.01</span></span>
+<span><span class="co">#&gt; L_Rho[3,1] 0.12    0.01 0.39 -0.66 -0.15 0.14 0.42  0.79   900 1.00</span></span>
+<span><span class="co">#&gt; L_Rho[3,2] 0.08    0.02 0.40 -0.69 -0.21 0.09 0.38  0.80   622 1.00</span></span>
+<span><span class="co">#&gt; L_Rho[3,3] 0.80    0.01 0.17  0.37  0.71 0.85 0.94  0.99   599 1.00</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 12:42:24 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 00:10:48 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -2010,7 +2010,7 @@ etc. following the methods above.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

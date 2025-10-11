@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Empirical Example from Grabowski (in press) Walkthrough • blouch</title>
+<title>Empirical Example from Grabowski (2024) Walkthrough • blouch</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Empirical Example from Grabowski (in press) Walkthrough">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Empirical Example from Grabowski (2024) Walkthrough">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -32,8 +32,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (in press)</a></li>
-    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (in press)</a></li>
+<li><a class="dropdown-item" href="../articles/Empirical-Example.html">Empirical Example from Grabowski (2024)</a></li>
+    <li><a class="dropdown-item" href="../articles/Simulation-Example.html">Simulation Example from Grabowski (2024)</a></li>
     <li><a class="dropdown-item" href="../articles/Basic_Models-Examples.html">Basic Models</a></li>
     <li><a class="dropdown-item" href="../articles/Multi-optima_Models-Examples.html">Multi-Optima Models</a></li>
     <li><a class="dropdown-item" href="../articles/Varying_Effects_Models-Examples.html">Varying Effects Models</a></li>
@@ -60,11 +60,11 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Empirical Example from Grabowski (in press) Walkthrough</h1>
+      <h1>Empirical Example from Grabowski (2024) Walkthrough</h1>
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
-            <h4 data-toc-skip class="date">2024-10-07</h4>
+            <h4 data-toc-skip class="date">2025-10-10</h4>
       
 
       <div class="d-none name"><code>Empirical-Example.Rmd</code></div>
@@ -103,7 +103,7 @@ volume, the multi-optima model is indicated.</p>
 shown in the directed acyclic graph (DAG) below.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
-<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html" class="external-link">theme_dag</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/get_theme.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html" class="external-link">theme_dag</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dag</span><span class="op">&lt;-</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html" class="external-link">ggdag</a></span><span class="op">(</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/dagify.html" class="external-link">dagify</a></span><span class="op">(</span></span>
 <span>  <span class="va">A</span> <span class="op">~</span> <span class="va">B</span>,</span>
@@ -457,7 +457,7 @@ distribution for later use.</p>
 <span><span class="co">#&gt; optima[3]  0.46    0.00 0.21  0.02  0.33  0.46  0.60  0.88  6478    1</span></span>
 <span><span class="co">#&gt; beta[1]    5.01    0.01 0.45  4.14  4.71  5.01  5.30  5.93  5475    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:08:49 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:06:03 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -661,16 +661,16 @@ file.</p>
 <span><span class="co">#&gt; post-warmup draws per chain=2000, total post-warmup draws=4000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           mean se_mean   sd  2.5%   25%  50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl        0.24    0.00 0.06  0.15  0.20 0.23 0.28  0.38  5363    1</span></span>
-<span><span class="co">#&gt; vy        0.20    0.00 0.07  0.10  0.15 0.18 0.23  0.35  2468    1</span></span>
-<span><span class="co">#&gt; optima[1] 0.16    0.01 0.54 -0.90 -0.19 0.16 0.52  1.20  2681    1</span></span>
-<span><span class="co">#&gt; optima[2] 0.26    0.00 0.18 -0.10  0.14 0.26 0.38  0.62  5062    1</span></span>
-<span><span class="co">#&gt; optima[3] 0.54    0.00 0.24  0.06  0.39 0.54 0.70  1.00  3847    1</span></span>
-<span><span class="co">#&gt; beta[1,1] 7.27    0.02 0.83  5.62  6.73 7.29 7.83  8.84  2602    1</span></span>
-<span><span class="co">#&gt; beta[2,1] 4.45    0.01 0.58  3.34  4.07 4.44 4.84  5.63  4971    1</span></span>
-<span><span class="co">#&gt; beta[3,1] 4.63    0.01 0.60  3.48  4.22 4.61 5.01  5.83  3853    1</span></span>
+<span><span class="co">#&gt; hl        0.24    0.00 0.06  0.15  0.20 0.24 0.28  0.38  6077    1</span></span>
+<span><span class="co">#&gt; vy        0.20    0.00 0.07  0.10  0.15 0.19 0.23  0.36  2905    1</span></span>
+<span><span class="co">#&gt; optima[1] 0.17    0.01 0.54 -0.88 -0.20 0.17 0.53  1.27  3925    1</span></span>
+<span><span class="co">#&gt; optima[2] 0.26    0.00 0.18 -0.10  0.14 0.26 0.38  0.62  6376    1</span></span>
+<span><span class="co">#&gt; optima[3] 0.54    0.00 0.24  0.06  0.39 0.54 0.70  1.01  5197    1</span></span>
+<span><span class="co">#&gt; beta[1,1] 7.27    0.01 0.84  5.66  6.71 7.28 7.84  8.92  3898    1</span></span>
+<span><span class="co">#&gt; beta[2,1] 4.47    0.01 0.57  3.38  4.09 4.47 4.83  5.63  6250    1</span></span>
+<span><span class="co">#&gt; beta[3,1] 4.62    0.01 0.61  3.41  4.21 4.61 5.02  5.82  4746    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:09:31 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:06:41 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -904,16 +904,16 @@ estimation.</p>
 <span><span class="co">#&gt; post-warmup draws per chain=2000, total post-warmup draws=4000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;             mean se_mean   sd  2.5%   25%   50%   75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl          0.22    0.00 0.06  0.13  0.18  0.21  0.25  0.34  3954    1</span></span>
-<span><span class="co">#&gt; vy          0.24    0.00 0.08  0.12  0.18  0.23  0.29  0.44  1986    1</span></span>
-<span><span class="co">#&gt; optima[1]  -1.00    0.01 0.47 -1.90 -1.31 -1.02 -0.71  0.02  1626    1</span></span>
-<span><span class="co">#&gt; optima[2]   0.21    0.00 0.20 -0.18  0.08  0.21  0.34  0.60  3958    1</span></span>
-<span><span class="co">#&gt; optima[3]   0.43    0.00 0.25 -0.07  0.28  0.44  0.60  0.91  2709    1</span></span>
-<span><span class="co">#&gt; optima_bar -0.06    0.01 0.42 -0.91 -0.31 -0.06  0.19  0.78  1566    1</span></span>
-<span><span class="co">#&gt; beta[1]     5.05    0.01 0.50  4.13  4.70  5.02  5.38  6.11  2057    1</span></span>
-<span><span class="co">#&gt; sigma       0.89    0.01 0.43  0.18  0.59  0.83  1.13  1.88  1454    1</span></span>
+<span><span class="co">#&gt; hl          0.22    0.00 0.06  0.13  0.18  0.21  0.25  0.34  4438    1</span></span>
+<span><span class="co">#&gt; vy          0.24    0.00 0.08  0.12  0.18  0.23  0.28  0.43  2102    1</span></span>
+<span><span class="co">#&gt; optima[1]  -1.00    0.01 0.45 -1.86 -1.31 -1.01 -0.73 -0.03  1706    1</span></span>
+<span><span class="co">#&gt; optima[2]   0.22    0.00 0.19 -0.17  0.09  0.22  0.34  0.59  4328    1</span></span>
+<span><span class="co">#&gt; optima[3]   0.45    0.00 0.23 -0.02  0.30  0.46  0.60  0.88  3139    1</span></span>
+<span><span class="co">#&gt; optima_bar -0.04    0.01 0.43 -0.93 -0.31 -0.04  0.22  0.82  1769    1</span></span>
+<span><span class="co">#&gt; beta[1]     5.03    0.01 0.48  4.14  4.69  5.02  5.36  6.01  1986    1</span></span>
+<span><span class="co">#&gt; sigma       0.91    0.01 0.44  0.19  0.60  0.84  1.15  1.92  1800    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:11:17 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:07:59 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1116,21 +1116,21 @@ estimates.</p>
 <span><span class="co">#&gt; post-warmup draws per chain=2000, total post-warmup draws=4000.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;             mean se_mean   sd  2.5%   25%   50%  75% 97.5% n_eff Rhat</span></span>
-<span><span class="co">#&gt; hl          0.24    0.00 0.06  0.14  0.20  0.23 0.28  0.39  5213    1</span></span>
-<span><span class="co">#&gt; vy          0.20    0.00 0.07  0.10  0.15  0.19 0.24  0.37  2411    1</span></span>
-<span><span class="co">#&gt; optima_bar  0.25    0.01 0.31 -0.49  0.10  0.29 0.44  0.80  2054    1</span></span>
-<span><span class="co">#&gt; beta_bar    5.54    0.02 0.80  4.00  5.01  5.51 6.05  7.20  2720    1</span></span>
-<span><span class="co">#&gt; Rho[1,2]   -0.06    0.00 0.33 -0.67 -0.30 -0.06 0.18  0.58  4620    1</span></span>
-<span><span class="co">#&gt; sigma[1]    0.44    0.01 0.38  0.02  0.15  0.34 0.62  1.42  2173    1</span></span>
-<span><span class="co">#&gt; sigma[2]    1.29    0.01 0.54  0.28  0.92  1.25 1.61  2.46  2832    1</span></span>
-<span><span class="co">#&gt; optima[1]   0.08    0.01 0.53 -1.21 -0.22  0.19 0.43  0.93  1667    1</span></span>
-<span><span class="co">#&gt; optima[2]   0.29    0.00 0.17 -0.04  0.18  0.30 0.41  0.61  4050    1</span></span>
-<span><span class="co">#&gt; optima[3]   0.47    0.00 0.21  0.06  0.33  0.46 0.60  0.90  3365    1</span></span>
-<span><span class="co">#&gt; beta[1,1]   6.97    0.02 0.89  4.98  6.43  7.07 7.57  8.50  1676    1</span></span>
-<span><span class="co">#&gt; beta[2,1]   4.54    0.01 0.57  3.40  4.15  4.53 4.91  5.67  4195    1</span></span>
-<span><span class="co">#&gt; beta[3,1]   4.75    0.01 0.58  3.59  4.36  4.74 5.15  5.93  4104    1</span></span>
+<span><span class="co">#&gt; hl          0.24    0.00 0.06  0.14  0.19  0.23 0.27  0.37  6052    1</span></span>
+<span><span class="co">#&gt; vy          0.20    0.00 0.07  0.10  0.15  0.19 0.24  0.37  2774    1</span></span>
+<span><span class="co">#&gt; optima_bar  0.25    0.01 0.33 -0.53  0.08  0.28 0.45  0.85  2409    1</span></span>
+<span><span class="co">#&gt; beta_bar    5.55    0.02 0.82  3.97  5.00  5.53 6.05  7.18  2853    1</span></span>
+<span><span class="co">#&gt; Rho[1,2]   -0.06    0.00 0.33 -0.68 -0.31 -0.07 0.17  0.57  5343    1</span></span>
+<span><span class="co">#&gt; sigma[1]    0.46    0.01 0.39  0.02  0.17  0.36 0.64  1.45  2067    1</span></span>
+<span><span class="co">#&gt; sigma[2]    1.28    0.01 0.55  0.17  0.91  1.25 1.62  2.41  1897    1</span></span>
+<span><span class="co">#&gt; optima[1]   0.05    0.01 0.54 -1.20 -0.25  0.17 0.40  0.93  1902    1</span></span>
+<span><span class="co">#&gt; optima[2]   0.29    0.00 0.17 -0.07  0.18  0.30 0.41  0.62  4506    1</span></span>
+<span><span class="co">#&gt; optima[3]   0.47    0.00 0.21  0.07  0.33  0.46 0.61  0.91  4094    1</span></span>
+<span><span class="co">#&gt; beta[1,1]   6.93    0.02 0.91  4.96  6.39  7.03 7.54  8.56  1828    1</span></span>
+<span><span class="co">#&gt; beta[2,1]   4.53    0.01 0.58  3.47  4.14  4.52 4.92  5.68  3552    1</span></span>
+<span><span class="co">#&gt; beta[3,1]   4.75    0.01 0.58  3.59  4.37  4.75 5.14  5.87  3529    1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Mon Oct  7 11:13:52 2024.</span></span>
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 23:09:52 2025.</span></span>
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1342,18 +1342,18 @@ the same package.</p>
 <span><span class="co">#&gt; Computed from 4000 by 30 log-likelihood matrix.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          Estimate  SE</span></span>
-<span><span class="co">#&gt; elpd_loo    -26.2 4.3</span></span>
-<span><span class="co">#&gt; p_loo        14.3 2.7</span></span>
-<span><span class="co">#&gt; looic        52.4 8.6</span></span>
+<span><span class="co">#&gt; elpd_loo    -26.1 4.4</span></span>
+<span><span class="co">#&gt; p_loo        14.3 2.8</span></span>
+<span><span class="co">#&gt; looic        52.3 8.8</span></span>
 <span><span class="co">#&gt; ------</span></span>
 <span><span class="co">#&gt; MCSE of elpd_loo is NA.</span></span>
-<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.5, 1.6]).</span></span>
+<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.5, 1.7]).</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pareto k diagnostic values:</span></span>
 <span><span class="co">#&gt;                          Count Pct.    Min. ESS</span></span>
-<span><span class="co">#&gt; (-Inf, 0.7]   (good)     22    73.3%   230     </span></span>
-<span><span class="co">#&gt;    (0.7, 1]   (bad)       6    20.0%   &lt;NA&gt;    </span></span>
-<span><span class="co">#&gt;    (1, Inf)   (very bad)  2     6.7%   &lt;NA&gt;    </span></span>
+<span><span class="co">#&gt; (-Inf, 0.7]   (good)     24    80.0%   128     </span></span>
+<span><span class="co">#&gt;    (0.7, 1]   (bad)       5    16.7%   &lt;NA&gt;    </span></span>
+<span><span class="co">#&gt;    (1, Inf)   (very bad)  1     3.3%   &lt;NA&gt;    </span></span>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_ve_nc</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_ve_nc</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1367,17 +1367,17 @@ the same package.</p>
 <span><span class="co">#&gt; Computed from 4000 by 30 log-likelihood matrix.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          Estimate  SE</span></span>
-<span><span class="co">#&gt; elpd_loo    -25.5 4.2</span></span>
-<span><span class="co">#&gt; p_loo        14.1 2.5</span></span>
-<span><span class="co">#&gt; looic        50.9 8.3</span></span>
+<span><span class="co">#&gt; elpd_loo    -25.4 4.0</span></span>
+<span><span class="co">#&gt; p_loo        13.8 2.4</span></span>
+<span><span class="co">#&gt; looic        50.7 8.1</span></span>
 <span><span class="co">#&gt; ------</span></span>
 <span><span class="co">#&gt; MCSE of elpd_loo is NA.</span></span>
-<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.7]).</span></span>
+<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.9]).</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pareto k diagnostic values:</span></span>
 <span><span class="co">#&gt;                          Count Pct.    Min. ESS</span></span>
-<span><span class="co">#&gt; (-Inf, 0.7]   (good)     21    70.0%   942     </span></span>
-<span><span class="co">#&gt;    (0.7, 1]   (bad)       9    30.0%   &lt;NA&gt;    </span></span>
+<span><span class="co">#&gt; (-Inf, 0.7]   (good)     20    66.7%   398     </span></span>
+<span><span class="co">#&gt;    (0.7, 1]   (bad)      10    33.3%   &lt;NA&gt;    </span></span>
 <span><span class="co">#&gt;    (1, Inf)   (very bad)  0     0.0%   &lt;NA&gt;    </span></span>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_ve</span><span class="op">)</span></span>
@@ -1392,18 +1392,18 @@ the same package.</p>
 <span><span class="co">#&gt; Computed from 4000 by 30 log-likelihood matrix.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          Estimate   SE</span></span>
-<span><span class="co">#&gt; elpd_loo    -29.0  5.7</span></span>
-<span><span class="co">#&gt; p_loo        13.3  3.7</span></span>
-<span><span class="co">#&gt; looic        58.0 11.3</span></span>
+<span><span class="co">#&gt; elpd_loo    -28.3  5.5</span></span>
+<span><span class="co">#&gt; p_loo        12.8  3.4</span></span>
+<span><span class="co">#&gt; looic        56.5 10.9</span></span>
 <span><span class="co">#&gt; ------</span></span>
 <span><span class="co">#&gt; MCSE of elpd_loo is NA.</span></span>
-<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.3]).</span></span>
+<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.5]).</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Pareto k diagnostic values:</span></span>
 <span><span class="co">#&gt;                          Count Pct.    Min. ESS</span></span>
-<span><span class="co">#&gt; (-Inf, 0.7]   (good)     27    90.0%   190     </span></span>
-<span><span class="co">#&gt;    (0.7, 1]   (bad)       2     6.7%   &lt;NA&gt;    </span></span>
-<span><span class="co">#&gt;    (1, Inf)   (very bad)  1     3.3%   &lt;NA&gt;    </span></span>
+<span><span class="co">#&gt; (-Inf, 0.7]   (good)     26    86.7%   283     </span></span>
+<span><span class="co">#&gt;    (0.7, 1]   (bad)       4    13.3%   &lt;NA&gt;    </span></span>
+<span><span class="co">#&gt;    (1, Inf)   (very bad)  0     0.0%   &lt;NA&gt;    </span></span>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_vi_nc</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">loo_mlm_vi_nc</span>,label_points<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1436,9 +1436,9 @@ the same package.</p>
 <span><span class="fu">loo</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">loo_mlm_ve_nc</span>, <span class="va">loo_ve</span>, <span class="va">loo_mlm_vi_nc</span>, <span class="va">loo_basic</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        elpd_diff se_diff</span></span>
 <span><span class="co">#&gt; model2  0.0       0.0   </span></span>
-<span><span class="co">#&gt; model1 -0.7       0.7   </span></span>
-<span><span class="co">#&gt; model4 -3.2       3.5   </span></span>
-<span><span class="co">#&gt; model3 -3.5       3.7</span></span>
+<span><span class="co">#&gt; model1 -0.8       0.9   </span></span>
+<span><span class="co">#&gt; model3 -2.9       3.6   </span></span>
+<span><span class="co">#&gt; model4 -3.3       3.5</span></span>
 <span><span class="fl">2.6</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="fl">3.3</span><span class="op">*</span><span class="fl">1.86</span> <span class="co">#95% interval of the difference, z-score of 1.86</span></span>
 <span><span class="co">#&gt; [1] -3.538  8.738</span></span></code></pre></div>
 </div>
@@ -1458,11 +1458,11 @@ that assumes the first mode rather than second model.</p>
 <span></span>
 <span><span class="co">#bridgesampling::bf(lml.fit.reg.direct.mlm.ve, lml.fit.reg.direct.mlm.ve.nc)</span></span>
 <span><span class="fu">bridgesampling</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bridgesampling/man/bf.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">lml.fit.reg.direct.ve</span>, <span class="va">lml.fit.reg.direct.mlm.ve.nc</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Estimated Bayes factor in favor of lml.fit.reg.direct.ve over lml.fit.reg.direct.mlm.ve.nc: 12.28796</span></span>
+<span><span class="co">#&gt; Estimated Bayes factor in favor of lml.fit.reg.direct.ve over lml.fit.reg.direct.mlm.ve.nc: 14.04240</span></span>
 <span><span class="fu">bridgesampling</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bridgesampling/man/bf.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">lml.fit.reg.direct.ve</span>, <span class="va">lml.fit.reg.direct.mlm.vi.nc</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Estimated Bayes factor in favor of lml.fit.reg.direct.ve over lml.fit.reg.direct.mlm.vi.nc: 59.52489</span></span>
+<span><span class="co">#&gt; Estimated Bayes factor in favor of lml.fit.reg.direct.ve over lml.fit.reg.direct.mlm.vi.nc: 66.57633</span></span>
 <span><span class="fu">bridgesampling</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bridgesampling/man/bf.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">lml.fit.reg.direct.ve</span>, <span class="va">lml.fit.reg.direct</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Estimated Bayes factor in favor of lml.fit.reg.direct.ve over lml.fit.reg.direct: 9.97105</span></span></code></pre></div>
+<span><span class="co">#&gt; Estimated Bayes factor in favor of lml.fit.reg.direct.ve over lml.fit.reg.direct: 9.89876</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="trace-for-estimated-parameters">Trace for estimated parameters<a class="anchor" aria-label="anchor" href="#trace-for-estimated-parameters"></a>
@@ -1505,21 +1505,21 @@ distributions of slopes and other usuful stats</p>
 <span><span class="co">#Compare slopes</span></span>
 <span><span class="va">df</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">post.ve</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">-</span><span class="va">df</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 2.813803</span></span>
+<span><span class="co">#&gt; [1] 2.804006</span></span>
 <span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html" class="external-link">PI</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">-</span><span class="va">df</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,prob<span class="op">=</span><span class="fl">0.95</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        3%       98% </span></span>
-<span><span class="co">#&gt; 0.8120558 4.7898490</span></span>
+<span><span class="co">#&gt; 0.8444567 4.8495448</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">df</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">-</span><span class="va">df</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">&lt;</span><span class="fl">0</span><span class="op">)</span><span class="op">/</span><span class="fl">4000</span></span>
-<span><span class="co">#&gt; [1] 0.005</span></span>
+<span><span class="co">#&gt; [1] 0.00325</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">df</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">-</span><span class="va">df</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">&gt;=</span><span class="fl">0</span><span class="op">)</span><span class="op">/</span><span class="fl">4000</span></span>
-<span><span class="co">#&gt; [1] 0.995</span></span>
+<span><span class="co">#&gt; [1] 0.99675</span></span>
 <span></span>
 <span><span class="va">unscaled.hl</span><span class="op">&lt;-</span><span class="va">post.ve</span><span class="op">$</span><span class="va">hl</span><span class="op">*</span><span class="va">l.tree</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">unscaled.hl</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 3.409353</span></span>
+<span><span class="co">#&gt; [1] 3.407361</span></span>
 <span><span class="fu">rethinking</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html" class="external-link">PI</a></span><span class="op">(</span><span class="va">unscaled.hl</span>,prob<span class="op">=</span><span class="fl">0.95</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       3%      98% </span></span>
-<span><span class="co">#&gt; 2.063167 5.393720</span></span></code></pre></div>
+<span><span class="co">#&gt; 2.055231 5.356274</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="predictive-checks">Predictive Checks<a class="anchor" aria-label="anchor" href="#predictive-checks"></a>
@@ -1601,7 +1601,7 @@ Revisited. Evol Biol.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
