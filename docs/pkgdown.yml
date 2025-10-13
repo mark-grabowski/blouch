@@ -7,7 +7,11 @@ articles:
   Multi-optima_Models-Examples: Multi-optima_Models-Examples.html
   Simulation-Example: Simulation-Example.html
   Varying_Effects_Models-Examples: Varying_Effects_Models-Examples.html
+<<<<<<< HEAD
 last_built: 2025-10-10T15:11Z
+=======
+last_built: 2025-10-11T15:12Z
+>>>>>>> dev-fixes-blouch1.0
 urls:
   reference: https://mark-grabowski.github.io/blouch/reference
   article: https://mark-grabowski.github.io/blouch/articles

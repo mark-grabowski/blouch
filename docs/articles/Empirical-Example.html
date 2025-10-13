@@ -64,7 +64,11 @@
                         <h4 data-toc-skip class="author">Mark
 Grabowski</h4>
             
+<<<<<<< HEAD
             <h4 data-toc-skip class="date">2025-10-10</h4>
+=======
+            <h4 data-toc-skip class="date">2025-10-11</h4>
+>>>>>>> dev-fixes-blouch1.0
       
 
       <div class="d-none name"><code>Empirical-Example.Rmd</code></div>
@@ -103,7 +107,7 @@ volume, the multi-optima model is indicated.</p>
 shown in the directed acyclic graph (DAG) below.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
-<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html" class="external-link">theme_dag</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/get_theme.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html" class="external-link">theme_dag</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dag</span><span class="op">&lt;-</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html" class="external-link">ggdag</a></span><span class="op">(</span><span class="fu">ggdag</span><span class="fu">::</span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/dagify.html" class="external-link">dagify</a></span><span class="op">(</span></span>
 <span>  <span class="va">A</span> <span class="op">~</span> <span class="va">B</span>,</span>
@@ -457,7 +461,11 @@ distribution for later use.</p>
 <span><span class="co">#&gt; optima[3]  0.46    0.00 0.22  0.01  0.32  0.46  0.60  0.88  5546    1</span></span>
 <span><span class="co">#&gt; beta[1]    5.02    0.01 0.44  4.15  4.72  5.00  5.31  5.93  4947    1</span></span>
 <span><span class="co">#&gt; </span></span>
+<<<<<<< HEAD
 <span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 16:13:53 2025.</span></span>
+=======
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 15:11:14 2025.</span></span>
+>>>>>>> dev-fixes-blouch1.0
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -670,7 +678,11 @@ file.</p>
 <span><span class="co">#&gt; beta[2,1] 4.46    0.01 0.57  3.31  4.08 4.45 4.84  5.61  4872    1</span></span>
 <span><span class="co">#&gt; beta[3,1] 4.63    0.01 0.60  3.46  4.23 4.63 5.02  5.81  4021    1</span></span>
 <span><span class="co">#&gt; </span></span>
+<<<<<<< HEAD
 <span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 16:14:27 2025.</span></span>
+=======
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 15:11:39 2025.</span></span>
+>>>>>>> dev-fixes-blouch1.0
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -913,7 +925,11 @@ estimation.</p>
 <span><span class="co">#&gt; beta[1]     5.05    0.01 0.51  4.11  4.70  5.02  5.38  6.11  2703    1</span></span>
 <span><span class="co">#&gt; sigma       0.89    0.01 0.43  0.18  0.59  0.83  1.13  1.89  2172    1</span></span>
 <span><span class="co">#&gt; </span></span>
+<<<<<<< HEAD
 <span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 16:15:42 2025.</span></span>
+=======
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 15:28:08 2025.</span></span>
+>>>>>>> dev-fixes-blouch1.0
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
@@ -1130,7 +1146,11 @@ estimates.</p>
 <span><span class="co">#&gt; beta[2,1]   4.55    0.01 0.59  3.41  4.16  4.54 4.94  5.74  3674    1</span></span>
 <span><span class="co">#&gt; beta[3,1]   4.74    0.01 0.59  3.61  4.35  4.75 5.14  5.91  4030    1</span></span>
 <span><span class="co">#&gt; </span></span>
+<<<<<<< HEAD
 <span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Fri Oct 10 16:17:10 2025.</span></span>
+=======
+<span><span class="co">#&gt; Samples were drawn using NUTS(diag_e) at Sat Oct 11 15:28:57 2025.</span></span>
+>>>>>>> dev-fixes-blouch1.0
 <span><span class="co">#&gt; For each parameter, n_eff is a crude measure of effective sample size,</span></span>
 <span><span class="co">#&gt; and Rhat is the potential scale reduction factor on split chains (at </span></span>
 <span><span class="co">#&gt; convergence, Rhat=1).</span></span>
