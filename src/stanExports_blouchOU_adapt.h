@@ -862,6 +862,146 @@ public:
       current_statement__ = 6;
       auto X =
         in__.template read<Eigen::Matrix<local_scalar_t__,-1,-1>>(N, Z_adapt);
+<<<<<<< HEAD
+      {
+        current_statement__ = 34;
+        stan::math::validate_non_negative_index("mu", "N", N);
+        Eigen::Matrix<local_scalar_t__,-1,1> mu =
+          Eigen::Matrix<local_scalar_t__,-1,1>::Constant(N, DUMMY_VAR__);
+        local_scalar_t__ a = DUMMY_VAR__;
+        current_statement__ = 37;
+        stan::math::validate_non_negative_index("V", "N", N);
+        current_statement__ = 38;
+        stan::math::validate_non_negative_index("V", "N", N);
+        Eigen::Matrix<local_scalar_t__,-1,-1> V =
+          Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(N, N, DUMMY_VAR__);
+        current_statement__ = 40;
+        stan::math::validate_non_negative_index("L_v", "N", N);
+        current_statement__ = 41;
+        stan::math::validate_non_negative_index("L_v", "N", N);
+        Eigen::Matrix<local_scalar_t__,-1,-1> L_v =
+          Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(N, N, DUMMY_VAR__);
+        current_statement__ = 43;
+        stan::math::validate_non_negative_index("dmX", "N", N);
+        current_statement__ = 44;
+        stan::math::validate_non_negative_index("dmX", "Z_adapt", Z_adapt);
+        Eigen::Matrix<local_scalar_t__,-1,-1> dmX =
+          Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(N, Z_adapt,
+            DUMMY_VAR__);
+        local_scalar_t__ sigma2_y = DUMMY_VAR__;
+        current_statement__ = 46;
+        sigma2_y = (vy * (2 * (stan::math::log(2) / hl)));
+        current_statement__ = 47;
+        lp_accum__.add(stan::math::lognormal_lpdf<false>(hl,
+                         stan::model::rvalue(hl_prior, "hl_prior",
+                           stan::model::index_uni(1)),
+                         stan::model::rvalue(hl_prior, "hl_prior",
+                           stan::model::index_uni(2))));
+        current_statement__ = 48;
+        lp_accum__.add(stan::math::exponential_lpdf<false>(vy, vy_prior));
+        current_statement__ = 49;
+        lp_accum__.add(stan::math::normal_lpdf<false>(optima,
+                         stan::model::rvalue(optima_prior, "optima_prior",
+                           stan::model::index_uni(1)),
+                         stan::model::rvalue(optima_prior, "optima_prior",
+                           stan::model::index_uni(2))));
+        current_statement__ = 50;
+        lp_accum__.add(stan::math::normal_lpdf<false>(beta,
+                         stan::model::rvalue(beta_prior, "beta_prior",
+                           stan::model::index_uni(1)),
+                         stan::model::rvalue(beta_prior, "beta_prior",
+                           stan::model::index_uni(2))));
+        current_statement__ = 51;
+        a = (stan::math::log(2) / hl);
+        current_statement__ = 52;
+        stan::model::assign(V,
+          calc_V(a, sigma2_y, ta, tij, tja, T_term, beta, sigma2_x, pstream__),
+          "assigning variable V");
+        current_statement__ = 53;
+        stan::model::assign(L_v, stan::math::cholesky_decompose(V),
+          "assigning variable L_v");
+        current_statement__ = 57;
+        for (int i = 1; i <= Z_adapt; ++i) {
+          current_statement__ = 54;
+          lp_accum__.add(stan::math::normal_lpdf<false>(
+                           stan::model::rvalue(X, "X",
+                             stan::model::index_omni(),
+                             stan::model::index_uni(i)), 0, 1));
+          current_statement__ = 55;
+          lp_accum__.add(stan::math::normal_lpdf<false>(
+                           stan::model::rvalue(X_obs, "X_obs",
+                             stan::model::index_omni(),
+                             stan::model::index_uni(i)),
+                           stan::model::rvalue(X, "X",
+                             stan::model::index_omni(),
+                             stan::model::index_uni(i)),
+                           stan::model::rvalue(X_error, "X_error",
+                             stan::model::index_omni(),
+                             stan::model::index_uni(i))));
+        }
+        current_statement__ = 58;
+        stan::model::assign(dmX, calc_dmX(a, T_term, X, pstream__),
+          "assigning variable dmX");
+        current_statement__ = 59;
+        stan::model::assign(mu,
+          stan::math::add(optima, stan::math::multiply(dmX, beta)),
+          "assigning variable mu");
+        current_statement__ = 60;
+        lp_accum__.add(stan::math::multi_normal_cholesky_lpdf<false>(Y, mu,
+                         L_v));
+        current_statement__ = 61;
+        lp_accum__.add(stan::math::normal_lpdf<false>(Y_obs, Y, Y_error));
+      }
+    } catch (const std::exception& e) {
+      stan::lang::rethrow_located(e, locations_array__[current_statement__]);
+    }
+    lp_accum__.add(lp__);
+    return lp_accum__.sum();
+  }
+  // Reverse mode autodiff log prob
+  template <bool propto__, bool jacobian__, typename VecR, typename VecI,
+            stan::require_vector_like_t<VecR>* = nullptr,
+            stan::require_vector_like_vt<std::is_integral, VecI>* = nullptr,
+            stan::require_st_var<VecR>* = nullptr>
+  inline stan::scalar_type_t<VecR>
+  log_prob_impl(VecR& params_r__, VecI& params_i__, std::ostream*
+                pstream__ = nullptr) const {
+    using T__ = stan::scalar_type_t<VecR>;
+    using local_scalar_t__ = T__;
+    T__ lp__(0.0);
+    stan::math::accumulator<T__> lp_accum__;
+    stan::io::deserializer<local_scalar_t__> in__(params_r__, params_i__);
+    int current_statement__ = 0;
+    // suppress unused var warning
+    (void) current_statement__;
+    local_scalar_t__ DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
+    // suppress unused var warning
+    (void) DUMMY_VAR__;
+    static constexpr const char* function__ =
+      "model_blouchOU_adapt_namespace::log_prob";
+    // suppress unused var warning
+    (void) function__;
+    try {
+      current_statement__ = 1;
+      auto hl =
+        in__.template read_constrain_lb<local_scalar_t__, jacobian__>(0,
+          lp__);
+      current_statement__ = 2;
+      auto beta =
+        in__.template read_constrain_lb<Eigen::Matrix<local_scalar_t__,-1,1>,
+          jacobian__>(0, lp__, Z_adapt);
+      current_statement__ = 3;
+      auto optima = in__.template read<local_scalar_t__>();
+      current_statement__ = 4;
+      auto vy =
+        in__.template read_constrain_lb<local_scalar_t__, jacobian__>(0,
+          lp__);
+      current_statement__ = 5;
+      auto Y = in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(N);
+      current_statement__ = 6;
+      auto X =
+        in__.template read<Eigen::Matrix<local_scalar_t__,-1,-1>>(N, Z_adapt);
+=======
       local_scalar_t__ sigma2_y = DUMMY_VAR__;
       current_statement__ = 7;
       sigma2_y = (vy * (2 * (stan::math::log(2) / hl)));
@@ -891,6 +1031,7 @@ public:
       stan::model::assign(mu,
         stan::math::add(optima, stan::math::multiply(dmX, beta)),
         "assigning variable mu");
+>>>>>>> dev-fixes-blouch1.0
       {
         current_statement__ = 32;
         lp_accum__.add(stan::math::lognormal_lpdf<false>(hl,
@@ -1121,6 +1262,8 @@ public:
       current_statement__ = 6;
       auto X =
         in__.template read<Eigen::Matrix<local_scalar_t__,-1,-1>>(N, Z_adapt);
+<<<<<<< HEAD
+=======
       double sigma2_y = std::numeric_limits<double>::quiet_NaN();
       double a = std::numeric_limits<double>::quiet_NaN();
       Eigen::Matrix<double,-1,-1> V =
@@ -1135,6 +1278,7 @@ public:
       Eigen::Matrix<double,-1,1> mu =
         Eigen::Matrix<double,-1,1>::Constant(N,
           std::numeric_limits<double>::quiet_NaN());
+>>>>>>> dev-fixes-blouch1.0
       out__.write(hl);
       out__.write(beta);
       out__.write(optima);
@@ -1231,7 +1375,11 @@ public:
           - (g_i / sigma_ii));
         current_statement__ = 28;
         sigma_i = (1 / sigma_ii);
+<<<<<<< HEAD
+        current_statement__ = 31;
+=======
         current_statement__ = 29;
+>>>>>>> dev-fixes-blouch1.0
         stan::model::assign(log_lik, ((-(0.5) *
           stan::math::log(((2 * stan::math::pi()) * sigma_i))) - (0.5 *
           (stan::math::square(
