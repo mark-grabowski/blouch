@@ -1,5 +1,5 @@
-//Blouch OU model reprogrammed - 2023
-//Regime model - for single regime painting and SIMMAPS
+//Blouch OU model - 2025 - Blouch v2.0
+//Regime model - for single regime painting and SIMMAPS/
 
 functions {
   int num_matches(vector x, real y) { //Thanks to Stan Admin Jonah -https://discourse.mc-stan.org/t/how-to-find-the-location-of-a-value-in-a-vector/19768/2
