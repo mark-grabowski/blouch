@@ -1,4 +1,4 @@
-//Blouch OU model reprogrammed - 2023
+//Blouch OU model - 2025 - Blouch v2.0
 //Regime model with adaptive predictors
 //Model accounts for measurement error on X and/or Y variables
 //See below for which lines to comment/uncomment based on whether measurement error is present
@@ -12,10 +12,9 @@ functions {
   return(n);
   }
 
-  int[] which_equal(vector x, real y) {
-    int match_positions[num_matches(x, y)];
+  array[] int which_equal(vector x, real y) {
+    array[num_matches(x, y)] int match_positions;
     int pos = 1;
-    //for (i in 1:size(x)) {
     for (i in 1:(dims(x)[1])) {
       if (x[i] == y) {
         match_positions[pos] = i;
@@ -33,24 +32,18 @@ functions {
   row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
     //Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
-    //print(weight_seg);
     vector[n_reg] reg_weights = rep_vector(0,n_reg);
     for(i in 1:n_reg){//reg_match should have values 1,2,3 denoting different regimes
-      int ids[num_matches(reg_match, i)] = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
-      //print(ids);
-      //print(weight_seg[ids]);
+      array[num_matches(reg_match, i)] int ids = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
       reg_weights[i] = sum(weight_seg[ids]);
-      //print(reg_weights[i]);
       }
     return(reg_weights');
   }
 
-  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
+  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, array[] int nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
       optima_matrix[i,] = weights_regimes(n_reg, a, t_beginning[i,]', t_end[i,]', times[i,1], reg_match[i,]', nodes[i]);
-      //print(i);
-      //print(optima_matrix[i,]);
       }
     return(optima_matrix);
   }
@@ -102,7 +95,7 @@ data {
   matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
-  int nodes[N]; //Vector of number of nodes per lineage
+  array[N] int nodes; //Vector of number of nodes per lineage
   vector[2] hl_prior;
   real vy_prior;
   vector[2] optima_prior;
@@ -115,77 +108,47 @@ parameters {
   real <lower=0> vy;
   vector[n_reg] optima;
   vector[Z_adaptive] beta;
-  vector[N] Y;
-  matrix[N,Z_adaptive] X;
+  vector[N] Y_true;
+  matrix[N,Z_adaptive] X_true;
 }
-
-model {
-  matrix[N,N] V;
-  vector[N] mu;
-  matrix[N,N] L_v;
-  matrix[N,Z_adaptive] pred_X;
-  //matrix[N,n_reg+Z_adaptive] dmX;
+transformed parameters {
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
   matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
-  //vector[n_reg+Z_adaptive] optima_beta = append_row(optima,beta);
-  //hl ~ lognormal(log(0.25),0.25);
+  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
+  matrix[N,Z_adaptive] pred_X = calc_dmX(a,T_term,X_true); //Given measurement error in X variable, uncomment this nested statement
+  matrix[N,N] V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
+  matrix[N,N]L_v = cholesky_decompose(V);
+  vector[N] mu = optima_matrix*optima+pred_X*beta;
+}
+model {
   target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
-  //vy ~ exponential(20);
   target += exponential_lpdf(vy|vy_prior);
-  //optima ~ normal(2.88,0.5);
-  //beta ~ normal(0.31,0.1);
   target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
   target += normal_lpdf(beta|beta_prior[1],beta_prior[2]);
   for(i in 1:(Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
-    //X[,i] ~ normal(0,1);
-    target += normal_lpdf(X[,i]|0,1);
-    //X_obs[,i] ~ normal(X[,i], X_error[,i]);
-    target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
+    target += normal_lpdf(X_true[,i]|0,1);
+    target += normal_lpdf(X_obs[,i]|X_true[,i],X_error[,i]);
   }
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_dmX(a,T_term,X); //Given measurement error in X variable, uncomment this nested statement
-  //pred_X = calc_dmX(a,T_term,X_obs); //Given no measurement error in X variable, uncomment this nested statement
-  //dmX = append_col(optima_matrix,pred_X);
-  V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
-  L_v = cholesky_decompose(V);
-  //mu = dmX*optima_beta;
-  mu = optima_matrix*optima+pred_X*beta;
-  //Y ~ multi_normal_cholesky(mu , L_v);//Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ normal(Y,Y_error);//Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ multi_normal_cholesky(mu , L_v); //Given no measurement error in Y variable, uncomment this statement
-  target += multi_normal_cholesky_lpdf(Y | mu , L_v);
-  target += normal_lpdf(Y_obs | Y, Y_error);
+
+  target += multi_normal_cholesky_lpdf(Y_true | mu , L_v);
+  target += normal_lpdf(Y_obs | Y_true, Y_error);
 }
 generated quantities {
-  matrix[N,N] V;
-  matrix[N,N] inv_V;
-  matrix[N,Z_adaptive] pred_X;
-  //matrix[N,n_reg+Z_adaptive] dmX;
-  matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
-  //vector[n_reg+Z_adaptive] optima_beta = append_row(optima,beta);
-  vector[N] mu;
   real g_i;
   real sigma_ii;
   real sigma_i;
   real u_i;
   vector[N] log_lik;
-  real sigma2_y = vy*(2*(log(2)/hl));
-  real a = log(2)/hl;
   vector[N] rho = (1 - (1 - exp(-a * T_term))./(a * T_term));
   vector[Z_adaptive] beta_e;
   for(i in 1:Z_adaptive){
     beta_e[i] = beta[i]* rho[i];
     }
   //LOO-CV for multivariate normal models
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_dmX(a,T_term,X); //Given measurement error in X variable, uncomment this nested statement
-  //pred_X = calc_dmX(a,T_term,X_obs); //Given no measurement error in X variable, uncomment this nested statement
-  //dmX = append_col(optima_matrix,pred_X);
-  //mu = dmX*optima_beta;
-  mu = optima_matrix*optima+pred_X*beta;
-  V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta,sigma2_x);
-  inv_V = inverse(V);
+  matrix[N,N] V_total = V + diag_matrix(square(Y_error));
+  matrix[N,N] inv_V = inverse(V_total);
+
   for(i in 1:N){
       g_i = (inv_V*(Y_obs-mu))[i];
       sigma_ii = inv_V[i,i];

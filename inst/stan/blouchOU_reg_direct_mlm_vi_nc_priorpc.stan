@@ -12,8 +12,8 @@ functions {
   return(n);
   }
 
-  int[] which_equal(vector x, real y) {
-    int match_positions[num_matches(x, y)];
+  array[] int which_equal(vector x, real y) {
+    array[num_matches(x, y)] int match_positions;
     int pos = 1;
     //for (i in 1:size(x)) {
     for (i in 1:(dims(x)[1])) {
@@ -36,7 +36,7 @@ functions {
     //print(weight_seg);
     vector[n_reg] reg_weights = rep_vector(0,n_reg);
     for(i in 1:n_reg){//reg_match should have values 1,2,3 denoting different regimes
-      int ids[num_matches(reg_match, i)] = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
+      array[num_matches(reg_match, i)] int ids = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
       //print(ids);
       //print(weight_seg[ids]);
       reg_weights[i] = sum(weight_seg[ids]);
@@ -45,7 +45,7 @@ functions {
     return(reg_weights');
   }
 
-  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
+  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, array[] int nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
       optima_matrix[i,] = weights_regimes(n_reg, a, t_beginning[i,]', t_end[i,]', times[i,1], reg_match[i,]', nodes[i]);
@@ -80,7 +80,7 @@ data {
   matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
-  int nodes[N]; //Vector of number of nodes per lineage
+  array[N] int nodes; //Vector of number of nodes per lineage
   vector[2] hl_prior;
   real vy_prior;
   vector[2] optima_prior;

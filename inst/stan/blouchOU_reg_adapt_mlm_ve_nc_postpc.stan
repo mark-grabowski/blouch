@@ -11,10 +11,9 @@ functions {
       n += 1;
   return(n);
   }
-  int[] which_equal(vector x, real y) {
-    int match_positions[num_matches(x, y)];
+  array[] int which_equal(vector x, real y) {
+    array[num_matches(x, y)] int match_positions;
     int pos = 1;
-    //for (i in 1:size(x)) {
     for (i in 1:(dims(x)[1])) {
       if (x[i] == y) {
         match_positions[pos] = i;
@@ -28,26 +27,19 @@ functions {
     return(weights);
   }
 
-  row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
-    //Individual lineage, calculate weights for regimes on each segement
+  row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
-    //print(weight_seg);
     vector[n_reg] reg_weights = rep_vector(0,n_reg);
     for(i in 1:n_reg){//reg_match should have values 1,2,3 denoting different regimes
-      int ids[num_matches(reg_match, i)] = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
-      //print(ids);
-      //print(weight_seg[ids]);
+      array[num_matches(reg_match, i)] int ids = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
       reg_weights[i] = sum(weight_seg[ids]);
-      //print(reg_weights[i]);
       }
     return(reg_weights');
   }
-  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
+  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, array[] int nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
       optima_matrix[i,] = weights_regimes(n_reg, a, t_beginning[i,]', t_end[i,]', times[i,1], reg_match[i,]', nodes[i]);
-      //print(i);
-      //print(optima_matrix[i,]);
       }
     return(optima_matrix);
   }
@@ -95,8 +87,8 @@ data {
   matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
-  int nodes[N]; //Vector of number of nodes per lineage
-  int reg_tips[N]; //Regimes at the tips
+  array[N] int nodes; //Vector of number of nodes per lineage
+  array[N] int reg_tips; //Regimes at the tips
   vector[2] hl_prior;
   real vy_prior;
   vector[2] optima_prior;
@@ -178,11 +170,6 @@ generated quantities {
   matrix[N,Z_adaptive] pred_X;
   matrix[N,n_reg] optima_matrix;
   vector[N] mu;
-  real g_i;
-  real sigma_ii;
-  real sigma_i;
-  real u_i;
-  vector[N] log_lik;
   real sigma2_y = vy*(2*(log(2)/hl));
   real a = log(2)/hl;
   matrix[2,2] Rho;
@@ -202,5 +189,5 @@ generated quantities {
   Y_sim_obs[i] = normal_rng(Y_sim[i],Y_error[i]);
   }
 
-    
+
 }
