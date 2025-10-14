@@ -1,4 +1,4 @@
-//Blouch OU model reprogrammed
+//Blouch OU model - 2025 - Blouch v2.0
 //Using Hansen (1997)
 //Regime model - for single regime painting and SIMMAPS
 //Multilevel model - varying intercepts across regimes
@@ -12,10 +12,9 @@ functions {
   return(n);
   }
 
-  int[] which_equal(vector x, real y) {
-    int match_positions[num_matches(x, y)];
+  array[] int which_equal(vector x, real y) {
+    array[num_matches(x, y)] int match_positions;
     int pos = 1;
-    //for (i in 1:size(x)) {
     for (i in 1:(dims(x)[1])) {
       if (x[i] == y) {
         match_positions[pos] = i;
@@ -40,24 +39,18 @@ functions {
   row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
     //Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
-    //print(weight_seg);
     vector[n_reg] reg_weights = rep_vector(0,n_reg);
     for(i in 1:n_reg){//reg_match should have values 1,2,3 denoting different regimes
-      int ids[num_matches(reg_match, i)] = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
-      //print(ids);
-      //print(weight_seg[ids]);
+      array[num_matches(reg_match, i)] int ids = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
       reg_weights[i] = sum(weight_seg[ids]);
-      //print(reg_weights[i]);
       }
     return(reg_weights');
   }
 
-  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
+  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, array[] int nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
       optima_matrix[i,] = weights_regimes(n_reg, a, t_beginning[i,]', t_end[i,]', times[i,1], reg_match[i,]', nodes[i]);
-      //print(i);
-      //print(optima_matrix[i,]);
       }
     return(optima_matrix);
   }
@@ -75,7 +68,7 @@ data {
   matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
-  int nodes[N]; //Vector of number of nodes per lineage
+  array[N] int nodes; //Vector of number of nodes per lineage
   vector[2] hl_prior;
   real vy_prior;
   vector[2] optima_prior;
@@ -90,56 +83,40 @@ parameters {
   real <lower=0> vy;
   vector[N] Y;
 }
-model {
-  matrix[N,N] V;
-  vector[N] mu;
-  matrix[N,N] L_v;
-  matrix[N,n_reg] dmX;
+transformed parameters{
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
-  //hl ~ lognormal(log(0.25),0.25);
+  matrix[N,N] V = calc_V(a, sigma2_y,ta, tij);
+  matrix[N,N] L_v = cholesky_decompose(V);
+  matrix[N,n_reg] dmX = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
+  vector[N] mu = dmX*optima;
+}
+
+model {
   target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
-  //vy ~ exponential(20);
   target += exponential_lpdf(vy|vy_prior);
-  //sigma ~ exponential(5);
   target += normal_lpdf(sigma|sigma_prior[1],sigma_prior[2]);
-  //optima_bar ~ normal(0,1);
-  //optima ~ normal(optima_bar,sigma);
   target += normal_lpdf(optima_bar|optima_prior[1],optima_prior[2]);
   target += normal_lpdf(optima|optima_bar,sigma);
-  V = calc_V(a, sigma2_y,ta, tij);
-  L_v = cholesky_decompose(V);
-  dmX = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  mu = dmX*optima;
-  //Y_obs ~ multi_normal_cholesky(mu , L_v);
   target += multi_normal_cholesky_lpdf(Y | mu , L_v);
   target += normal_lpdf(Y_obs | Y, Y_error);
 
 }
 generated quantities {
-  matrix[N,N] V;
-  matrix[N,N] inv_V;
-  matrix[N,n_reg] dmX;
-  vector[N] mu;
   real g_i;
   real sigma_ii;
   real sigma_i;
   real u_i;
   vector[N] log_lik;
-  real sigma2_y = vy*(2*(log(2)/hl));
-  real a = log(2)/hl;
   //LOO-CV for multivariate normal models
-  V = calc_V(a, sigma2_y,ta, tij);
-  inv_V = inverse(V);
-  dmX = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  mu = dmX*optima;
-
+  matrix[N,N] V_total = V + diag_matrix(square(Y_error));
+  matrix[N,N] inv_V = inverse(V_total);
   for(i in 1:N){
       g_i = (inv_V*(Y_obs-mu))[i];
       sigma_ii = inv_V[i,i];
       u_i = Y_obs[i]-g_i/sigma_ii;
       sigma_i = 1/sigma_ii;
-
       log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y_obs[i]-u_i)/sigma_i);
       }
 }
+

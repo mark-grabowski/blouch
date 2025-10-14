@@ -1,4 +1,4 @@
-//Blouch OU model reprogrammed
+//Blouch OU model - 2025 - Blouch v2.0
 //Multilevel regime model with direct and adaptive predictors and measurement error
 //Regime model - for single regime painting and SIMMAPS
 //Varying intercepts and slopes across regimes
@@ -12,8 +12,8 @@ functions {
       n += 1;
   return(n);
   }
-  int[] which_equal(vector x, real y) {
-    int match_positions[num_matches(x, y)];
+  array[] int which_equal(vector x, real y) {
+    array[num_matches(x, y)] int match_positions;
     int pos = 1;
     //for (i in 1:size(x)) {
     for (i in 1:(dims(x)[1])) {
@@ -32,23 +32,17 @@ functions {
   row_vector weights_regimes(int n_reg, real a, vector t_beginning, vector t_end, real time, vector reg_match, int nodes){//
     //Individual lineage, calculate weights for regimes on each segement
     vector[nodes] weight_seg = weight_segments(a, t_beginning[1:(nodes-1)], t_end[1:(nodes-1)], time, nodes);
-    //print(weight_seg);
     vector[n_reg] reg_weights = rep_vector(0,n_reg);
     for(i in 1:n_reg){//reg_match should have values 1,2,3 denoting different regimes
-      int ids[num_matches(reg_match, i)] = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
-      //print(ids);
-      //print(weight_seg[ids]);
+      array[num_matches(reg_match, i)] int ids = which_equal(reg_match, i); //Returns indixes of matching regimes in weight_segments vector
       reg_weights[i] = sum(weight_seg[ids]);
-      //print(reg_weights[i]);
       }
     return(reg_weights');
   }
-  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, int[] nodes){
+  matrix calc_optima_matrix(int N, int n_reg, real a, matrix t_beginning, matrix t_end, matrix times, matrix reg_match, array[] int nodes){
     matrix[N,n_reg] optima_matrix = rep_matrix(0,N,n_reg);
     for(i in 1:N){ //For each tip/lineage, figure out weighting of regimes
       optima_matrix[i,] = weights_regimes(n_reg, a, t_beginning[i,]', t_end[i,]', times[i,1], reg_match[i,]', nodes[i]);
-      //print(i);
-      //print(optima_matrix[i,]);
       }
     return(optima_matrix);
   }
@@ -78,6 +72,7 @@ functions {
     return Vt;
   }
 }
+
 data {
   int N; //Numnber of tips
   int n_reg; //Number of regimes
@@ -98,8 +93,8 @@ data {
   matrix[N, max_node_num] t_end; //Matrix of times for end of segments to
   matrix[N, max_node_num] times; //Matrix of root to node times
   matrix[N, max_node_num] reg_match; //Matrix of 1,2,3 denoting each regime for each node in a lineage. 0 if no node
-  int nodes[N]; //Vector of number of nodes per lineage
-  int reg_tips[N]; //Regimes at the tips
+  array[N] int nodes; //Vector of number of nodes per lineage
+  array[N] int reg_tips; //Regimes at the tips
   vector[2] hl_prior;
   real vy_prior;
   vector[2] optima_prior;
@@ -117,77 +112,53 @@ parameters {
 
 }
 transformed parameters{
-}
-
-model {
-  matrix[N,N] V;
   vector[N] mu;
-  matrix[N,N] L_v;
-  matrix[N,Z_direct+Z_adaptive] pred_X;
   real a = log(2)/hl;
   real sigma2_y = vy*(2*(log(2)/hl));
-  matrix[N,n_reg] optima_matrix;
-  vector[1+Z_direct+Z_adaptive] ab_bar;
-  //hl ~ lognormal(log(0.25),0.25);
-  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
-  //vy ~ exponential(20);
-  target += exponential_lpdf(vy|vy_prior);
-  //optima_bar ~ normal(mean(Y),1);
-  //beta_bar ~ normal(0,0.25);
-  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
-  for(i in 1:(Z_direct+Z_adaptive)){
-    //beta[,i] ~ normal(beta_bar,beta_sigma);
-    target += normal_lpdf(beta[,i]|beta_prior[1],beta_prior[2]);
-  }
-  for(i in 1:(Z_direct+Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
-    //X[,i] ~ normal(0,1);
-    target += normal_lpdf(X[,i]|0,1);
-    //X_obs[,i] ~ normal(X[,i], X_error[,i]);
-    target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
-  }
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive);//Given measurement error in X variable, uncomment this statement
-  //pred_X = calc_mixed_dmX(a,T_term,X_obs,Z_direct,Z_adaptive);//Given no measurement noerror in X variable, uncomment thisstatement
-  V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta[,(Z_direct+1):(Z_direct+Z_adaptive)],sigma2_x,Z_adaptive,n_reg);
-  L_v = cholesky_decompose(V);
+  //vector[1+Z_direct+Z_adaptive] ab_bar;
+  matrix[N,n_reg] optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
+  matrix[N,Z_direct+Z_adaptive] pred_X = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive);//Given measurement error in X variable, uncomment this statement
+  matrix[N,N] V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta[,(Z_direct+1):(Z_direct+Z_adaptive)],sigma2_x,Z_adaptive,n_reg);
+  matrix[N,N] L_v = cholesky_decompose(V);
   for(i in 1:N){
     mu[i] = optima_matrix[i,]*optima+pred_X[i,]*beta[reg_tips[i],]';
     }
-  //Y ~ multi_normal_cholesky(mu , L_v);//Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ normal(Y,Y_error); //Given measurement error in Y variable, uncomment this statement
-  //Y_obs ~ multi_normal_cholesky(mu , L_v); //Given no measurement error in Y variable, uncomment this statement
+
+}
+
+model {
+  target += lognormal_lpdf(hl|hl_prior[1],hl_prior[2]);
+  target += exponential_lpdf(vy|vy_prior);
+  target += normal_lpdf(optima|optima_prior[1],optima_prior[2]);
+  for(i in 1:(Z_direct+Z_adaptive)){
+    target += normal_lpdf(beta[,i]|beta_prior[1],beta_prior[2]);
+  }
+  for(i in 1:(Z_direct+Z_adaptive)){//Given measurement error in X variable, uncomment this nested statement
+    target += normal_lpdf(X[,i]|0,1);
+    target += normal_lpdf(X_obs[,i]|X[,i],X_error[,i]);
+  }
   target += multi_normal_cholesky_lpdf(Y | mu , L_v);
   target += normal_lpdf(Y_obs | Y, Y_error);
 }
 generated quantities {
-  matrix[N,N] V;
-  matrix[N,N] inv_V;
-  matrix[N,Z_direct+Z_adaptive] pred_X;
-  matrix[N,n_reg] optima_matrix;
-  vector[N] mu;
   real g_i;
   real sigma_ii;
   real sigma_i;
   real u_i;
   vector[N] log_lik;
-  real sigma2_y = vy*(2*(log(2)/hl));
-  real a = log(2)/hl;
   real rho = (1 - (1 - exp(-a * T_term))./(a * T_term))[1];
   matrix[n_reg,Z_adaptive] beta_e = beta[,(Z_direct+1):(Z_direct+Z_adaptive)]*rho;
   //Based on https://cran.r-project.org/web/packages/loo/vignettes/loo2-non-factorized.htmlloo-cv-for-multivariate-normal-models
   //LOO-CV for multivariate normal models
-  V = calc_V(a,sigma2_y,ta,tij,tja,T_term,beta[,(Z_direct+1):(Z_direct+Z_adaptive)],sigma2_x,Z_adaptive,n_reg);
-  inv_V = inverse(V);
-  optima_matrix = calc_optima_matrix(N, n_reg, a, t_beginning, t_end, times, reg_match, nodes);
-  pred_X = calc_mixed_dmX(a,T_term,X,Z_direct,Z_adaptive);
-  for(i in 1:N){
-    mu[i] = optima_matrix[i,]*optima+pred_X[i,]*beta[reg_tips[i],]';
-    }
+  matrix[N,N] V_total = V + diag_matrix(square(Y_error));
+  matrix[N,N] inv_V = inverse(V_total);
   for(i in 1:N){
       g_i = (inv_V*(Y_obs-mu))[i];
       sigma_ii = inv_V[i,i];
       u_i = Y_obs[i]-g_i/sigma_ii;
       sigma_i = 1/sigma_ii;
+
       log_lik[i] = -0.5*log(2*pi()*sigma_i)-0.5*(square(Y_obs[i]-u_i)/sigma_i);
-    }
+      }
 }
+
