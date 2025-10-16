@@ -2,7 +2,9 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # *Blouch*
+
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 *Blouch*: Bayesian Linear Ornstein-Uhlenbeck models for Comparative
@@ -18,24 +20,24 @@ While the front-end component of *Blouch* is written in R (R Core Team,
 2023), the nuts and bolts are written in the language Stan (Carpenter et
 al., 2017), which allows estimation of Bayesian models using Markov
 chain Monte Carlo (MCMC) methods based on the Hamilton Monte Carlo
-sampler. 
+sampler.
 
 ## Getting Started
 
 If you are just getting started with *Blouch* I recommend starting with
-the Empirical and Simulation Example articles available on the package website. The
-other articles are abbreviated versions of this example showing the
-various models implemented by *Blouch* - most of the steps of a
-preliminary analysis will be the same.
+the Empirical and Simulation Example articles available on the package
+website. The other articles are abbreviated versions of this example
+showing the various models implemented by *Blouch* - most of the steps
+of a preliminary analysis will be the same.
 
-*Blouch* is based on an article:
+*Blouch* is based on an article currently in press:
 
-- Grabowski, M (2024). *Blouch*: Bayesian Linear
-  Ornstein-Uhlenbeck models for Comparative Hypotheses. _Systematic Biology_.
+- Grabowski, M (2024). *Blouch*: Bayesian Linear Ornstein-Uhlenbeck
+  models for Comparative Hypotheses. Systematic Biology.
 
 ## Instalation Instructions
 
-To install the R and Stan functions associated with *Blouch* from github,
+To install the R and Stan functions associated with Blouch from github,
 first install the package devtools:
 
 ``` r
@@ -43,22 +45,16 @@ install.packages("devtools", repos = "https://cran.ma.imperial.ac.uk/")
 library(devtools)
 ```
 
-Then install *Blouch*
+Then install Blouch
 
 ``` r
 devtools::install_github("mark-grabowski/blouch")
 library(blouch)
 ```
-Note that the development version of *Blouch*, via the branch 'dev-fixes-blouch1.0', currently has the most up to date version and will be merged with the main branch shortly.
-
-``` r
-devtools::install_github("mark-grabowski/blouch@dev-fixes-blouch1.0")
-library(blouch)
-```
 
 ## Documentation
 
-For a complete walkthrough of the package visit the package website:
+Please visit the package website
 <a href="https://mark-grabowski.github.io/blouch/" title="here.">here</a>.
 
 ## References
